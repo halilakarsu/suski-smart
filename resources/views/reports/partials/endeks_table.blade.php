@@ -119,208 +119,62 @@
                     <td style="text-align:right; font-weight:700; color:#0f172a;">₺ {{ number_format((float)$row->tutar_toplam, 2, ',', '.') }}</td>
                     <td style="text-align:center;">{!! $genelDurum !!}</td>
                     <td style="text-align:center;">
-                        <button type="button" class="btn-incele"><i class="fas fa-chevron-down"></i></button>
+                        <button type="button" class="btn-incele endeks-detail-btn"><i class="fas fa-chevron-down"></i></button>
                     </td>
                 </tr>
-                <tr class="d-none" style="background:#f8fafc;">
-                    <td colspan="10" style="padding:20px;">
-                        <div class="detay-panel" style="border-radius:16px;box-shadow:0 4px 12px rgba(0,0,0,0.04);">
-                            <div class="detay-header" style="background:linear-gradient(135deg,#1e293b,#334155);padding:14px 24px;font-weight:700;color:#fff;border-radius:16px 16px 0 0;display:flex;justify-content:space-between;align-items:center;letter-spacing:0.02em;">
-                                <span><i class="fas fa-microscope" style="color:#60a5fa;margin-right:10px;"></i> DETAYLI ENDEKS ANALİZİ</span>
-                                <span style="font-size:0.7rem;color:#94a3b8;font-weight:600;background:rgba(255,255,255,0.08);padding:4px 12px;border-radius:20px;">Çarpan: x{{$carpan}} | Trafo: {{$trafo}} kWh | Ek: {{$ek}} kWh</span>
-                            </div>
-
-                            <div style="padding:20px 24px;background:#fff;border-bottom:1px solid #e2e8f0;">
-                                <table style="width:100%;border-collapse:collapse;font-size:0.82rem;">
-                                    <thead>
-                                        <tr>
-                                            <th colspan="6" style="padding:8px 10px;background:#f1f5f9;font-size:0.6rem;font-weight:800;color:#64748b;text-transform:uppercase;letter-spacing:0.08em;text-align:left;border-bottom:2px solid #cbd5e1;">TEMEL BİLGİLER</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        <tr>
-                                            <td style="padding:8px 10px;border-bottom:1px solid #f1f5f9;color:#64748b;font-weight:600;width:12%;">Fatura No</td>
-                                            <td style="padding:8px 10px;border-bottom:1px solid #f1f5f9;font-weight:700;color:#0f172a;width:20%;">{{ $row->fatura_no }}</td>
-                                            <td style="padding:8px 10px;border-bottom:1px solid #f1f5f9;color:#64748b;font-weight:600;width:12%;">Tesisat No</td>
-                                            <td style="padding:8px 10px;border-bottom:1px solid #f1f5f9;font-weight:700;color:#0f172a;width:20%;">{{ $row->abone_tesis_no ?? $row->tesisat_no }}</td>
-                                            <td style="padding:8px 10px;border-bottom:1px solid #f1f5f9;color:#64748b;font-weight:600;width:12%;">Sayaç Seri No</td>
-                                            <td style="padding:8px 10px;border-bottom:1px solid #f1f5f9;font-weight:700;color:#0f172a;width:20%;">{{ $row->sayac_seri_no ?? '—' }}</td>
-                                        </tr>
-                                        <tr>
-                                            <td style="padding:8px 10px;border-bottom:1px solid #f1f5f9;color:#64748b;font-weight:600;">Dönem</td>
-                                            <td style="padding:8px 10px;border-bottom:1px solid #f1f5f9;font-weight:700;color:#2563eb;">{{ $row->donem }}</td>
-                                            <td style="padding:8px 10px;border-bottom:1px solid #f1f5f9;color:#64748b;font-weight:600;">Tarife</td>
-                                            <td style="padding:8px 10px;border-bottom:1px solid #f1f5f9;font-weight:700;color:#0f172a;">{{ $row->tarife_2 ?: $row->tarife ?? '—' }}</td>
-                                            <td style="padding:8px 10px;border-bottom:1px solid #f1f5f9;color:#64748b;font-weight:600;">Bağlantı Grubu</td>
-                                            <td style="padding:8px 10px;border-bottom:1px solid #f1f5f9;font-weight:700;color:#0f172a;">{{ $row->baglanti_grubu ?? '—' }}</td>
-                                        </tr>
-                                        <tr>
-                                            <td style="padding:8px 10px;border-bottom:1px solid #f1f5f9;color:#64748b;font-weight:600;">İlk Okuma</td>
-                                            <td style="padding:8px 10px;border-bottom:1px solid #f1f5f9;font-weight:700;color:#0f172a;">{{ $row->ilk_okuma ? \Carbon\Carbon::parse($row->ilk_okuma)->format('d.m.Y') : '—' }}</td>
-                                            <td style="padding:8px 10px;border-bottom:1px solid #f1f5f9;color:#64748b;font-weight:600;">Son Okuma</td>
-                                            <td style="padding:8px 10px;border-bottom:1px solid #f1f5f9;font-weight:700;color:#0f172a;">{{ $row->son_okuma ? \Carbon\Carbon::parse($row->son_okuma)->format('d.m.Y') : '—' }}</td>
-                                            <td style="padding:8px 10px;border-bottom:1px solid #f1f5f9;color:#64748b;font-weight:600;">Adres</td>
-                                            <td style="padding:8px 10px;border-bottom:1px solid #f1f5f9;font-weight:600;color:#0f172a;word-break:break-word;">{{ $row->adres ?? '—' }}</td>
-                                        </tr>
-                                    </tbody>
-                                </table>
-                            </div>
-
-                            <div style="padding:20px 24px;background:#fff;border-bottom:1px solid #e2e8f0;">
-                                <table style="width:100%;border-collapse:collapse;font-size:0.82rem;">
-                                    <thead>
-                                        <tr>
-                                            <th colspan="8" style="padding:8px 10px;background:#f1f5f9;font-size:0.6rem;font-weight:800;color:#64748b;text-transform:uppercase;letter-spacing:0.08em;text-align:left;border-bottom:2px solid #cbd5e1;">ENDEKS DEĞERLERİ</th>
-                                        </tr>
-                                        <tr>
-                                            <th style="padding:8px 10px;font-size:0.65rem;font-weight:700;color:#94a3b8;text-transform:uppercase;border-bottom:1px solid #e2e8f0;">Tarife</th>
-                                            <th style="padding:8px 10px;font-size:0.65rem;font-weight:700;color:#94a3b8;text-transform:uppercase;border-bottom:1px solid #e2e8f0;text-align:right;">İlk Endeks</th>
-                                            <th style="padding:8px 10px;font-size:0.65rem;font-weight:700;color:#94a3b8;text-transform:uppercase;border-bottom:1px solid #e2e8f0;text-align:right;">Son Endeks</th>
-                                            <th style="padding:8px 10px;font-size:0.65rem;font-weight:700;color:#94a3b8;text-transform:uppercase;border-bottom:1px solid #e2e8f0;text-align:right;">Fark</th>
-                                            <th style="padding:8px 10px;font-size:0.65rem;font-weight:700;color:#94a3b8;text-transform:uppercase;border-bottom:1px solid #e2e8f0;text-align:right;">Tüketim</th>
-                                            <th style="padding:8px 10px;font-size:0.65rem;font-weight:700;color:#94a3b8;text-transform:uppercase;border-bottom:1px solid #e2e8f0;text-align:right;">Çarpanlı</th>
-                                            <th style="padding:8px 10px;font-size:0.65rem;font-weight:700;color:#94a3b8;text-transform:uppercase;border-bottom:1px solid #e2e8f0;text-align:center;">Durum</th>
-                                            <th style="padding:8px 10px;font-size:0.65rem;font-weight:700;color:#94a3b8;text-transform:uppercase;border-bottom:1px solid #e2e8f0;text-align:right;">Detay</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        @php
-                                            $t1Gercek = $t1Fark * $carpan;
-                                            $t2Gercek = $t2Fark * $carpan;
-                                            $t3Gercek = $t3Fark * $carpan;
-                                            $d1 = $analizFunc($t1Ilk, $t1Son, $t1Fark, $t1Gelen, $t1Gercek, false, 0, 0, 0);
-                                            $d2 = $analizFunc($t2Ilk, $t2Son, $t2Fark, $t2Gelen, $t2Gercek, false, 0, 0, 0);
-                                            $d3 = $analizFunc($t3Ilk, $t3Son, $t3Fark, $t3Gelen, $t3Gercek, false, 0, 0, 0);
-                                            $riFark = (float)($row->ri_fark_endeks ?? 0);
-                                            $rcFark = (float)($row->rc_fark_endeks ?? 0);
-                                        @endphp
-                                        <tr>
-                                            <td style="padding:7px 10px;border-bottom:1px solid #f1f5f9;font-weight:800;color:#1e293b;">T0</td>
-                                            <td style="padding:7px 10px;border-bottom:1px solid #f1f5f9;text-align:right;font-weight:600;">{{ number_format($t0Ilk,2,',','.') }}</td>
-                                            <td style="padding:7px 10px;border-bottom:1px solid #f1f5f9;text-align:right;font-weight:600;">{{ number_format($t0Son,2,',','.') }}</td>
-                                            <td style="padding:7px 10px;border-bottom:1px solid #f1f5f9;text-align:right;font-weight:700;color:#2563eb;">{{ number_format($t0Fark,2,',','.') }}</td>
-                                            <td style="padding:7px 10px;border-bottom:1px solid #f1f5f9;text-align:right;font-weight:600;">{{ number_format($t0Gelen,2,',','.') }}</td>
-                                            <td style="padding:7px 10px;border-bottom:1px solid #f1f5f9;text-align:right;font-weight:600;">{{ number_format($t0Gercek,2,',','.') }}</td>
-                                            <td style="padding:7px 10px;border-bottom:1px solid #f1f5f9;text-align:center;"><span style="font-size:0.7rem;font-weight:700;color:{{ $d0['c'] }};background:{{ $d0['bg'] }};padding:2px 10px;border-radius:4px;">{{ $d0['d'] }}</span></td>
-                                            <td style="padding:7px 10px;border-bottom:1px solid #f1f5f9;text-align:right;font-size:0.7rem;color:#64748b;">{{ $d0['a'] }}</td>
-                                        </tr>
-                                        <tr>
-                                            <td style="padding:7px 10px;border-bottom:1px solid #f1f5f9;font-weight:700;color:#1e293b;">T1</td>
-                                            <td style="padding:7px 10px;border-bottom:1px solid #f1f5f9;text-align:right;">{{ number_format($t1Ilk,2,',','.') }}</td>
-                                            <td style="padding:7px 10px;border-bottom:1px solid #f1f5f9;text-align:right;">{{ number_format($t1Son,2,',','.') }}</td>
-                                            <td style="padding:7px 10px;border-bottom:1px solid #f1f5f9;text-align:right;font-weight:600;color:#2563eb;">{{ number_format($t1Fark,2,',','.') }}</td>
-                                            <td style="padding:7px 10px;border-bottom:1px solid #f1f5f9;text-align:right;">{{ number_format($t1Gelen,2,',','.') }}</td>
-                                            <td style="padding:7px 10px;border-bottom:1px solid #f1f5f9;text-align:right;">{{ number_format($t1Gercek,2,',','.') }}</td>
-                                            <td style="padding:7px 10px;border-bottom:1px solid #f1f5f9;text-align:center;">—</td>
-                                            <td style="padding:7px 10px;border-bottom:1px solid #f1f5f9;text-align:right;font-size:0.7rem;color:#94a3b8;"></td>
-                                        </tr>
-                                        <tr>
-                                            <td style="padding:7px 10px;border-bottom:1px solid #f1f5f9;font-weight:700;color:#1e293b;">T2</td>
-                                            <td style="padding:7px 10px;border-bottom:1px solid #f1f5f9;text-align:right;">{{ number_format($t2Ilk,2,',','.') }}</td>
-                                            <td style="padding:7px 10px;border-bottom:1px solid #f1f5f9;text-align:right;">{{ number_format($t2Son,2,',','.') }}</td>
-                                            <td style="padding:7px 10px;border-bottom:1px solid #f1f5f9;text-align:right;font-weight:600;color:#2563eb;">{{ number_format($t2Fark,2,',','.') }}</td>
-                                            <td style="padding:7px 10px;border-bottom:1px solid #f1f5f9;text-align:right;">{{ number_format($t2Gelen,2,',','.') }}</td>
-                                            <td style="padding:7px 10px;border-bottom:1px solid #f1f5f9;text-align:right;">{{ number_format($t2Gercek,2,',','.') }}</td>
-                                            <td style="padding:7px 10px;border-bottom:1px solid #f1f5f9;text-align:center;">—</td>
-                                            <td style="padding:7px 10px;border-bottom:1px solid #f1f5f9;text-align:right;font-size:0.7rem;color:#94a3b8;"></td>
-                                        </tr>
-                                        <tr>
-                                            <td style="padding:7px 10px;border-bottom:1px solid #f1f5f9;font-weight:700;color:#1e293b;">T3</td>
-                                            <td style="padding:7px 10px;border-bottom:1px solid #f1f5f9;text-align:right;">{{ number_format($t3Ilk,2,',','.') }}</td>
-                                            <td style="padding:7px 10px;border-bottom:1px solid #f1f5f9;text-align:right;">{{ number_format($t3Son,2,',','.') }}</td>
-                                            <td style="padding:7px 10px;border-bottom:1px solid #f1f5f9;text-align:right;font-weight:600;color:#2563eb;">{{ number_format($t3Fark,2,',','.') }}</td>
-                                            <td style="padding:7px 10px;border-bottom:1px solid #f1f5f9;text-align:right;">{{ number_format($t3Gelen,2,',','.') }}</td>
-                                            <td style="padding:7px 10px;border-bottom:1px solid #f1f5f9;text-align:right;">{{ number_format($t3Gercek,2,',','.') }}</td>
-                                            <td style="padding:7px 10px;border-bottom:1px solid #f1f5f9;text-align:center;">—</td>
-                                            <td style="padding:7px 10px;border-bottom:1px solid #f1f5f9;text-align:right;font-size:0.7rem;color:#94a3b8;"></td>
-                                        </tr>
-                                        @php
-                                            $riIlk = (float)str_replace(',', '.', $row->ri_ilk_endeks ?? 0);
-                                            $riSon = (float)str_replace(',', '.', $row->ri_son_endeks ?? 0);
-                                            $riFarkVal = $riSon - $riIlk;
-                                            $rcIlk = (float)str_replace(',', '.', $row->rc_ilk_endeks ?? 0);
-                                            $rcSon = (float)str_replace(',', '.', $row->rc_son_endeks ?? 0);
-                                            $rcFarkVal = $rcSon - $rcIlk;
-                                            $riHasData = $riIlk > 0 || $riSon > 0 || $riFark > 0;
-                                            $rcHasData = $rcIlk > 0 || $rcSon > 0 || $rcFark > 0;
-                                        @endphp
-                                        @if($riHasData)
-                                        <tr>
-                                            <td style="padding:7px 10px;border-bottom:1px solid #f1f5f9;font-weight:700;color:#dc2626;">Rİ</td>
-                                            <td style="padding:7px 10px;border-bottom:1px solid #f1f5f9;text-align:right;">{{ number_format($riIlk,2,',','.') }}</td>
-                                            <td style="padding:7px 10px;border-bottom:1px solid #f1f5f9;text-align:right;">{{ number_format($riSon,2,',','.') }}</td>
-                                            <td style="padding:7px 10px;border-bottom:1px solid #f1f5f9;text-align:right;font-weight:700;color:#dc2626;">{{ number_format($riFarkVal,2,',','.') }}</td>
-                                            <td style="padding:7px 10px;border-bottom:1px solid #f1f5f9;text-align:right;color:#94a3b8;">—</td>
-                                            <td style="padding:7px 10px;border-bottom:1px solid #f1f5f9;text-align:right;color:#94a3b8;">—</td>
-                                            <td style="padding:7px 10px;border-bottom:1px solid #f1f5f9;text-align:center;"><span style="font-size:0.7rem;font-weight:700;color:#dc2626;background:#fef2f2;padding:2px 10px;border-radius:4px;">REAKTİF</span></td>
-                                            <td style="padding:7px 10px;border-bottom:1px solid #f1f5f9;text-align:right;font-size:0.7rem;color:#64748b;">Endüktif</td>
-                                        </tr>
-                                        @endif
-                                        @if($rcHasData)
-                                        <tr>
-                                            <td style="padding:7px 10px;border-bottom:1px solid #f1f5f9;font-weight:700;color:#dc2626;">RC</td>
-                                            <td style="padding:7px 10px;border-bottom:1px solid #f1f5f9;text-align:right;">{{ number_format($rcIlk,2,',','.') }}</td>
-                                            <td style="padding:7px 10px;border-bottom:1px solid #f1f5f9;text-align:right;">{{ number_format($rcSon,2,',','.') }}</td>
-                                            <td style="padding:7px 10px;border-bottom:1px solid #f1f5f9;text-align:right;font-weight:700;color:#dc2626;">{{ number_format($rcFarkVal,2,',','.') }}</td>
-                                            <td style="padding:7px 10px;border-bottom:1px solid #f1f5f9;text-align:right;color:#94a3b8;">—</td>
-                                            <td style="padding:7px 10px;border-bottom:1px solid #f1f5f9;text-align:right;color:#94a3b8;">—</td>
-                                            <td style="padding:7px 10px;border-bottom:1px solid #f1f5f9;text-align:center;"><span style="font-size:0.7rem;font-weight:700;color:#dc2626;background:#fef2f2;padding:2px 10px;border-radius:4px;">REAKTİF</span></td>
-                                            <td style="padding:7px 10px;border-bottom:1px solid #f1f5f9;text-align:right;font-size:0.7rem;color:#64748b;">Kapasitif</td>
-                                        </tr>
-                                        @endif
-                                    </tbody>
-                                </table>
-                            </div>
-
-                            <div style="padding:20px 24px;background:#fff;">
-                                <table style="width:100%;border-collapse:collapse;font-size:0.82rem;">
-                                    <thead>
-                                        <tr>
-                                            <th colspan="6" style="padding:8px 10px;background:#f1f5f9;font-size:0.6rem;font-weight:800;color:#64748b;text-transform:uppercase;letter-spacing:0.08em;text-align:left;border-bottom:2px solid #cbd5e1;">TÜKETİM & FİNANS</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        <tr>
-                                            <td style="padding:8px 10px;border-bottom:1px solid #f1f5f9;color:#64748b;font-weight:600;">Trafo Kaybı</td>
-                                            <td style="padding:8px 10px;border-bottom:1px solid #f1f5f9;font-weight:800;color:#92400e;">{{ number_format($toplamTk,2,',','.') }} kWh</td>
-                                            <td style="padding:8px 10px;border-bottom:1px solid #f1f5f9;color:#64748b;font-weight:600;">Ek Tüketim</td>
-                                            <td style="padding:8px 10px;border-bottom:1px solid #f1f5f9;font-weight:700;color:#0f172a;">{{ number_format($ek,2,',','.') }} kWh</td>
-                                            <td style="padding:8px 10px;border-bottom:1px solid #f1f5f9;color:#64748b;font-weight:600;background:#f0fdf4;">Toplam Tüketim</td>
-                                            <td style="padding:8px 10px;border-bottom:1px solid #f1f5f9;font-weight:800;color:#059669;background:#f0fdf4;">{{ number_format((float)$row->fatura_edilecek_toplam_tuketim_kwh,2,',','.') }} kWh</td>
-                                        </tr>
-                                        <tr>
-                                            <td style="padding:8px 10px;border-bottom:1px solid #e2e8f0;color:#64748b;font-weight:600;">Birim Fiyat</td>
-                                            <td style="padding:8px 10px;border-bottom:1px solid #e2e8f0;font-weight:700;color:#0f172a;">{{ $_birimFiyat > 0 ? number_format($_birimFiyat,4,',','.').' ₺' : '—' }}</td>
-                                            <td style="padding:8px 10px;border-bottom:1px solid #e2e8f0;color:#64748b;font-weight:600;">Dağ. Birim Fiyat</td>
-                                            <td style="padding:8px 10px;border-bottom:1px solid #e2e8f0;font-weight:700;color:#0f172a;">{{ $row->dagitim_birim_fiyat ? number_format((float)$row->dagitim_birim_fiyat,4,',','.').' ₺' : '—' }}</td>
-                                            <td style="padding:8px 10px;border-bottom:1px solid #e2e8f0;color:#64748b;font-weight:600;">KDV</td>
-                                            <td style="padding:8px 10px;border-bottom:1px solid #e2e8f0;font-weight:700;color:#0f172a;">{{ $row->kdv ? '₺ '.number_format((float)$row->kdv,2,',','.') : '—' }}</td>
-                                        </tr>
-                                        <tr>
-                                            <td style="padding:8px 10px;color:#64748b;font-weight:600;">Fatura Tutarı</td>
-                                            <td style="padding:8px 10px;font-weight:800;color:#059669;">₺ {{ number_format((float)$row->tutar_toplam,2,',','.') }}</td>
-                                            <td style="padding:8px 10px;color:#64748b;font-weight:600;background:#f0fdf4;">Genel Toplam</td>
-                                            <td colspan="3" style="padding:8px 10px;font-weight:900;color:#059669;font-size:1rem;background:#f0fdf4;">₺ {{ number_format((float)$row->genel_toplam,2,',','.') }}</td>
-                                        </tr>
-                                    </tbody>
-                                </table>
-                            </div>
-
-                            <div style="padding:12px 24px;background:#f8fafc;border-top:2px solid #e2e8f0;display:flex;justify-content:space-between;align-items:center;border-radius:0 0 16px 16px;">
-                                <div style="display:flex;align-items:center;gap:12px;">
-                                    <span style="font-size:0.7rem;font-weight:800;color:#64748b;text-transform:uppercase;">T0 Analiz:</span>
-                                    <span style="font-size:0.8rem;font-weight:700;color:{{ $d0['c'] }};background:{{ $d0['bg'] }};padding:3px 12px;border-radius:6px;">{{ $d0['d'] }}</span>
-                                    @if($d0['a'] != 'Sorun Yok')
-                                        <span style="font-size:0.72rem;color:#64748b;font-weight:600;background:#fff;padding:3px 10px;border-radius:4px;border:1px solid #e2e8f0;">{{ $d0['a'] }}</span>
-                                    @endif
-                                </div>
-                                <div style="display:flex;align-items:center;gap:12px;">
-                                    @if($riFark > 0 || $rcFark > 0)
-                                        <span style="font-size:0.7rem;font-weight:800;color:#dc2626;background:#fef2f2;padding:3px 12px;border-radius:6px;"><i class="fas fa-bolt"></i> Reaktif Ceza</span>
-                                    @endif
-                                </div>
-                            </div>
-                        </div>
+                @php
+                    $riIlkJ = (float)str_replace(',', '.', $row->ri_ilk_endeks ?? 0);
+                    $riSonJ = (float)str_replace(',', '.', $row->ri_son_endeks ?? 0);
+                    $rcIlkJ = (float)str_replace(',', '.', $row->rc_ilk_endeks ?? 0);
+                    $rcSonJ = (float)str_replace(',', '.', $row->rc_son_endeks ?? 0);
+                    $riFarkJ = (float)($row->ri_fark_endeks ?? 0);
+                    $rcFarkJ = (float)($row->rc_fark_endeks ?? 0);
+                    $t1GercekJ = $t1Fark * $carpan;
+                    $t2GercekJ = $t2Fark * $carpan;
+                    $t3GercekJ = $t3Fark * $carpan;
+                    $detayJson = json_encode([
+                        'fatura_no' => $row->fatura_no,
+                        'donem'     => $row->donem,
+                        'tesisat'   => $row->abone_tesis_no ?? $row->tesisat_no,
+                        'sayac'     => $row->sayac_seri_no ?? '—',
+                        'tarife'    => $row->tarife_2 ?: $row->tarife ?? '—',
+                        'baglanti'  => $row->baglanti_grubu ?? '—',
+                        'adres'     => $row->adres ?? '—',
+                        'ilk_okuma' => $row->ilk_okuma ? \Carbon\Carbon::parse($row->ilk_okuma)->format('d.m.Y') : '—',
+                        'son_okuma' => $row->son_okuma ? \Carbon\Carbon::parse($row->son_okuma)->format('d.m.Y') : '—',
+                        'carpan'    => $carpan,
+                        'tarifeler' => [
+                            ['ad'=>'T1','ilk'=>$t1Ilk,'son'=>$t1Son,'fark'=>$t1Fark,'gelen'=>$t1Gelen,'gercek'=>$t1GercekJ,'ana'=>false],
+                            ['ad'=>'T2','ilk'=>$t2Ilk,'son'=>$t2Son,'fark'=>$t2Fark,'gelen'=>$t2Gelen,'gercek'=>$t2GercekJ,'ana'=>false],
+                            ['ad'=>'T3','ilk'=>$t3Ilk,'son'=>$t3Son,'fark'=>$t3Fark,'gelen'=>$t3Gelen,'gercek'=>$t3GercekJ,'ana'=>false],
+                            ['ad'=>'T0','ilk'=>$t0Ilk,'son'=>$t0Son,'fark'=>$t0Fark,'gelen'=>$t0Gelen,'gercek'=>$t0Gercek,'ana'=>true],
+                        ],
+                        'reaktif'   => [
+                            'ri' => ['ilk'=>$riIlkJ,'son'=>$riSonJ,'fark'=>round($riSonJ-$riIlkJ,3),'aktif'=>($riIlkJ>0||$riSonJ>0||$riFarkJ>0),'tip'=>'Endüktif'],
+                            'rc' => ['ilk'=>$rcIlkJ,'son'=>$rcSonJ,'fark'=>round($rcSonJ-$rcIlkJ,3),'aktif'=>($rcIlkJ>0||$rcSonJ>0||$rcFarkJ>0),'tip'=>'Kapasitif'],
+                        ],
+                        'finans'    => [
+                            'trafo'   => $toplamTk,
+                            'ek'      => $ek,
+                            'toplam'  => (float)($row->fatura_edilecek_toplam_tuketim_kwh ?? 0),
+                            'birim'   => $_birimFiyat,
+                            'dagitim' => (float)($row->dagitim_birim_fiyat ?? 0),
+                            'kdv'     => (float)($row->kdv ?? 0),
+                            'tutar'   => (float)$row->tutar_toplam,
+                            'genel'   => (float)$row->genel_toplam,
+                        ],
+                        'analiz'    => [
+                            'durum'  => $d0['d'],
+                            'mesaj'  => $d0['a'],
+                            'renk'   => $d0['c'],
+                            'bg'     => $d0['bg'],
+                            'ri_var' => ($riFarkJ > 0 || $rcFarkJ > 0),
+                        ],
+                    ], JSON_UNESCAPED_UNICODE);
+                @endphp
+                <tr class="d-none">
+                    <td colspan="10" style="padding:0;">
+                        <div class="detay-panel" data-json="{{ $detayJson }}"></div>
                     </td>
                 </tr>
                 @endforeach

@@ -84,8 +84,170 @@
     .status-badge.success { background:#dcfce7; color:#166534; }
     .status-badge.error { background:#fee2e2; color:#991b1b; }
     .btn-incele { background:#eff6ff; color:#2563eb; font-weight:600; border:1px solid #bfdbfe; border-radius:8px; padding:4px 10px; font-size:0.8rem; cursor:pointer; }
-    .detay-panel { background:#fff; border-radius:12px; border:1px solid #cbd5e1; overflow:hidden; }
-    .detay-header { background:#f1f5f9; padding:10px 15px; font-weight:700; color:#334155; border-bottom:1px solid #cbd5e1; }
+    .detay-panel { display:none; }
+
+    /* ═══════════ PREMIUM ENDEKS DETAY MODAL ═══════════ */
+    #endeksDetayModal {
+        display:none; position:fixed; inset:0; z-index:99999;
+        background:rgba(15,23,42,0.7); backdrop-filter:blur(8px); -webkit-backdrop-filter:blur(8px);
+        align-items:center; justify-content:center; padding:20px;
+        opacity:0; transition:opacity 0.25s ease;
+    }
+    #endeksDetayModal.active { opacity:1; }
+    .emd-card {
+        background:#fff; border-radius:28px; width:100%; max-width:1080px; max-height:90vh;
+        display:flex; flex-direction:column; overflow:hidden;
+        box-shadow:0 40px 80px -20px rgba(0,0,0,0.4), 0 0 0 1px rgba(255,255,255,0.1);
+        transform:scale(0.93) translateY(20px); transition:transform 0.3s cubic-bezier(0.34,1.56,0.64,1), opacity 0.3s ease;
+        opacity:0;
+    }
+    #endeksDetayModal.active .emd-card { transform:scale(1) translateY(0); opacity:1; }
+    /* Header */
+    .emd-header {
+        background:linear-gradient(135deg,#0f172a 0%,#1e3a5f 60%,#1e1b4b 100%);
+        padding:16px 24px; display:flex; align-items:center; justify-content:space-between;
+        flex-shrink:0; gap:16px;
+    }
+    .emd-header-left { display:flex; align-items:center; gap:12px; }
+    .emd-header-icon {
+        width:40px; height:40px; border-radius:12px; background:rgba(96,165,250,0.15);
+        border:1px solid rgba(96,165,250,0.3); display:flex; align-items:center; justify-content:center;
+        font-size:1.1rem; color:#60a5fa; flex-shrink:0;
+    }
+    .emd-eyebrow { font-size:0.65rem; font-weight:800; color:#60a5fa; text-transform:uppercase; letter-spacing:0.12em; margin-bottom:5px; }
+    .emd-title-row { display:flex; align-items:center; gap:10px; flex-wrap:wrap; }
+    .emd-fatura-badge {
+        font-size:1rem; font-weight:800; color:#fff; letter-spacing:-0.02em;
+        background:rgba(255,255,255,0.08); border:1px solid rgba(255,255,255,0.12);
+        padding:4px 14px; border-radius:10px;
+    }
+    .emd-sep { color:rgba(255,255,255,0.2); font-size:1.2rem; }
+    .emd-donem-pill {
+        font-size:0.8rem; font-weight:700; color:#93c5fd;
+        background:rgba(59,130,246,0.15); border:1px solid rgba(59,130,246,0.3);
+        padding:4px 12px; border-radius:20px;
+    }
+    .emd-header-right { display:flex; align-items:center; gap:12px; flex-shrink:0; }
+    .emd-carpan-pill {
+        background:rgba(255,255,255,0.06); border:1px solid rgba(255,255,255,0.12);
+        border-radius:10px; padding:6px 14px; text-align:center;
+    }
+    .emd-carpan-pill small { display:block; font-size:0.6rem; font-weight:800; color:#64748b; text-transform:uppercase; letter-spacing:0.08em; }
+    .emd-carpan-pill span { font-size:1.05rem; font-weight:900; color:#fff; font-family:monospace; }
+    .emd-close-btn {
+        width:38px; height:38px; border-radius:10px; border:1px solid rgba(255,255,255,0.15);
+        background:rgba(255,255,255,0.06); color:rgba(255,255,255,0.6);
+        display:flex; align-items:center; justify-content:center; cursor:pointer;
+        font-size:0.95rem; transition:all 0.2s;
+    }
+    .emd-close-btn:hover { background:rgba(239,68,68,0.2); border-color:rgba(239,68,68,0.4); color:#f87171; }
+    /* Body */
+    .emd-body { flex:1; overflow-y:auto; padding:20px; background:#f8fafc; display:flex; flex-direction:column; gap:16px; }
+    .emd-top-grid { display:grid; grid-template-columns:1fr 1.6fr; gap:16px; }
+    @media(max-width:860px) { .emd-top-grid { grid-template-columns:1fr; } }
+    /* Section Cards */
+    .emd-section-card {
+        background:#fff; border-radius:16px; padding:16px;
+        border:1px solid #e2e8f0; box-shadow:0 2px 8px rgba(0,0,0,0.03);
+    }
+    .emd-section-title {
+        font-size:0.7rem; font-weight:800; color:#64748b; text-transform:uppercase;
+        letter-spacing:0.1em; margin-bottom:12px; display:flex; align-items:center; gap:8px;
+    }
+    .emd-section-title i { color:#cbd5e1; }
+    /* Info list */
+    .emd-info-row {
+        display:flex; justify-content:space-between; align-items:center;
+        padding:6px 0; border-bottom:1px dashed #f1f5f9;
+    }
+    .emd-info-row:last-child { border-bottom:none; padding-bottom:0; }
+    .emd-info-key { font-size:0.78rem; font-weight:600; color:#64748b; }
+    .emd-info-val { font-size:0.8rem; font-weight:700; color:#0f172a; text-align:right; max-width:60%; }
+    .emd-info-val.mono { font-family:monospace; font-size:0.85rem; }
+    /* Endeks Table */
+    .emd-endeks-header, .emd-endeks-row {
+        display:grid;
+        grid-template-columns:50px 1fr 1fr 1fr 1fr 1fr;
+        align-items:center; gap:4px;
+    }
+    .emd-endeks-header {
+        font-size:0.65rem; font-weight:800; color:#94a3b8; text-transform:uppercase;
+        letter-spacing:0.07em; padding:0 8px 6px; border-bottom:2px solid #f1f5f9;
+    }
+    .emd-endeks-row {
+        padding:6px 8px; border-bottom:1px solid #f8fafc; font-size:0.78rem;
+        font-weight:600; color:#334155; transition:background 0.15s;
+    }
+    .emd-endeks-row:hover { background:#f8fafc; border-radius:8px; }
+    .emd-endeks-row.ana {
+        background:#eff6ff; border:1px solid #bfdbfe;
+        border-radius:10px; margin:4px 0; font-weight:800;
+    }
+    .emd-endeks-row.reaktif { background:#fef9f0; }
+    .emd-tarife-lbl {
+        font-size:0.8rem; font-weight:900; color:#1d4ed8;
+        background:#dbeafe; padding:2px 6px; border-radius:6px; text-align:center; line-height:1.2;
+    }
+    .emd-tarife-lbl.sub { font-size:0.65rem; font-weight:600; color:#3b82f6; display:block; }
+    .emd-tarife-lbl.ri-lbl { background:#fef2f2; color:#dc2626; }
+    .emd-tarife-lbl.rc-lbl { background:#fff6ed; color:#ea580c; }
+    .emd-fark-val { font-weight:800; color:#1d4ed8; }
+    .emd-fark-val.neg { color:#dc2626; }
+    .emd-gercek-val { font-weight:700; color:#059669; font-size:0.75rem; }
+    /* Finans */
+    .emd-finans-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(140px,1fr)); gap:10px; }
+    .emd-kpi-card {
+        background:#fff; border:1px solid #e2e8f0; border-radius:12px;
+        padding:12px; display:flex; flex-direction:column; gap:4px;
+    }
+    .emd-kpi-val {
+        font-size:0.95rem; font-weight:900; padding:4px 8px;
+        border-radius:8px; letter-spacing:-0.02em; line-height:1;
+    }
+    .emd-kpi-label { font-size:0.68rem; font-weight:700; color:#64748b; text-transform:uppercase; letter-spacing:0.06em; }
+    .emd-genel-card {
+        background:linear-gradient(135deg,#059669 0%,#10b981 100%);
+        border-radius:16px; padding:16px; color:#fff; position:relative; overflow:hidden;
+        box-shadow:0 8px 24px -8px rgba(16,185,129,0.45);
+    }
+    .emd-genel-card::before {
+        content:''; position:absolute; top:-30px; right:-30px;
+        width:120px; height:120px; background:rgba(255,255,255,0.12);
+        border-radius:50%; filter:blur(20px);
+    }
+    .emd-genel-label { font-size:0.65rem; font-weight:800; text-transform:uppercase; letter-spacing:0.1em; opacity:0.9; margin-bottom:6px; }
+    .emd-genel-amount { font-size:1.8rem; font-weight:900; letter-spacing:-0.04em; line-height:1; }
+    .emd-genel-amount small { font-size:1.2rem; opacity:0.8; }
+    .emd-genel-sub {
+        display:flex; gap:16px; margin-top:12px; padding-top:10px;
+        border-top:1px solid rgba(255,255,255,0.2);
+        font-size:0.75rem; font-weight:600; opacity:0.85;
+    }
+    /* Banner */
+    .emd-banner {
+        flex-shrink:0; padding:12px 24px;
+        border-top:1px solid rgba(0,0,0,0.06);
+    }
+    .emd-banner-inner {
+        display:flex; align-items:center; gap:12px; border-radius:12px; padding:10px 16px;
+    }
+    .emd-banner-inner.success { background:#f0fdf4; border:1px solid #bbf7d0; }
+    .emd-banner-inner.error   { background:#fef2f2; border:1px solid #fecdd3; }
+    .emd-banner-icon {
+        width:38px; height:38px; border-radius:10px;
+        display:flex; align-items:center; justify-content:center;
+        color:#fff; font-size:1rem; flex-shrink:0;
+        box-shadow:0 4px 12px rgba(0,0,0,0.15);
+    }
+    .emd-banner-title { font-size:0.72rem; font-weight:800; text-transform:uppercase; letter-spacing:0.08em; margin-bottom:2px; }
+    .emd-banner-msg { font-size:0.92rem; font-weight:700; color:#0f172a; }
+    .emd-banner-msg span { font-weight:500; color:#475569; }
+    .emd-reaktif-badge {
+        margin-left:auto; background:#fee2e2; color:#b91c1c;
+        padding:6px 16px; border-radius:20px; font-size:0.75rem;
+        font-weight:800; border:1px solid #fca5a5; white-space:nowrap;
+        display:flex; align-items:center; gap:6px;
+    }
     .loading-results { opacity: 0.5; pointer-events: none; }
     .pagination-wrap .pagination { margin-bottom: 0; justify-content: center; gap: 5px; }
     .pagination-wrap .page-item .page-link { border-radius: 8px; border: 1px solid #e2e8f0; color: #64748b; padding: 8px 14px; font-weight: 600; }
@@ -1110,26 +1272,121 @@ $(document).ready(function() {
         </div>`;
     }
 
+    // ── Premium Endeks Detay Modal ─────────────────────────────────────
+    function emdFmt(n) {
+        var num = parseFloat(n) || 0;
+        return num.toLocaleString('tr-TR', {minimumFractionDigits:2, maximumFractionDigits:2});
+    }
+
+    function openEndeksDetay(data) {
+        // Header
+        document.getElementById('emd-header-tesisat').textContent = 'Tesisat No: ' + data.tesisat;
+        document.getElementById('emd-donem').textContent = data.donem;
+        document.getElementById('emd-carpan').textContent = 'x' + data.carpan;
+
+        // Temel Bilgiler
+        var infos = [
+            ['Fatura No',     data.fatura_no, true],
+            ['Sayaç Seri No', data.sayac,     false],
+            ['Tarife',        data.tarife,    false],
+            ['Bağlantı Gr.',  data.baglanti,  false],
+            ['İlk Okuma',     data.ilk_okuma, false],
+            ['Son Okuma',     data.son_okuma, false],
+            ['Adres',         data.adres,     false],
+        ];
+        document.getElementById('emd-temel-bilgiler').innerHTML = infos.map(function(r) {
+            return '<div class="emd-info-row"><span class="emd-info-key">' + r[0] + '</span><span class="emd-info-val' + (r[2] ? ' mono' : '') + '">' + (r[1] || '—') + '</span></div>';
+        }).join('');
+
+        // Endeks Hareketleri
+        var endeksHtml = '<div class="emd-endeks-header"><span>Tarife</span><span>İlk</span><span>Son</span><span>Fark</span><span>Tüketim</span><span>Çarpanlı</span></div>';
+        data.tarifeler.forEach(function(t) {
+            var isNeg = t.fark < 0;
+            endeksHtml += '<div class="emd-endeks-row' + (t.ana ? ' ana' : '') + '">' +
+                '<span><span class="emd-tarife-lbl">' + t.ad + '</span></span>' +
+                '<span>' + emdFmt(t.ilk) + '</span>' +
+                '<span>' + emdFmt(t.son) + '</span>' +
+                '<span class="emd-fark-val' + (isNeg ? ' neg' : '') + '">' + emdFmt(t.fark) + '</span>' +
+                '<span>' + emdFmt(t.gelen) + '</span>' +
+                '<span class="emd-gercek-val">' + emdFmt(t.gercek) + '</span>' +
+            '</div>';
+        });
+        ['ri','rc'].forEach(function(key) {
+            var r = data.reaktif[key];
+            if (r.aktif) {
+                var cls = key === 'ri' ? 'ri-lbl' : 'rc-lbl';
+                endeksHtml += '<div class="emd-endeks-row reaktif">' +
+                    '<span><span class="emd-tarife-lbl ' + cls + '">' + key.toUpperCase() + '<small class="emd-tarife-lbl sub">' + r.tip + '</small></span></span>' +
+                    '<span>' + emdFmt(r.ilk) + '</span><span>' + emdFmt(r.son) + '</span>' +
+                    '<span class="emd-fark-val">' + emdFmt(r.fark) + '</span><span>—</span><span>—</span>' +
+                '</div>';
+            }
+        });
+        document.getElementById('emd-endeks-tablo').innerHTML = endeksHtml;
+
+        // Finans KPIs
+        var f = data.finans;
+        var kpis = [
+            {l:'Trafo Kaybı',      v:emdFmt(f.trafo)+' kWh', c:'#92400e', bg:'#fef3c7'},
+            {l:'Ek Tüketim',       v:emdFmt(f.ek)+' kWh',    c:'#475569', bg:'#f1f5f9'},
+            {l:'Fatura Tüketimi',  v:emdFmt(f.toplam)+' kWh',c:'#059669', bg:'#f0fdf4'},
+            {l:'Birim Fiyat',      v:f.birim>0  ? emdFmt(f.birim)+' ₺'   : '—', c:'#1d4ed8', bg:'#eff6ff'},
+            {l:'Dağıtım Birim',    v:f.dagitim>0? emdFmt(f.dagitim)+' ₺' : '—', c:'#6d28d9', bg:'#f5f3ff'},
+            {l:'KDV',              v:f.kdv>0    ? '₺ '+emdFmt(f.kdv)     : '—', c:'#374151', bg:'#f9fafb'},
+        ];
+        document.getElementById('emd-finans-kpis').innerHTML = kpis.map(function(k) {
+            return '<div class="emd-kpi-card"><div class="emd-kpi-val" style="color:'+k.c+';background:'+k.bg+'">'+k.v+'</div><div class="emd-kpi-label">'+k.l+'</div></div>';
+        }).join('');
+
+        document.getElementById('emd-genel-toplam').innerHTML =
+            '<div class="emd-genel-label">Genel Toplam Fatura</div>' +
+            '<div class="emd-genel-amount"><small>₺</small> ' + emdFmt(f.genel) + '</div>' +
+            '<div class="emd-genel-sub">' +
+                '<span>Fatura Tutarı: ₺ ' + emdFmt(f.tutar) + '</span>' +
+                (f.birim>0 ? '<span>Birim: ' + emdFmt(f.birim) + ' ₺</span>' : '') +
+            '</div>';
+
+        // Analysis Banner
+        var a = data.analiz;
+        var isErr = a.durum === 'HATALI';
+        document.getElementById('emd-analiz-banner').innerHTML =
+            '<div class="emd-banner-inner ' + (isErr ? 'error' : 'success') + '">' +
+                '<div class="emd-banner-icon" style="background:' + a.renk + '">' +
+                    '<i class="fas ' + (isErr ? 'fa-exclamation-triangle' : 'fa-check-circle') + '"></i>' +
+                '</div>' +
+                '<div><div class="emd-banner-title" style="color:' + a.renk + '">' +
+                    (isErr ? 'DİKKAT: ANOMALİ TESPİT EDİLDİ' : 'ANALİZ BAŞARILI') +
+                '</div><div class="emd-banner-msg">' + a.durum + ' <span>— ' + a.mesaj + '</span></div></div>' +
+                (a.ri_var ? '<div class="emd-reaktif-badge"><i class="fas fa-bolt"></i> Reaktif Ceza Mevcut</div>' : '') +
+            '</div>';
+
+        var modal = document.getElementById('endeksDetayModal');
+        modal.style.display = 'flex';
+        document.body.style.overflow = 'hidden';
+        setTimeout(function() { modal.classList.add('active'); }, 10);
+    }
+
+    window.closeEndeksDetay = function() {
+        var modal = document.getElementById('endeksDetayModal');
+        modal.classList.remove('active');
+        document.body.style.overflow = '';
+        setTimeout(function() { modal.style.display = 'none'; }, 280);
+    };
+
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape') closeEndeksDetay();
+    });
+
     $(document).on('click', '.endeks-detail-btn', function() {
         var $row = $(this).closest('tr');
         var $detailRow = $row.next('tr');
-        var title = $row.find('.badge-donem').text() + ' - ' + $row.find('.badge-tesisat').text();
-        var detailHtml = $detailRow.find('.detay-panel').prop('outerHTML');
-        if (!detailHtml) return;
-        var issueDetailsHtml = buildEndeksIssueDetails($detailRow);
-
-        Swal.fire({
-            title: 'Detaylı Endeks Analizi',
-            html: `<div style="text-align:left;">
-                <div style="margin-bottom:14px;padding:12px 14px;background:#eff6ff;border:1px solid #bfdbfe;border-radius:12px;color:#1e3a8a;font-weight:700;">
-                    ${title}
-                </div>
-                ${detailHtml}
-                ${issueDetailsHtml}
-            </div>`,
-            width: 850,
-            confirmButtonText: 'Kapat'
-        });
+        var $panel = $detailRow.find('.detay-panel');
+        if (!$panel.length) return;
+        try {
+            var data = JSON.parse($panel.attr('data-json') || '{}');
+            if (!data.fatura_no) return;
+            openEndeksDetay(data);
+        } catch(e) { console.error('Endeks detay JSON parse hatası:', e); }
     });
 
     $(document).on('click', '.endeks-itiraz-btn', function() {
@@ -1170,4 +1427,58 @@ $(document).ready(function() {
 });
 </script>
 @endpush
+
+{{-- ═══ Premium Endeks Detay Modal HTML ═══ --}}
+<div id="endeksDetayModal">
+    <div class="emd-card">
+        {{-- Header --}}
+        <div class="emd-header">
+            <div class="emd-header-left">
+                <div class="emd-header-icon"><i class="fas fa-microscope"></i></div>
+                <div>
+                    <div class="emd-eyebrow">Detaylı Endeks Analizi</div>
+                    <div class="emd-title-row">
+                        <span id="emd-header-tesisat" class="emd-fatura-badge">Tesisat No: —</span>
+                        <span class="emd-sep">|</span>
+                        <span id="emd-donem" class="emd-donem-pill">—</span>
+                    </div>
+                </div>
+            </div>
+            <div class="emd-header-right">
+                <div class="emd-carpan-pill">
+                    <small>Çarpan</small>
+                    <span id="emd-carpan">x1</span>
+                </div>
+                <button onclick="closeEndeksDetay()" class="emd-close-btn"><i class="fas fa-times"></i></button>
+            </div>
+        </div>
+
+        {{-- Body --}}
+        <div class="emd-body">
+            {{-- Row 1: Temel Bilgiler + Endeks Tablosu --}}
+            <div class="emd-top-grid">
+                <div class="emd-section-card">
+                    <div class="emd-section-title"><i class="fas fa-id-card-alt"></i> TEMEL BİLGİLER</div>
+                    <div id="emd-temel-bilgiler"></div>
+                </div>
+                <div class="emd-section-card">
+                    <div class="emd-section-title"><i class="fas fa-chart-line"></i> ENDEKS HAREKETLERİ</div>
+                    <div id="emd-endeks-tablo"></div>
+                </div>
+            </div>
+
+            {{-- Row 2: Finans KPIs + Toplam --}}
+            <div class="emd-section-card">
+                <div class="emd-section-title"><i class="fas fa-lira-sign"></i> FİNANS ÖZETİ</div>
+                <div style="display:grid;grid-template-columns:1fr auto;gap:20px;align-items:start;">
+                    <div id="emd-finans-kpis" class="emd-finans-grid"></div>
+                    <div id="emd-genel-toplam" class="emd-genel-card" style="min-width:220px;"></div>
+                </div>
+            </div>
+        </div>
+
+        {{-- Analysis Banner --}}
+        <div id="emd-analiz-banner" class="emd-banner"></div>
+    </div>
+</div>
 @endsection
