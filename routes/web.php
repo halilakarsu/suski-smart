@@ -53,15 +53,6 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
     });
 
-    Route::middleware('can:view_anomali_faturalar')->group(function () {
-        Route::get('/raporlar/anomali', [\App\Http\Controllers\AnomaliController::class, 'index'])->name('reports.anomali');
-        Route::get('/raporlar/anomali/details/{id}', [\App\Http\Controllers\AnomaliController::class, 'details'])->name('reports.anomali.details');
-        Route::match(['get', 'post'], '/raporlar/anomali/kontrol', [\App\Http\Controllers\AnomaliController::class, 'anomaliKontrol'])->name('reports.anomali.kontrol');
-        Route::post('/raporlar/anomali/kontrol-et', [\App\Http\Controllers\AnomaliController::class, 'kontrolEt'])->name('reports.anomali.kontrol-et');
-        Route::post('/raporlar/anomali/{id}/kaydet', [\App\Http\Controllers\AnomaliController::class, 'kaydet'])->name('reports.anomali.kaydet');
-        Route::post('/raporlar/anomali/{id}/gormezden-gel', [\App\Http\Controllers\AnomaliController::class, 'gormezdenGel'])->name('reports.anomali.gormezden-gel');
-    });
-
     Route::middleware('can:view_itirazlar')->group(function () {
         Route::post('/fatura/itiraz/{id}', [\App\Http\Controllers\KesinlesenFaturaController::class, 'itirazEt'])
             ->name('kesinlesen_fatura.itiraz');
@@ -151,4 +142,4 @@ Route::middleware(['auth', 'verified'])->group(function () {
     });
 });
 
-require __DIR__ . '/auth.php';
+require __DIR__.'/auth.php';

@@ -160,9 +160,6 @@
                 <p class="hero-subtitle">Müşteri tarafından itiraz edilmiş ve inceleme aşamasındaki kayıtlar.</p>
             </div>
             <div class="d-flex gap-2">
-                <a href="{{ route('reports.anomali') }}" class="btn-premium btn-premium-outline">
-                    <i class="fas fa-robot"></i> Yeni İtiraz Başlat
-                </a>
             </div>
         </div>
     </div>
@@ -291,7 +288,7 @@
                                 <td colspan="7" class="text-center py-5">
                                     <i class="fas fa-inbox mb-3" style="font-size: 3rem; color: #e2e8f0; display: block;"></i>
                                     <p style="font-weight: 600; color: #94a3b8;">Henüz itiraz kaydı bulunmuyor.</p>
-                                    <a href="{{ route('reports.anomali') }}" class="btn-pro btn-primary-pro mt-3"><i class="fas fa-robot"></i> Anomali Sayfasına Git</a>
+
                                 </td>
                             </tr>
                         @endforelse
