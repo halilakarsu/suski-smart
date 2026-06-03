@@ -1,0 +1,456 @@
+@extends('frontend.layouts.app')
+
+@section('content')
+<style>
+    /* Ultra-Premium Glassmorphic Design for Disputed Invoices */
+    @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
+
+    :root {
+        --font-primary: 'Plus Jakarta Sans', sans-serif;
+        --primary-gradient: linear-gradient(135deg, #2563eb, #4f46e5);
+        --danger-gradient: linear-gradient(135deg, #dc2626, #ef4444);
+        --warning-gradient: linear-gradient(135deg, #f59e0b, #fbbf24);
+        --bg-main: #f4f6f9;
+        --surface-glass: rgba(255, 255, 255, 0.85);
+        --shadow-elevated: 0 20px 40px -10px rgba(0, 0, 0, 0.08), 0 10px 20px -5px rgba(0, 0, 0, 0.04);
+    }
+
+    .pg-premium { background-color: var(--bg-main) !important; min-height: 100vh; padding-bottom: 4rem; }
+
+    /* Hero Section */
+    .page-hero {
+        background: linear-gradient(125deg, #0f172a 0%, #1e1b4b 100%);
+        position: relative; padding: 4rem 2rem 8rem 2rem; margin-top: -20px;
+        color: #fff; overflow: hidden; border-bottom-left-radius: 40px; border-bottom-right-radius: 40px;
+        box-shadow: 0 20px 50px rgba(0, 0, 0, 0.15);
+    }
+
+    .hero-container { position: relative; z-index: 10; width: 100%; max-width: 1400px; margin: 0 auto; display: flex; justify-content: space-between; align-items: center; }
+    .hero-title-group h1 { 
+        font-family: var(--font-primary); font-size: 2.2rem; font-weight: 800; letter-spacing: -0.04em;
+        background: linear-gradient(to right, #ffffff, #93c5fd); -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+        margin-bottom: 0.5rem;
+    }
+
+    /* Main Container */
+    .main-container { width: 100%; max-width: 1400px; margin: -5rem auto 0 auto; padding: 0 2rem; position: relative; z-index: 20; }
+
+    /* Glass Card */
+    .glass-card {
+        background: var(--surface-glass); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
+        border: 1px solid rgba(255, 255, 255, 0.7); border-radius: 28px; padding: 30px;
+        box-shadow: var(--shadow-elevated); margin-bottom: 30px;
+    }
+
+    /* KPI Cards */
+    .kpi-card-pro {
+        background: #fff; border-radius: 24px; padding: 25px; border: 1px solid #f1f5f9;
+        display: flex; align-items: center; gap: 20px; transition: all 0.3s;
+    }
+    .kpi-card-pro:hover { transform: translateY(-5px); box-shadow: 0 15px 30px rgba(0,0,0,0.05); }
+    .kpi-icon-wrap { width: 56px; height: 56px; border-radius: 16px; display: flex; align-items: center; justify-content: center; font-size: 1.5rem; }
+
+    /* Table Design */
+    .table-pro { width: 100%; border-collapse: separate; border-spacing: 0 4px; }
+    .table-pro th { color: #94a3b8; font-weight: 700; font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.05em; padding: 12px 15px; background: #f8fafc; border: none; }
+    .table-pro td { background: #fff; padding: 12px 15px; vertical-align: middle; border: none; font-size: 0.85rem; font-weight: 500; }
+    .table-pro tr td:first-child { border-top-left-radius: 12px; border-bottom-left-radius: 12px; }
+    .table-pro tr td:last-child { border-top-right-radius: 12px; border-bottom-right-radius: 12px; }
+    .table-pro tr:hover td { background: #f8fafc; }
+
+    /* Buttons - Truly Premium */
+    .btn-premium {
+        padding: 12px 28px;
+        border-radius: 16px;
+        font-weight: 700;
+        font-size: 0.85rem;
+        letter-spacing: 0.01em;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 10px;
+        transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        border: none;
+        cursor: pointer;
+        position: relative;
+        overflow: hidden;
+        z-index: 1;
+        text-decoration: none !important;
+    }
+
+    .btn-premium::before {
+        content: '';
+        position: absolute;
+        top: 0; left: -100%;
+        width: 100%; height: 100%;
+        background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+        transition: 0.5s;
+        z-index: -1;
+    }
+
+    .btn-premium:hover::before {
+        left: 100%;
+    }
+
+    .btn-premium-primary {
+        background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+        color: #fff !important;
+        box-shadow: 0 12px 24px -6px rgba(37, 99, 235, 0.35);
+    }
+
+    .btn-premium-primary:hover {
+        transform: translateY(-3px) scale(1.02);
+        box-shadow: 0 20px 30px -8px rgba(37, 99, 235, 0.45);
+    }
+
+    .btn-premium-success {
+        background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+        color: #fff !important;
+        box-shadow: 0 12px 24px -6px rgba(16, 185, 129, 0.35);
+    }
+
+    .btn-premium-success:hover {
+        transform: translateY(-3px) scale(1.02);
+        box-shadow: 0 20px 30px -8px rgba(16, 185, 129, 0.45);
+    }
+
+    .btn-premium-outline {
+        background: rgba(255, 255, 255, 0.08);
+        backdrop-filter: blur(12px);
+        -webkit-backdrop-filter: blur(12px);
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        color: #fff !important;
+    }
+
+    .btn-premium-outline:hover {
+        background: rgba(255, 255, 255, 0.15);
+        border-color: rgba(255, 255, 255, 0.4);
+        transform: translateY(-3px);
+    }
+
+    .btn-premium-simple {
+        background: #fff;
+        color: #475569 !important;
+        border: 1px solid #e2e8f0;
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+    }
+
+    .btn-premium-simple:hover {
+        border-color: #3b82f6;
+        color: #3b82f6 !important;
+        transform: translateY(-2px);
+        box-shadow: 0 10px 20px -5px rgba(59, 130, 246, 0.15);
+    }
+
+    /* Status Badges */
+    .status-badge-pro {
+        padding: 4px 12px; border-radius: 20px; font-size: 0.7rem; font-weight: 800; text-transform: uppercase;
+        display: inline-flex; align-items: center; gap: 4px;
+    }
+    .status-pending { background: #fef3c7; color: #b45309; }
+    .status-approved { background: #d1fae5; color: #065f46; }
+    .status-rejected { background: #fee2e2; color: #991b1b; }
+</style>
+
+<div class="pg-premium p-0">
+    <div class="page-hero">
+        <div class="hero-container">
+            <div class="hero-title-group">
+                <h1 class="hero-title">İtiraz Edilen Faturalar</h1>
+                <p class="hero-subtitle">Müşteri tarafından itiraz edilmiş ve inceleme aşamasındaki kayıtlar.</p>
+            </div>
+            <div class="d-flex gap-2">
+                <a href="{{ route('reports.anomali') }}" class="btn-premium btn-premium-outline">
+                    <i class="fas fa-robot"></i> Yeni İtiraz Başlat
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <div class="main-container">
+        <!-- KPI ROW -->
+        <div class="row mb-4">
+            <div class="col-md-3">
+                <div class="kpi-card-pro">
+                    <div class="kpi-icon-wrap" style="background: rgba(239, 68, 68, 0.1); color: #ef4444;"><i class="fas fa-hand-paper"></i></div>
+                    <div>
+                        <div style="font-size: 1.5rem; font-weight: 800; color: #0f172a;">{{ $itirazlar->total() }}</div>
+                        <div style="font-size: 0.7rem; font-weight: 800; color: #94a3b8; text-transform: uppercase;">Toplam İtiraz</div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="kpi-card-pro">
+                    <div class="kpi-icon-wrap" style="background: rgba(245, 158, 11, 0.1); color: #f59e0b;"><i class="fas fa-clock"></i></div>
+                    <div>
+                        <div style="font-size: 1.5rem; font-weight: 800; color: #0f172a;">{{ $itirazlar->getCollection()->where('durum', 'bekliyor')->count() }}</div>
+                        <div style="font-size: 0.7rem; font-weight: 800; color: #94a3b8; text-transform: uppercase;">İnceleniyor</div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="kpi-card-pro">
+                    <div class="kpi-icon-wrap" style="background: rgba(16, 185, 129, 0.1); color: #10b981;"><i class="fas fa-check-circle"></i></div>
+                    <div>
+                        <div style="font-size: 1.5rem; font-weight: 800; color: #0f172a;">{{ $itirazlar->getCollection()->where('durum', 'kabul_edildi')->count() }}</div>
+                        <div style="font-size: 0.7rem; font-weight: 800; color: #94a3b8; text-transform: uppercase;">Kabul Edildi</div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="kpi-card-pro">
+                    <div class="kpi-icon-wrap" style="background: rgba(37, 99, 235, 0.1); color: #2563eb;"><i class="fas fa-lira-sign"></i></div>
+                    <div>
+                        <div style="font-size: 1.5rem; font-weight: 800; color: #0f172a;">₺{{ number_format($itirazlar->getCollection()->sum('genel_toplam'), 0, ',', '.') }}</div>
+                        <div style="font-size: 0.7rem; font-weight: 800; color: #94a3b8; text-transform: uppercase;">Toplam Tutar</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- FILTERS -->
+        <div class="glass-card" style="padding: 15px 25px;">
+            <form action="{{ route('fatura.itirazlar') }}" method="GET" class="row align-items-end g-3">
+                <div class="col-md-3">
+                    <label style="font-size: 0.7rem; font-weight: 800; color: #64748b; text-transform: uppercase; margin-bottom: 5px; display: block;">Dönem</label>
+                    <input type="text" name="donem" class="form-control" value="{{ request('donem') }}" style="border-radius: 12px; padding: 10px;" placeholder="2026-03">
+                </div>
+                <div class="col-md-3">
+                    <label style="font-size: 0.7rem; font-weight: 800; color: #64748b; text-transform: uppercase; margin-bottom: 5px; display: block;">Tesisat No</label>
+                    <input type="text" name="tesisat_no" class="form-control" value="{{ request('tesisat_no') }}" style="border-radius: 12px; padding: 10px;" placeholder="Ara...">
+                </div>
+                <div class="col-md-2">
+                    <label style="font-size: 0.7rem; font-weight: 800; color: #64748b; text-transform: uppercase; margin-bottom: 5px; display: block;">Durum</label>
+                    <select name="durum" class="form-control" style="border-radius: 12px; padding: 10px;">
+                        <option value="">Tümü</option>
+                        <option value="bekliyor" {{ request('durum') == 'bekliyor' ? 'selected' : '' }}>İnceleniyor</option>
+                        <option value="kabul_edildi" {{ request('durum') == 'kabul_edildi' ? 'selected' : '' }}>Kabul Edildi</option>
+                        <option value="reddedildi" {{ request('durum') == 'reddedildi' ? 'selected' : '' }}>Reddedildi</option>
+                    </select>
+                </div>
+                <div class="col-md-4 d-flex gap-2">
+                    <button type="submit" class="btn-premium btn-premium-primary flex-grow-1"><i class="fas fa-search"></i> Filtrele</button>
+                    @if(request()->hasAny(['donem', 'tesisat_no', 'durum']))
+                        <a href="{{ route('fatura.itirazlar') }}" class="btn-premium btn-premium-simple"><i class="fas fa-undo"></i></a>
+                    @endif
+                </div>
+            </form>
+        </div>
+
+        <!-- MAIN TABLE -->
+        <div class="glass-card">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h5 class="card-title-pro mb-0"><i class="fas fa-list-alt"></i> İtiraz Kayıtları</h5>
+                <span style="font-size: 0.8rem; font-weight: 700; color: #94a3b8;">{{ $itirazlar->total() }} kayıt</span>
+            </div>
+
+            <div class="table-responsive">
+                <table class="table-pro">
+                    <thead>
+                        <tr>
+                            <th>Dönem</th>
+                            <th>Tesisat / Fatura No</th>
+                            <th>Bölge</th>
+                            <th>İtiraz Nedeni</th>
+                            <th>Durum</th>
+                            <th style="text-align: right;">Tutar</th>
+                            <th style="text-align: right;">İşlem</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @forelse($itirazlar as $item)
+                            <tr>
+                                <td><span style="font-weight: 800; color: #2563eb;">{{ $item->donem }}</span></td>
+                                <td>
+                                    <div style="font-weight: 700; color: #0f172a;">{{ $item->abone_tesis_no ?? $item->tesisat_no }}</div>
+                                    <div style="font-size: 0.7rem; color: #94a3b8; font-weight: 600;">{{ $item->fatura_no }}</div>
+                                </td>
+                                <td><span style="font-weight: 600;">{{ $item->ilce }}</span></td>
+                                <td style="max-width: 250px;">
+                                    <span style="font-size: 0.8rem; color: #64748b; display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" title="{{ $item->itiraz_aciklamasi }}">
+                                        {{ $item->itiraz_aciklamasi }}
+                                    </span>
+                                </td>
+                                <td>
+                                    @if($item->durum == 'bekliyor') <span class="status-badge-pro status-pending"><i class="fas fa-clock"></i> İnceleniyor</span>
+                                    @elseif($item->durum == 'kabul_edildi') <span class="status-badge-pro status-approved"><i class="fas fa-check"></i> Kabul</span>
+                                    @elseif($item->durum == 'reddedildi') <span class="status-badge-pro status-rejected"><i class="fas fa-times"></i> Reddedildi</span>
+                                    @else <span class="status-badge-pro" style="background:#f1f5f9; color:#64748b;">{{ $item->durum }}</span>
+                                    @endif
+                                </td>
+                                <td style="text-align: right; font-weight: 800; color: #059669;">₺{{ number_format((float)($item->genel_toplam ?? 0), 2, ',', '.') }}</td>
+                                <td style="text-align: right;">
+                                    <div class="d-flex justify-content-end gap-2">
+                                        <button class="btn-premium btn-premium-simple" style="padding: 8px 16px; font-size: 0.75rem;" onclick="showDetail({{ $item->id }})"><i class="fas fa-eye"></i> Detay</button>
+                                        <button class="btn-premium btn-premium-success" style="padding: 8px 16px; font-size: 0.75rem;" onclick="kaldirItiraz({{ $item->id }}, '{{ $item->fatura_no }}')"><i class="fas fa-undo-alt"></i> Geri Al</button>
+                                    </div>
+                                </td>
+                            </tr>
+                        @empty
+                            <tr>
+                                <td colspan="7" class="text-center py-5">
+                                    <i class="fas fa-inbox mb-3" style="font-size: 3rem; color: #e2e8f0; display: block;"></i>
+                                    <p style="font-weight: 600; color: #94a3b8;">Henüz itiraz kaydı bulunmuyor.</p>
+                                    <a href="{{ route('reports.anomali') }}" class="btn-pro btn-primary-pro mt-3"><i class="fas fa-robot"></i> Anomali Sayfasına Git</a>
+                                </td>
+                            </tr>
+                        @endforelse
+                    </tbody>
+                </table>
+            </div>
+
+            @if($itirazlar->hasPages())
+                <div style="margin-top: 25px;">{{ $itirazlar->links('pagination::bootstrap-4') }}</div>
+            @endif
+        </div>
+    </div>
+</div>
+
+<!-- DETAIL MODAL -->
+<div id="detMdl" style="position:fixed;inset:0;background:rgba(15,23,42,0.85);z-index:9999;display:none;align-items:center;justify-content:center;padding:20px;backdrop-filter:blur(10px);">
+    <div style="background:#fff;border-radius:32px;width:100%;max-width:1100px;max-height:90vh;display:flex;flex-direction:column;box-shadow:0 40px 80px rgba(0,0,0,0.35);overflow:hidden;">
+        <div style="padding:25px 35px;background:var(--primary-gradient);display:flex;justify-content:space-between;align-items:center;color:#fff;">
+            <div>
+                <div style="font-size:.7rem;text-transform:uppercase;letter-spacing:.1em;opacity:.8;font-weight:800;margin-bottom:4px;">İtiraz Detay Analizi</div>
+                <h2 id="detTit" style="margin:0;font-size:1.5rem;font-weight:800;letter-spacing:-.02em;">-</h2>
+            </div>
+            <button onclick="closeDetail()" style="width:44px;height:44px;border-radius:14px;display:flex;align-items:center;justify-content:center;background:rgba(255,255,255,.15);border:none;color:#fff;cursor:pointer;"><i class="fas fa-times"></i></button>
+        </div>
+        <div id="detBdy" style="flex:1;overflow-y:auto;padding:35px;background:#f8fafc;"></div>
+    </div>
+</div>
+
+@push('scripts')
+<script>
+    const rData = {!! $itirazlar instanceof \Illuminate\Pagination\LengthAwarePaginator ? $itirazlar->keyBy('id')->toJson() : '{}' !!};
+
+    function showDetail(id) {
+        const d = rData[id];
+        if (!d) return;
+
+        const formatDate = (dateStr) => {
+            if (!dateStr || dateStr === '—') return '—';
+            try {
+                const date = new Date(dateStr);
+                if (isNaN(date.getTime())) return dateStr;
+                const d = date.toLocaleDateString('tr-TR');
+                const h = date.getHours();
+                const m = date.getMinutes();
+                if (h === 0 && m === 0) return d;
+                const t = date.toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit' });
+                return d + ' ' + t;
+            } catch(e) { return dateStr; }
+        };
+
+        document.getElementById('detTit').innerText = d.fatura_no + ' (' + (d.abone_tesis_no || d.tesisat_no) + ')';
+        let h = '';
+
+        // İtiraz Açıklaması
+        h += `<div style="margin-bottom:25px;">
+                <h4 style="font-size:0.8rem; font-weight:800; color:#b45309; margin-bottom:12px; text-transform:uppercase;"><i class="fas fa-comment-dots"></i> İtiraz Gerekçesi</h4>
+                <div style="background:#fffbeb; border-left:5px solid #f59e0b; padding:20px; border-radius:16px; font-size:0.9rem; color:#78350f; line-height:1.6; font-weight:600;">
+                    ${d.itiraz_aciklamasi || 'Açıklama girilmemiş.'}
+                </div>
+              </div>`;
+
+        // Anomali Analiz Raporu (Eğer varsa)
+        let pld = d.payload;
+        if (typeof pld === 'string') { try { pld = JSON.parse(pld); } catch(e) { pld = {}; } }
+        const anomaliler = pld && pld._tuketim_anomalileri ? pld._tuketim_anomalileri : [];
+        
+        if (anomaliler.length > 0) {
+            h += `<div style="margin-bottom: 25px;">
+                    <div style="background: linear-gradient(135deg, #fff1f2 0%, #fff 100%); border-radius: 24px; border: 1px solid #fecdd3; padding: 25px; box-shadow: 0 10px 30px rgba(225, 29, 72, 0.05);">
+                        <h4 style="font-size: 0.85rem; font-weight: 800; color: #be123c; margin-bottom: 20px; display: flex; align-items: center; gap: 10px;">
+                            <i class="fas fa-microscope" style="font-size: 1.1rem;"></i> SİSTEMSEL ANOMALİ TESPİT RAPORU
+                        </h4>
+                        <div style="display: flex; flex-direction: column; gap: 12px;">`;
+            
+            anomaliler.forEach(ano => {
+                let kod = typeof ano === 'object' ? (ano.kod || '') : ano;
+                let mesaj = typeof ano === 'object' ? (ano.mesaj || '') : ano;
+                let detay = typeof ano === 'object' ? (ano.detay || 'Sistem tarafından teknik bir sapma tespit edildi.') : 'Tespit edildi.';
+                
+                let icon = 'fa-exclamation-triangle', color = '#e11d48';
+                if(kod === 'negatif_tuketim') icon = 'fa-arrow-down';
+                else if(kod === 'anormal_tuketim') icon = 'fa-chart-line';
+                else if(kod === 'reaktif_ceza') icon = 'fa-bolt';
+
+                h += `<div style="background: #fff; border-radius: 16px; padding: 15px; border: 1px solid rgba(225, 29, 72, 0.1); display: flex; gap: 15px;">
+                        <div style="width: 42px; height: 42px; border-radius: 12px; background: ${color}15; color: ${color}; display: flex; align-items: center; justify-content: center; flex-shrink: 0; font-size: 1.1rem;">
+                            <i class="fas ${icon}"></i>
+                        </div>
+                        <div style="flex: 1;">
+                            <div style="font-weight: 800; color: #0f172a; font-size: 0.85rem; margin-bottom: 4px;">${mesaj}</div>
+                            <div style="font-size: 0.8rem; color: #475569; line-height: 1.5; font-weight: 500; background: #f8fafc; padding: 8px 12px; border-radius: 8px; border: 1px solid #f1f5f9;">
+                                <strong>Analiz Notu:</strong> ${detay}
+                            </div>
+                        </div>
+                      </div>`;
+            });
+            h += `</div></div></div>`;
+        }
+
+        // Detay Grid
+        h += '<div style="display:grid; grid-template-columns:repeat(auto-fill, minmax(300px, 1fr)); gap:20px;">';
+        const sections = {
+            'Tesisat Bilgileri': { tesisat_no: 'Tesisat No', ilce: 'İlçe', donem: 'Dönem', dagitim: 'Kurum' },
+            'Tüketim Verileri': { t1_tuketim: 'T1 Tüketim', t2_tuketim: 'T2 Tüketim', t3_tuketim: 'T3 Tüketim', trafo_kaybi_kwh: 'Trafo Kaybı', fatura_edilecek_toplam_tuketim_kwh: 'Toplam Tüketim' },
+            'Finansal Veriler': { birim_fiyat: 'Birim Fiyat', reaktif_tl: 'Reaktif Ceza', kdv: 'KDV', genel_toplam: 'Genel Toplam' }
+        };
+
+        Object.entries(sections).forEach(([title, fields]) => {
+            h += `<div style="background:#fff; border-radius:20px; border:1px solid #f1f5f9; overflow:hidden;">
+                    <div style="background:#f8fafc; padding:12px 20px; font-size:0.7rem; font-weight:800; color:#64748b; text-transform:uppercase; border-bottom:1px solid #f1f5f9;">${title}</div>
+                    <div style="padding:10px 0;">`;
+            Object.entries(fields).forEach(([f, lbl]) => {
+                let val = d[f] || '—';
+
+                if (['tutar', 'tl', 'toplam', 'fiyat', 'kdv'].some(x => f.includes(x)) && val !== '—') {
+                    val = '₺' + parseFloat(val).toLocaleString('tr-TR', {minimumFractionDigits:2});
+                }
+                else if (['tarih', 'okuma', 'son_odeme'].some(x => f.includes(x)) && val !== '—') {
+                    val = formatDate(val);
+                }
+
+                h += `<div class="d-flex justify-content-between px-3 py-2 border-bottom-dashed" style="font-size:0.85rem;">
+                        <span style="color:#94a3b8; font-weight:600;">${lbl}</span>
+                        <span style="color:#1e293b; font-weight:700;">${val}</span>
+                      </div>`;
+            });
+            h += `</div></div>`;
+        });
+        h += '</div>';
+
+        document.getElementById('detBdy').innerHTML = h;
+        document.getElementById('detMdl').style.display = 'flex';
+    }
+
+    function closeDetail() { document.getElementById('detMdl').style.display = 'none'; }
+
+    function kaldirItiraz(id, faturaNo) {
+        Swal.fire({
+            title: 'İtirazı Kaldır / Eski Tabloya Döndür',
+            text: faturaNo + " numaralı fatura itirazı kaldırılacak ve kesinleşmiş faturalar tablosuna geri yüklenecek. Devam etmek istiyor musunuz?",
+            icon: 'question',
+            input: 'textarea',
+            inputPlaceholder: 'Geri alma gerekçenizi yazın...',
+            showCancelButton: true,
+            confirmButtonText: 'Evet, Geri Yükle',
+            confirmButtonColor: '#10b981'
+        }).then(res => {
+            if (res.isConfirmed) {
+                // Post to itiraz-kaldir
+                fetch(`{{ url('fatura/itiraz-kaldir') }}/${id}`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': '{{ csrf_token() }}' },
+                    body: JSON.stringify({ sonuc_notu: res.value })
+                }).then(() => window.location.reload());
+            }
+        });
+    }
+
+    window.onclick = function(e) { if (e.target == document.getElementById('detMdl')) closeDetail(); }
+</script>
+@endpush
+@endsection

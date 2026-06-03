@@ -1,0 +1,84 @@
+<div class="glass-card">
+    <h5 class="section-title">
+        <i class="fas fa-chart-line"></i> 
+        Dönemsel FaturaTüketim Raporu
+        @if(request()->filled('start_period') || request()->filled('end_period'))
+            <span style="font-size:.85rem;color:#94a3b8;font-weight:500;margin-left: 8px;">
+                (Dönem: 
+                @if(request()->filled('start_period') && request()->filled('end_period'))
+                    {{ request('start_period') }} - {{ request('end_period') }}
+                @elseif(request()->filled('start_period'))
+                    {{ request('start_period') }}
+                @else
+                    ... - {{ request('end_period') }}
+                @endif
+                )
+            </span>
+        @endif
+    </h5>
+    
+    @if($totals && $totals->total_fatura > 0)
+        {{-- İSTATİSTİK KUTULARI --}}
+        <div class="stats-row">
+            <div class="stat-box">
+                <div class="stat-icon purple"><i class="fas fa-file-invoice"></i></div>
+                <div>
+                    <div class="stat-val">{{ number_format($totals->total_fatura, 0, ',', '.') }}</div>
+                    <div class="stat-lbl">Toplam Fatura</div>
+                </div>
+            </div>
+            <div class="stat-box">
+                <div class="stat-icon blue"><i class="fas fa-bolt"></i></div>
+                <div>
+                    <div class="stat-val">{{ number_format($totals->total_tuketim, 2, ',', '.') }}</div>
+                    <div class="stat-lbl">Toplam Tüketim (kWh)</div>
+                </div>
+            </div>
+            <div class="stat-box">
+                <div class="stat-icon green"><i class="fas fa-lira-sign"></i></div>
+                <div>
+                    <div class="stat-val">{{ number_format($totals->total_tutar, 2, ',', '.') }}</div>
+                    <div class="stat-lbl">Toplam Tutar (₺)</div>
+                </div>
+            </div>
+        </div>
+    @endif
+
+    <div class="tbl-wrap">
+        <table class="tbl">
+            <thead>
+                <tr>
+                    <th>Dönem</th>
+                    <th>Bölge / İlçe</th>
+                    <th style="text-align: center;">Fatura Sayısı</th>
+                    <th style="text-align: right;">Toplam Tüketim (kWh)</th>
+                    <th style="text-align: right;">Toplam Tutar</th>
+                </tr>
+            </thead>
+            <tbody>
+                @forelse($results as $row)
+                    <tr>
+                        <td><span class="badge-donem">{{ $row->donem }}</span></td>
+                        <td style="font-weight: 600;">{{ $row->ilce }}</td>
+                        <td style="text-align: center;"><span class="badge" style="background:#eff6ff;color:#1e40af;">{{ number_format($row->fatura_sayisi) }}</span></td>
+                        <td style="text-align: right; font-weight: 700;">{{ number_format($row->toplam_tuketim, 2, ',', '.') }}</td>
+                        <td style="text-align: right; font-weight: 800; color: #059669;">₺ {{ number_format($row->toplam_tutar, 2, ',', '.') }}</td>
+                    </tr>
+                @empty
+                    <tr>
+                        <td colspan="10" class="text-center" style="padding: 40px; color: #94a3b8;">
+                            <i class="fas fa-search-minus mb-3" style="font-size: 2rem; display: block;"></i>
+                            Kriterlere uygun herhangi bir veri bulunamadı.
+                        </td>
+                    </tr>
+                @endforelse
+            </tbody>
+        </table>
+    </div>
+
+    @if($results->hasPages())
+        <div class="mt-4 d-flex justify-content-center">
+            {{ $results->links('pagination::bootstrap-4') }}
+        </div>
+    @endif
+</div>

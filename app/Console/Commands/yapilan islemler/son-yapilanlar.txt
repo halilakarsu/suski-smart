@@ -1,0 +1,173 @@
+# GENEL SİSTEM ÖZETİ (AI Rehberi)
+
+Bu sistem, ŞUSKİ (Şanlıurfa Su ve Kanalizasyon İdaresi) bünyesindeki elektrik/tüketim abonelerinin ve kesinleşen faturalarının yönetimini, takibini ve detaylı raporlanmasını sağlayan bir Laravel uygulamasıdır.
+
+## Temel Yapı ve Önemli Dosyalar
+
+### 1. Veri Modelleri (Models)
+*   **`Aboneler.php`**: Tüm abone bilgilerini tutar. Bölge adı/kodu eşleştirmesi burada otomatikleşmiştir (`booted` metodu).
+*   **`KesinlesenFatura.php`**: Onaylanmış ve sisteme işlenmiş tüm faturaları tutar. Endeksler, tüketimler ve tutarlar bu model üzerinden raporlanır.
+
+### 2. İş Mantığı ve Kontrolcüler (Controllers)
+*   **`AbonelerController.php`**: Abonelerin listelenmesi, eklenmesi ve düzenlenmesi.
+*   **`ReportController.php`**: Yıllık, dönemlik, detaylı, endeks bazlı ve Köy/Merkez raporlarının merkezi. Tüm SQL hesaplama mantığı (`yearly`, `periodical`, `detailed` vb.) buradadır.
+*   **`ImportController.php`**: Excel üzerinden gelen ham verilerin bekleme havuzuna (`staging`) alınması ve onay sürecini yönetir.
+
+### 3. Arayüz (Views)
+*   Sistem genelinde **Glassmorphism (Premium)** tasarımı hakimdir.
+*   `resources/views/aboneler/index.blade.php`: Gelişmiş "Live Search" (Canlı Arama) ve AJAX tabanlı filtreleme sistemine sahiptir.
+
+### 4. Arka Plan Araçları (Console Commands)
+*   `app/Console/Commands/`: Toplu Excel aktarımı, veri temizleme ve bölge kodu senkronizasyonu gibi ağır işlemler terminal komutları üzerinden yürütülür.
+
+## Veri Akışı
+1. **Excel Aktarımı:** Dışarıdan gelen veriler `ImportController` ile `BeklemeKontrolHavuzu`na alınır.
+2. **Onay Süreci:** `staging` ekranında kontrol edilen veriler onaylanarak `kesinlesen_faturalar` tablosuna aktarılır.
+3. **Raporlama:** `ReportController` üzerinden bu veriler grafiksel ve tablosal raporlara (Excel/PDF) dönüştürülür.
+
+---
+
+# SON YAPILAN İŞLEMLER - 14 MAYIS 2026
+
+Bu belgede, 14 Mayıs sabahı gerçekleştirilen sistem iyileştirmeleri ve hata düzeltmeleri adım adım açıklanmıştır.
+
+## 1. Abone Listesi "Otomatik Arama" (Auto-Search) Geliştirmesi
+**Dosya:** `resources/views/aboneler/index.blade.php`
+
+*   **Sorun:** Arama kutusuna yazıldığında sadece arama formu güncelleniyor, aşağıdaki sonuç tablosu değişmiyordu. Ayrıca sayfa yenilendiği için klavye odağı (focus) kayboluyordu.
+*   **Yapılan İşlem:** 
+    1. Arama formu ve sonuç tablosu ortak bir kapsayıcı (`subscriberAjaxContainer`) içine alındı.
+    2. JavaScript mantığı güncellendi: Kullanıcı yazmayı bıraktığı anda (500ms sonra) AJAX isteği gönderilir.
+    3. **Focus Yönetimi:** İstek tamamlanıp tablo yenilenmeden hemen önce mevcut imleç konumu kaydedilir, tablo yenilendikten sonra imleç ve odak (focus) otomatik olarak arama kutusuna geri yüklenir. Bu sayede kesintisiz yazma deneyimi sağlandı.
+    4. "Aboneleri Filtrele" ve "Sıfırla" butonları kaldırılarak sistem tamamen otomatik hale getirildi.
+
+## 2. Otomatik Bölge (İlçe) Seçimi ve Veri Doğrulama
+**Dosyalar:** 
+*   `app/Models/Aboneler.php`
+*   `app/Http/Controllers/AbonelerController.php`
+*   `resources/views/aboneler/index.blade.php`
+
+*   **Sorun:** Abonelerin bölge kodları (33, 42 vb.) ile isimleri (Haliliye, Siverek vb.) manuel girildiği için hatalar ve eksiklikler oluşuyordu.
+*   **Yapılan İşlem:**
+    1. **Model Seviyesinde Otomatik Eşleştirme:** `Aboneler` modeline bir "saving" kancası (hook) eklendi. Artık bir abone kaydedilirken:
+        - Sadece isim girilirse sistem kodunu bulur.
+        - Sadece kod girilirse sistem adını bulur.
+        - Bölge kodu tespit edilemeyen abonenin kaydedilmesi engellenerek veri bütünlüğü koruma altına alındı.
+    2. **Arayüz Değişikliği:** Abone ekleme ve düzenleme ekranlarındaki serbest metin kutusu kaldırılarak yerine `Bolgeler` tablosundan beslenen bir **Açılır Menü (Dropdown)** eklendi.
+
+## 3. Veri Temizleme ve Senkronizasyon Araçları
+**Dosyalar:** 
+*   `app/Console/Commands/FillBolgeKodu.php`
+*   `app/Console/Commands/SyncAbonelerFromExcel.php`
+
+*   **Yapılan İşlem:** 
+    1. Veritabanında eskiden kalma, bölge kodu boş olan binlerce aboneyi toplu düzeltmek için `php artisan app:fill-bolge-kodu` komutu hazırlandı.
+    2. Excel dosyasındaki güncel abone verilerini (adres, sayaç no, çarpan vb.) veritabanı ile eşitlemek için kapsamlı senkronizasyon araçları devreye alındı.
+
+## Sistem Nasıl Çalışıyor? (Özet)
+Sistem artık "Akıllı Abone Yönetimi" prensibiyle çalışıyor. Bir abone Excel'den içe aktarılırken veya manuel eklenirken, sistem onun bölgesini isminden tanır, kodunu otomatik basar. Arama ekranında ise hiçbir butona basmadan doğrudan tesisat no veya isim yazarak canlı sonuçlara ulaşırsınız.
+
+---
+*Not: Bu rapor sistem yöneticisi için bilgilendirme amaçlı hazırlanmıştır.*
+
+## 4. Detaylı Fatura Raporu Teknik Veri Güncellemesi
+**Dosyalar:** 
+* `app/Http/Controllers/ReportController.php`
+* `resources/views/reports/detailed.blade.php`
+* `resources/views/reports/detailed-excel.blade.php`
+* `app/Exports/DetailedReportExport.php`
+* `resources/views/reports/detailed-pdf.blade.php`
+
+* **Yapılan İşlem:** 
+    1. Detaylı rapor tablosundan teknik olmayan "Bölge", "Adres" ve "Fatura No" sütunları kaldırıldı.
+    2. Yerlerine teknik analiz için kritik olan şu veriler eklendi:
+        - **İlk Okuma Tarihi**
+        - **Son Okuma Tarihi**
+        - **İlk Endeks (T0)**
+        - **Son Endeks (T0)**
+        - **Çarpan**
+    3. Aynı dönemde birden fazla fatura alan abonelerin verilerinin karışmaması için tesisat no ve okuma bilgileri bazlı detaylı döküm sağlandı.
+    4. Excel ve PDF çıktıları yeni sütun yapısına (Landscape/Yatay modda) uygun şekilde yeniden tasarlandı.
+
+## 5. Çoklu Bölge Seçimi (Multi-Select) Desteği
+**Dosyalar:** 
+* `app/Http/Controllers/ReportController.php`
+* `resources/views/reports/detailed.blade.php`
+* `resources/views/frontend/partials/header.blade.php`
+* `resources/views/reports/detailed-pdf.blade.php`
+
+* **Yapılan İşlem:** 
+    1. Detaylı rapor sayfasındaki bölge filtresi tekli seçimden **çoklu seçime (multi-select)** dönüştürüldü.
+    2. **Premium Onay Kutulu (Tick) Dropdown:** Standart checkbox yerine, FontAwesome tabanlı özel "tick" işaretleri ve degradeli (gradient) seçim kutuları tasarlandı.
+    3. **Özel Kaydırma Çubuğu (Scroll):** Liste için sisteme uyumlu, ince ve modern bir scrollbar (kaydırma çubuğu) eklendi.
+    4. **Tümünü Seç Özelliği:** Listenin en başına "Tümünü Seç" seçeneği eklendi. Bu seçenek işaretlendiğinde tüm bölgeler otomatik olarak seçilir.
+    5. **Dinamik Etiket:** Seçim yapıldığında buton üzerinde "3 Bölge Seçili" veya "Tüm Bölgeler Seçili" gibi bilgilendirici metinler dinamik olarak güncellenir.
+    6. **Üst Katman Fix:** Dropdown menünün diğer kutuların altında kalma sorunu `z-index` düzenlemesi ile giderildi; liste artık her zaman en üstte görünür.
+    8. **Tutar Bazlı Sıralama:** Detaylı rapor sonuçları artık varsayılan olarak "Tutar" (₺) sütununa göre büyükten küçüğe doğru sıralanmaktadır.
+    9. **Sayfalama (Pagination):** Detaylı rapor listesi artık her sayfada 10 kayıt olacak şekilde sayfalara bölündü. Bu sayede binlerce kayıt içeren raporlar çok daha hızlı yüklenir ve rahatça incelenebilir. Sayfalar arasında geçiş yapıldığında filtreler korunur.
+    10. Arka plan sorgusu `whereIn` mantığı ile seçilen tüm bölgelerin verilerini aynı anda getirmeye devam eder.
+
+## 6. "Arıtma" Yerleşim Türünün Kaldırılması ve Merkez ile Birleştirilmesi
+**Dosyalar:** 
+* Veritabanı (`aboneler` tablosu)
+* `app/Http/Controllers/AbonelerController.php`
+* `resources/views/aboneler/index.blade.php`
+
+* **Yapılan İşlem:** 
+    1. Sistemsel bir sadeleştirme yapıldı: "Arıtma" (Treatment) aboneliği sınıflandırması tamamen kaldırıldı.
+    2. **Veritabanı Güncellemesi:** Veritabanındaki tüm "Arıtma", "Havalimanı", "Scada", "Vezne" ve diğer tüm yerleşim türleri (KÖY hariç her şey) otomatik olarak "MERKEZ" olarak güncellendi.
+    3. **Arayüz Temizliği:** Abone listesi, filtreler, istatistik kartları ve yeni abone ekleme formundan diğer tüm seçenekler çıkarıldı.
+    4. Artık sistem sadece "Merkez" ve "Köy" ayrımı üzerinden çalışmaktadır. Köy dışındaki tüm abonelikler "Merkez" kategorisi altında takip edilmektedir.
+    5. **Detaylı Rapor Filtresi:** Detaylı fatura raporuna "Yerleşim Türü" (Merkez/Köy) filtresi eklendi. Bu filtre, ana abone tablosundaki güncel yerleşim bilgilerini kullanarak rapor sonuçlarını daraltmanıza olanak sağlar.
+
+## 7. "ŞANLIURFA" Bölge Kayıtlarının Düzeltilmesi ve Yerleşim Filtresi İyileştirmesi
+**Dosyalar:** 
+* Veritabanı (`kesinlesen_faturalar` tablosu)
+* `app/Http/Controllers/ReportController.php`
+
+* **Yapılan İşlem:** 
+    1. **Bölge Düzeltmesi:** `kesinlesen_faturalar` tablosunda `ilce` alanı "ŞANLIURFA" veya "ŞANLIURFA ÖZEL" olan tüm fatura kayıtları tespit edildi (159 adet).
+    2. Bu kayıtlar önce `abone_tesis_no` → `Aboneler.BOLGE_ADI` eşleşmesiyle, ardından `tesisat_no` → `Aboneler.BOLGE_ADI` eşleşmesiyle gerçek ilçelerine (HALİLİYE, EYYÜBİYE, BOZOVA vb.) taşındı. Tüm 159 kayıt başarıyla güncellendi.
+    3. **İlçe Filtresi:** Detaylı rapor bölge dropdown listesinden "ŞANLIURFA" ve "ŞANLIURFA ÖZEL" seçenekleri kaldırıldı.
+    4. **Yerleşim Türü Filtresi Düzeltmesi:** Yerleşim türü filtresi (Merkez/Köy), tarife/ilce kelime eşleşmesi yerine `kesinlesen_faturalar.tesisat_no` → `aboneler.ABONE_TESIS_NO` → `aboneler.yerlesim_turu` zinciriyle çalışacak şekilde yeniden yazıldı. Bu yaklaşım `abone_tesis_no` boş olan kayıtlar için de doğru sonuç verir.
+
+## 8. Yıllık ve Dönemsel Raporlara Gelişmiş Filtrelerin Eklenmesi
+**Dosyalar:** 
+* `app/Http/Controllers/ReportController.php`
+* `resources/views/reports/yearly.blade.php`
+* `resources/views/reports/periodical.blade.php`
+
+* **Yapılan İşlem:** 
+    1. **Yerleşim Türü Filtresi:** Detaylı raporda bulunan "Yerleşim Türü" (Merkez/Köy) filtresi, Yıllık ve Dönemsel rapor sayfalarına da eklendi. Sorgu mantığı olarak `tesisat_no` üzerinden aboneler tablosuna alt sorgu (subquery) yapacak şekilde uyarlandı.
+    2. **Çoklu Bölge Seçimi (Multi-Select):** Tıpkı detaylı raporda olduğu gibi, Yıllık ve Dönemsel raporlardaki tekli bölge seçim kutuları, gelişmiş (checkbox, tick ikonlu, tümünü seç özellikli) çoklu seçim menülerine dönüştürüldü.
+    3. **Controller Uyumu:** `ReportController` içerisindeki `yearly` ve `periodical` metodları, bölge filtresini tekil değer yerine dizi (array) olarak kabul edecek ve `whereIn` sorgusu ile çalışacak şekilde güncellendi.
+    4. **Arayüz Düzenlemesi:** Yeni eklenen filtrelere yer açmak için rapor sayfalarındaki filtre form sütunları (`col-md-3` yerine `col-md-2` gibi) daha kompakt hale getirildi.
+
+## 9. Premium Multi-Select Checkbox Tasarımı ve Görsel İyileştirmeler
+**Dosyalar:** 
+* `resources/views/reports/detailed.blade.php`
+* `resources/views/reports/yearly.blade.php`
+* `resources/views/reports/periodical.blade.php`
+* `resources/views/reports/koy-merkez.blade.php`
+
+* **Yapılan İşlem:** 
+    1. **Özel Checkbox Tasarımı (cb-box):** Standart tarayıcı checkbox'ları yerine, modern, mavi/yeşil dolgulu ve SVG tick ikonlu tamamen özel bir checkbox yapısı (`cb-box`) geliştirildi.
+    2. **Görsel Geri Bildirim:** Seçilen satırlara `checked-row` sınıfı atanarak arka plan renginin değişmesi sağlandı.
+    3. **UX İyileştirmesi:** Satırın herhangi bir yerine tıklayarak seçim yapılabilmesi için `toggleCheckbox` ve `syncVisuals` fonksiyonları entegre edildi.
+    4. **Dinamik Etiketler:** Seçilen bölge sayısına göre dropdown etiketi (örn: "3 Bölge Seçili") otomatik güncelleniyor.
+
+## 11. Endeks ve Anomali Raporu Optimizasyonları
+**Dosyalar:** 
+* `app/Http/Controllers/ReportController.php`
+* `app/Http/Controllers/AnomaliController.php`
+* `resources/views/reports/endeks.blade.php`
+* `resources/views/reports/anomali.blade.php`
+
+* **Yapılan İşlem:** 
+    1. **Endeks Raporu:** "Bölge" filtresi çoklu seçim (multi-select) yapısına dönüştürüldü.
+    2. **Anomali Analizi:** Filtre modalı içindeki bölge seçimi premium multi-select olarak güncellendi.
+    3. **Controller Desteği:** `endeks` ve `anomali` sorguları, dizi olarak gelen bölge kodlarını `whereIn` ile işleyecek şekilde revize edildi.
+    4. **UI/UX Standartlaştırması:** Diğer raporlarda uygulanan glassmorphic kart tasarımı, z-index katman yönetimi ve özel checkbox (`cb-box`) yapısı bu sayfalara da tam uyumlu hale getirildi.
+
+---
+*Not: Bu işlemler 14 Mayıs 2026 sabah oturumunda tamamlanmıştır.*
