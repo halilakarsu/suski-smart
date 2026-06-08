@@ -124,6 +124,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/raporlar/donem-bazinda', [\App\Http\Controllers\ReportController::class, 'periodical'])->name('reports.periodical');
     Route::get('/raporlar/detayli', [\App\Http\Controllers\ReportController::class, 'detailed'])->name('reports.detailed');
     Route::get('/raporlar/endeks', [\App\Http\Controllers\ReportController::class, 'endeks'])->name('reports.endeks');
+    Route::get('/raporlar/endeks/gecmis-6-ay/{tesisat_no}', [\App\Http\Controllers\ReportController::class, 'gecmis6Ay'])->name('reports.endeks.gecmis6Ay');
     Route::get('/raporlar/anormal-faturalar', [\App\Http\Controllers\AnormalFaturaController::class, 'index'])->name('reports.anormal-faturalar');
     Route::get('/raporlar/koy-merkez', [\App\Http\Controllers\ReportController::class, 'koyMerkez'])->name('reports.koy-merkez');
 

@@ -2,7 +2,8 @@
 <div class="sidebar sidebar-style-2">
 
 	<div class="scroll-wrapper sidebar-wrapper scrollbar scrollbar-inner" style="position: relative;">
-		<div class="sidebar-wrapper scrollbar scrollbar-inner scroll-content scroll-scrolly_visible" style="height: auto; margin-bottom: 0px; margin-right: 0px; max-height: 686px;">
+		<div class="sidebar-wrapper scrollbar scrollbar-inner scroll-content scroll-scrolly_visible"
+			style="height: auto; margin-bottom: 0px; margin-right: 0px; max-height: 686px;">
 			<div class="sidebar-content">
 				<!-- User Profile Card -->
 				<div class="user-profile-card">
@@ -11,7 +12,8 @@
 					</div>
 					<div class="user-profile-info">
 						<span class="user-profile-name">{{ auth()->user()->name }}</span>
-						<span class="user-profile-role">{{ auth()->user()->role == 'admin' ? 'Yönetici' : 'Personel' }}</span>
+						<span
+							class="user-profile-role">{{ auth()->user()->role == 'admin' ? 'Yönetici' : 'Personel' }}</span>
 					</div>
 				</div>
 
@@ -37,13 +39,15 @@
 						</a>
 					</li>
 
-					<li class="nav-item {{ request()->is('fatura*') || request()->routeIs('staging.*') ? 'active' : '' }}">
+					<li
+						class="nav-item {{ request()->is('fatura*') || request()->routeIs('staging.*') ? 'active' : '' }}">
 						<a data-toggle="collapse" href="#diger-fatura">
 							<i class="fas fa-file-invoice"></i>
 							<p>Fatura İşlemleri</p>
 							<span class="caret"></span>
 						</a>
-						<div class="collapse {{ request()->is('fatura*') || request()->routeIs('staging.*') ? 'show' : '' }}" id="diger-fatura">
+						<div class="collapse {{ request()->is('fatura*') || request()->routeIs('staging.*') ? 'show' : '' }}"
+							id="diger-fatura">
 							<ul class="nav nav-collapse">
 								<li class="{{ request()->routeIs('staging.index') ? 'active' : '' }}">
 									<a href="{{ route('staging.index') }}">
@@ -69,13 +73,15 @@
 						</div>
 					</li>
 
-					<li class="nav-item {{ request()->is('raporlar*') && !request()->is('raporlar/endeks') ? 'active' : '' }}">
+					<li
+						class="nav-item {{ request()->is('raporlar*') && !request()->is('raporlar/endeks') ? 'active' : '' }}">
 						<a data-toggle="collapse" href="#reports">
 							<i class="fas fa-chart-bar"></i>
 							<p>Rapor İşlemleri</p>
 							<span class="caret"></span>
 						</a>
-						<div class="collapse {{ request()->is('raporlar*') && !request()->is('raporlar/endeks') ? 'show' : '' }}" id="reports">
+						<div class="collapse {{ request()->is('raporlar*') && !request()->is('raporlar/endeks') ? 'show' : '' }}"
+							id="reports">
 							<ul class="nav nav-collapse">
 								<li class="{{ request()->routeIs('reports.periodical') ? 'active' : '' }}">
 									<a href="{{ route('reports.periodical') }}">
@@ -102,29 +108,23 @@
 					</li>
 
 					<li class="nav-item {{ request()->is('raporlar/endeks') ? 'active' : '' }}">
-						<a data-toggle="collapse" href="#analysis">
+						<a href="{{ route('reports.endeks') }}">
 							<i class="fas fa-search-plus"></i>
 							<p>Analiz ve Denetim</p>
-							<span class="caret"></span>
+
 						</a>
-						<div class="collapse {{ request()->is('raporlar/endeks') ? 'show' : '' }}" id="analysis">
-							<ul class="nav nav-collapse">
-								<li class="{{ request()->routeIs('reports.endeks') ? 'active' : '' }}">
-									<a href="{{ route('reports.endeks') }}">
-										<span class="sub-item">Endeks Analizi</span>
-									</a>
-								</li>
-							</ul>
-						</div>
+
 					</li>
 
-					<li class="nav-item {{ request()->is('aboneler*') || request()->routeIs('bolgeler.*') ? 'active' : '' }}">
+					<li
+						class="nav-item {{ request()->is('aboneler*') || request()->routeIs('bolgeler.*') ? 'active' : '' }}">
 						<a data-toggle="collapse" href="#abone">
 							<i class="fas fa-users"></i>
 							<p>Abone İşlemleri</p>
 							<span class="caret"></span>
 						</a>
-						<div class="collapse {{ request()->is('aboneler*') || request()->routeIs('bolgeler.*') ? 'show' : '' }}" id="abone">
+						<div class="collapse {{ request()->is('aboneler*') || request()->routeIs('bolgeler.*') ? 'show' : '' }}"
+							id="abone">
 							<ul class="nav nav-collapse">
 								<li class="{{ request()->routeIs('aboneler.index') ? 'active' : '' }}">
 									<a href="{{ route('aboneler.index') }}">
@@ -169,7 +169,8 @@
 						</a>
 					</li>
 
-					<li class="nav-item logout-item" style="margin-top: 20px; border-top: 1px solid rgba(255,255,255,0.05); padding-top: 10px;">
+					<li class="nav-item logout-item"
+						style="margin-top: 20px; border-top: 1px solid rgba(255,255,255,0.05); padding-top: 10px;">
 						<form method="POST" action="{{ route('logout') }}" id="logout-form">
 							@csrf
 							<a href="#"
@@ -182,7 +183,20 @@
 				</ul>
 			</div>
 		</div>
-		<div class="scroll-element scroll-x scroll-scrolly_visible"><div class="scroll-element_outer"><div class="scroll-element_size"></div><div class="scroll-element_track"></div><div class="scroll-bar ui-draggable ui-draggable-handle" style="width: 88px;"></div></div></div><div class="scroll-element scroll-y scroll-scrolly_visible"><div class="scroll-element_outer"><div class="scroll-element_size"></div><div class="scroll-element_track"></div><div class="scroll-bar ui-draggable ui-draggable-handle" style="height: 600px; top: 0px;"></div></div></div>
+		<div class="scroll-element scroll-x scroll-scrolly_visible">
+			<div class="scroll-element_outer">
+				<div class="scroll-element_size"></div>
+				<div class="scroll-element_track"></div>
+				<div class="scroll-bar ui-draggable ui-draggable-handle" style="width: 88px;"></div>
+			</div>
+		</div>
+		<div class="scroll-element scroll-y scroll-scrolly_visible">
+			<div class="scroll-element_outer">
+				<div class="scroll-element_size"></div>
+				<div class="scroll-element_track"></div>
+				<div class="scroll-bar ui-draggable ui-draggable-handle" style="height: 600px; top: 0px;"></div>
+			</div>
+		</div>
 	</div>
 </div>
 <!-- End Sidebar -->

@@ -606,4 +606,70 @@ class ReportController extends Controller
 
         return view('reports.koy-merkez', compact('results', 'donemler', 'bolgeler', 'tarifeler', 'totalKoyTuketim', 'totalKoyTutar', 'totalMerkezTuketim', 'totalMerkezTutar'));
     }
+
+    public function gecmis6Ay($tesisat_no, Request $request)
+    {
+        $query = KesinlesenFatura::where('tesisat_no', $tesisat_no)
+            ->where('odeme_durumu', 'odendi');
+
+        if ($request->filled('donem')) {
+            $query->where('donem', '<=', $request->donem);
+        }
+
+        $records = $query->orderBy('donem', 'desc')
+            ->limit(6)
+            ->get();
+
+        $formatted = $records->map(function ($row) {
+            $carpan = (float)($row->carpan ?: 1);
+
+            $t1Ilk = (float)str_replace(',', '.', $row->t1_ilk_endeks ?? 0);
+            $t1Son = (float)str_replace(',', '.', $row->t1_son_endeks ?? 0);
+            $t2Ilk = (float)str_replace(',', '.', $row->t2_ilk_endeks ?? 0);
+            $t2Son = (float)str_replace(',', '.', $row->t2_son_endeks ?? 0);
+            $t3Ilk = (float)str_replace(',', '.', $row->t3_ilk_endeks ?? 0);
+            $t3Son = (float)str_replace(',', '.', $row->t3_son_endeks ?? 0);
+
+            $t1Fark = $t1Son - $t1Ilk;
+            $t2Fark = $t2Son - $t2Ilk;
+            $t3Fark = $t3Son - $t3Ilk;
+
+            $hasTariff = ($t1Ilk + $t2Ilk + $t3Ilk) > 0;
+            $t0Ilk = $hasTariff ? ($t1Ilk + $t2Ilk + $t3Ilk) : (float)str_replace(',', '.', $row->t0_ilk_endeks ?? 0);
+            $t0Son = $hasTariff ? ($t1Son + $t2Son + $t3Son) : (float)str_replace(',', '.', $row->t0_son_endeks ?? 0);
+            $t0Fark = $t0Son - $t0Ilk;
+
+            $t1Tuketim = (float)($row->t1_tuketim ?? 0);
+            $t2Tuketim = (float)($row->t2_tuketim ?? 0);
+            $t3Tuketim = (float)($row->t3_tuketim ?? 0);
+            
+            $t0Tuketim = $hasTariff ? ($t1Tuketim + $t2Tuketim + $t3Tuketim) : (float)($row->fatura_edilecek_toplam_tuketim_kwh ?? 0);
+
+            $riIlk = (float)str_replace(',', '.', $row->ri_ilk_endeks ?? 0);
+            $riSon = (float)str_replace(',', '.', $row->ri_son_endeks ?? 0);
+            $riFark = $row->ri_fark_endeks !== null ? (float)str_replace(',', '.', $row->ri_fark_endeks) : ($riSon - $riIlk);
+
+            $rcIlk = (float)str_replace(',', '.', $row->rc_ilk_endeks ?? 0);
+            $rcSon = (float)str_replace(',', '.', $row->rc_son_endeks ?? 0);
+            $rcFark = $row->rc_fark_endeks !== null ? (float)str_replace(',', '.', $row->rc_fark_endeks) : ($rcSon - $rcIlk);
+
+            return [
+                'donem' => $row->donem,
+                'carpan' => $carpan,
+                'tutar' => (float)($row->tutar_toplam ?? 0),
+                't0' => ['ilk' => $t0Ilk, 'son' => $t0Son, 'fark' => $t0Fark, 'tuketim' => $t0Tuketim],
+                't1' => ['ilk' => $t1Ilk, 'son' => $t1Son, 'fark' => $t1Fark, 'tuketim' => $t1Tuketim],
+                't2' => ['ilk' => $t2Ilk, 'son' => $t2Son, 'fark' => $t2Fark, 'tuketim' => $t2Tuketim],
+                't3' => ['ilk' => $t3Ilk, 'son' => $t3Son, 'fark' => $t3Fark, 'tuketim' => $t3Tuketim],
+                'ri' => ['ilk' => $riIlk, 'son' => $riSon, 'fark' => $riFark, 'tuketim' => null],
+                'rc' => ['ilk' => $rcIlk, 'son' => $rcSon, 'fark' => $rcFark, 'tuketim' => null],
+            ];
+        });
+
+        return response()->json([
+            'success' => true,
+            'tesisat_no' => $tesisat_no,
+            'records' => $formatted,
+        ]);
+    }
 }

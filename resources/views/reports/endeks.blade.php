@@ -34,22 +34,24 @@
         border:1px solid rgba(255,255,255,0.7); border-radius:28px; padding:30px; 
         box-shadow:var(--shadow); margin-bottom:28px; overflow: visible;
     }
-    .filter-card { position: relative; z-index: 1000 !important; overflow: visible !important; }
-    .section-title { font-size:1.05rem; font-weight:800; color:var(--text-900); margin-bottom:22px; display:flex; align-items:center; gap:10px; }
-    .section-title i { padding:9px; background:#eff6ff; border-radius:10px; color:#3b82f6; }
+    .filter-card { position: relative; z-index: 1000 !important; overflow: visible !important; padding: 24px 28px; }
+    .section-title { font-size:0.85rem; font-weight:700; color:#64748b; margin-bottom:20px; display:flex; align-items:center; gap:8px; text-transform:uppercase; letter-spacing:0.05em; }
+    .section-title i { padding:0; background:none; border-radius:0; color:#94a3b8; font-size:0.8rem; }
     /* Form Elements */
-    .form-group-pro { margin-bottom: 20px; }
-    .form-group-pro label, .form-lbl { display: block; font-size: 0.85rem; font-weight: 700; color: var(--text-900); margin-bottom: 8px; text-transform: uppercase; letter-spacing: 0.03em; }
+    .form-group-pro { margin-bottom: 0; }
+    .form-group-pro label, .form-lbl { display: block; font-size: 0.7rem; font-weight: 700; color: #64748b; margin-bottom: 6px; text-transform: uppercase; letter-spacing: 0.06em; }
+    .form-group-pro label i { color: #94a3b8; margin-right: 4px; }
     .form-control-pro {
-        width: 100%; padding: 12px 16px; background: #fff; border: 1px solid #e2e8f0; border-radius: 12px;
-        font-size: 0.95rem; color: var(--text-900); font-weight: 500; transition: all 0.2s; outline: none;
+        width: 100%; padding: 0 14px; background: #fff; border: 1px solid #e2e8f0; border-radius: 10px;
+        font-size: 0.85rem; color: var(--text-900); font-weight: 600; transition: all 0.2s; outline: none;
     }
-    .form-control-pro:focus { border-color: #3b82f6; box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.1); }
-    select.form-control-pro { -webkit-appearance: none; appearance: none; background-image: url('data:image/svg+xml;charset=US-ASCII,<svg width="12" height="8" viewBox="0 0 14 8" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M1 1L7 7L13 1" stroke="%2394a3b8" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>'); background-repeat: no-repeat; background-position: right 16px center; background-size: 10px; padding-right: 40px; }
-    .btn-pro { padding:11px 22px; border-radius:13px; font-weight:700; font-size:.88rem; display:inline-flex; align-items:center; gap:8px; transition:all .3s; border:none; cursor:pointer; text-decoration:none !important; }
-    .btn-primary-pro { background:var(--primary-gradient); color:#fff !important; box-shadow:0 8px 20px -5px rgba(37,99,235,.3); }
-    .btn-primary-pro:hover { transform:translateY(-2px); }
-    .btn-outline-pro { background:#fff; border:1px solid #e2e8f0; color:var(--text-500); }
+    .form-control-pro:focus { border-color: #3b82f6; box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.08); }
+    select.form-control-pro { -webkit-appearance: none; appearance: none; background-image: url('data:image/svg+xml;charset=US-ASCII,<svg width="12" height="8" viewBox="0 0 14 8" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M1 1L7 7L13 1" stroke="%2394a3b8" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>'); background-repeat: no-repeat; background-position: right 14px center; background-size: 9px; padding-right: 36px; }
+    .btn-pro { padding:0 18px; border-radius:10px; font-weight:700; font-size:.82rem; display:inline-flex; align-items:center; gap:6px; transition:all .2s; border:none; cursor:pointer; text-decoration:none !important; }
+    .btn-primary-pro { background:var(--primary-gradient); color:#fff !important; box-shadow:0 4px 12px -3px rgba(37,99,235,.25); }
+    .btn-primary-pro:hover { transform:translateY(-1px); box-shadow:0 6px 16px -3px rgba(37,99,235,.35); }
+    .btn-outline-pro { background:#fff; border:1px solid #e2e8f0; color:#64748b; }
+    .btn-outline-pro:hover { border-color:#3b82f6; color:#2563eb; background:#f8faff; }
     .btn-success-pro { background:linear-gradient(135deg,#059669,#10b981); color:#fff !important; }
     /* Stats Row Premium */
     .stats-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 24px; margin-bottom: 30px; }
@@ -257,11 +259,11 @@
     .custom-multi-select { position: relative; width: 100%; z-index: 1000; }
     .custom-multi-select .dropdown-toggle {
         text-align: left; background: #fff; border: 1px solid #e2e8f0;
-        padding: 11px 15px; border-radius: 12px; font-size: .92rem; color: var(--text-900);
+        padding: 0 14px; border-radius: 10px; font-size: .85rem; color: var(--text-900);
         display: flex; justify-content: space-between; align-items: center; width: 100%;
-        transition: all 0.2s; font-weight: 500;
+        transition: all 0.2s; font-weight: 600;
     }
-    .custom-multi-select .dropdown-toggle:hover { border-color: #3b82f6; box-shadow: 0 0 0 3px rgba(59,130,246,0.1); }
+    .custom-multi-select .dropdown-toggle:hover { border-color: #3b82f6; box-shadow: 0 0 0 3px rgba(59,130,246,0.08); }
     .custom-multi-select .dropdown-toggle::after { display: none !important; }
     .custom-multi-select .dropdown-menu {
         width: 100%; border-radius: 16px; border: 1.5px solid #e2e8f0;
@@ -529,6 +531,131 @@
         50%  { width: 75%; margin-left: 0; }
         100% { width: 0%; margin-left: 100%; }
     }
+
+
+    /* ═══════════ PREMIUM ENDEKS GEÇMİŞ 6 AY MODAL ═══════════ */
+    #endeksGecmisModal {
+        display:none; position:fixed; inset:0; z-index:99999;
+        background:rgba(15,23,42,0.7); backdrop-filter:blur(8px); -webkit-backdrop-filter:blur(8px);
+        align-items:center; justify-content:center; padding:20px;
+        opacity:0; transition:opacity 0.25s ease;
+    }
+    #endeksGecmisModal.active { opacity:1; }
+    #endeksGecmisModal.active .emd-card { transform:scale(1) translateY(0); opacity:1; }
+
+    /* ── Flat-Table Stilleri ──────────────────────────────────────── */
+    .egm-main-table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 0.82rem;
+    }
+    .egm-main-table thead tr {
+        background: #f8fafc;
+        position: sticky;
+        top: 0;
+        z-index: 10;
+    }
+    .egm-main-table thead th {
+        padding: 11px 14px;
+        font-size: 0.68rem;
+        font-weight: 800;
+        color: #64748b;
+        text-transform: uppercase;
+        letter-spacing: 0.07em;
+        border-bottom: 2px solid #e2e8f0;
+        white-space: nowrap;
+    }
+
+    /* Dönem başlık satırı */
+    .egm-period-header-row td { 
+        padding: 9px 16px !important;
+        background: linear-gradient(125deg, #0f172a 0%, #1e1b4b 100%);
+        border-bottom: none;
+    }
+    .egm-period-label {
+        font-size: 0.88rem;
+        font-weight: 800;
+        color: #fff;
+        display: inline-flex;
+        align-items: center;
+        gap: 7px;
+    }
+    .egm-period-label i { opacity: 0.8; }
+    .egm-period-meta {
+        font-size: 0.75rem;
+        color: #c4b5fd;
+        background: rgba(255,255,255,0.1);
+        border: 1px solid rgba(255,255,255,0.15);
+        padding: 3px 10px;
+        border-radius: 20px;
+        margin-left: 15px;
+        vertical-align: middle;
+    }
+    .egm-period-meta strong { color: #ede9fe; }
+    .egm-period-tutar {
+        font-size: 0.88rem;
+        font-weight: 800;
+        color: #a7f3d0;
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        background: rgba(16,185,129,0.15);
+        border: 1px solid rgba(16,185,129,0.3);
+        padding: 4px 14px;
+        border-radius: 20px;
+    }
+
+    /* Veri satırları */
+    .egm-data-row td {
+        padding: 7px 14px;
+        border-bottom: 1px solid #f1f5f9;
+        vertical-align: middle;
+    }
+    .egm-data-row:hover td { background: #fafbff; }
+    .egm-row-ana td { background: #f5f3ff; }
+    .egm-row-ana:hover td { background: #ede9fe; }
+    .egm-row-reaktif td { background: #fffbf5; }
+    .egm-row-reaktif:hover td { background: #fef3c7; }
+    .egm-row-sep td { border-bottom: 3px solid #c4b5fd !important; }
+
+    /* Gösterge hücresi */
+    .egm-indicator-cell { white-space: nowrap; }
+    .egm-indicator-sub {
+        font-size: 0.7rem;
+        color: #94a3b8;
+        font-weight: 500;
+        margin-left: 6px;
+    }
+
+    /* Sayısal hücreler */
+    .egm-num-cell {
+        text-align: right;
+        font-family: 'Courier New', monospace;
+        font-size: 0.8rem;
+        color: #334155;
+        font-weight: 600;
+        white-space: nowrap;
+    }
+    .egm-tuketim-cell { color: #059669 !important; font-weight: 700 !important; }
+
+    /* Rozet (badge) stilleri */
+    .egm-badge {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 0.72rem;
+        font-weight: 900;
+        padding: 2px 8px;
+        border-radius: 6px;
+        min-width: 28px;
+        text-align: center;
+    }
+    .egm-badge-t0 { background: #e0f2fe; color: #0369a1; border: 1px solid #bae6fd; }
+    .egm-badge-t1 { background: #dbeafe; color: #1d4ed8; border: 1px solid #bfdbfe; }
+    .egm-badge-t2 { background: #f3e8ff; color: #6d28d9; border: 1px solid #ddd6fe; }
+    .egm-badge-t3 { background: #f1f5f9; color: #475569; border: 1px solid #e2e8f0; }
+    .egm-badge-ri { background: #fef2f2; color: #dc2626; border: 1px solid #fecaca; }
+    .egm-badge-rc { background: #fff7ed; color: #c2410c; border: 1px solid #fed7aa; }
 </style>
 
 {{-- ===== EXPORT LOADING OVERLAY ===== --}}
@@ -566,14 +693,10 @@
     <div class="page-hero">
         <div class="hero-container">
             <div class="hero-title-group">
-                <h1 class="hero-title">Tüketim & Endeks Raporu</h1>
-                <p class="hero-subtitle">T0 İlk / Son endeks, tüketim ve tutar bilgilerini takip edin</p>
+                <h1 class="hero-title">Fatura Analiz ve Denetim İşlemleri</h1>
+                <p class="hero-subtitle">Endes ve okuma analizleriyle hatalı işlemler tespit ediliyor</p>
             </div>
             <div class="d-flex gap-2 align-items-center">
-                <button type="button" class="btn-advanced-pro" data-toggle="modal" data-target="#advancedFilterModal" style="background: rgba(255,255,255,0.15); color: white; border-color: rgba(255,255,255,0.3); box-shadow: none;">
-                    <i class="fas fa-sliders-h"></i> Detaylı Filtre
-                    @if(request()->anyFilled(['tarife','baglanti_grubu','tesisat_no','yerlesim_tipi','end_period']))<span class="adv-active-dot" style="background:#fca5a5;"></span>@endif
-                </button>
                 <div class="dropdown" id="exportBtnContainer" style="display: {{ request()->anyFilled(['bolge','start_period','end_period','tesisat_no','tarife','baglanti_grubu','yerlesim_tipi']) ? 'block' : 'none' }};">
                     <button type="button" class="btn-pro btn-outline-pro dropdown-toggle ml-2" data-toggle="dropdown" style="background: rgba(255,255,255,0.15); color: white; border-color: rgba(255,255,255,0.3); box-shadow: none;">
                         <i class="fas fa-file-export"></i> Dışa Aktar
@@ -608,10 +731,10 @@
                 <div id="advancedHiddenFields"></div>
                 <div class="row align-items-end">
                     <div class="col-md-4">
-                        <div class="form-group-pro" style="margin-bottom:0;">
-                            <label><i class="fas fa-map-marker-alt me-2"></i> Bölge Seçimi</label>
+                        <div class="form-group-pro">
+                            <label><i class="fas fa-map-marker-alt"></i> Bölge Seçimi</label>
                             <div class="dropdown custom-multi-select">
-                                <button class="dropdown-toggle" type="button" id="bolgeDropdown" data-toggle="dropdown" style="height: 47px;">
+                                <button class="dropdown-toggle" type="button" id="bolgeDropdown" data-toggle="dropdown" style="height:42px;">
                                     <span id="bolgeLabel">Bölge Seçin...</span>
                                     <i class="fas fa-chevron-down" style="font-size:.75rem;color:#94a3b8;"></i>
                                 </button>
@@ -634,9 +757,9 @@
                         </div>
                     </div>
                     <div class="col-md-4">
-                        <div class="form-group-pro" style="margin-bottom:0;">
-                            <label><i class="far fa-calendar-alt me-2"></i> Dönem Seç</label>
-                            <select name="start_period" id="hero_start_period" class="form-control-pro" style="height: 47px;">
+                        <div class="form-group-pro">
+                            <label><i class="far fa-calendar-alt"></i> Dönem Seç</label>
+                            <select name="start_period" id="hero_start_period" class="form-control-pro" style="height:42px;">
                                 <option value="">Tümü</option>
                                 @foreach($donemler as $d)
                                     <option value="{{ $d }}" {{ request('start_period') == $d ? 'selected' : '' }}>{{ $d }}</option>
@@ -645,7 +768,13 @@
                         </div>
                     </div>
                     <div class="col-md-4">
-                        <button type="submit" class="btn-pro btn-primary-pro w-100 justify-content-center" style="height: 47px; background: linear-gradient(135deg, #2563eb, #4f46e5); font-weight: 800;"><i class="fas fa-search"></i> Sonuçları Getir</button>
+                        <div class="d-flex" style="gap:10px;">
+                            <button type="submit" class="btn-pro btn-primary-pro flex-fill justify-content-center" style="height:42px;"><i class="fas fa-search"></i> Sonuçları Getir</button>
+                            <button type="button" class="btn-pro btn-outline-pro flex-fill justify-content-center" data-toggle="modal" data-target="#advancedFilterModal" style="height:42px; white-space:nowrap;">
+                                <i class="fas fa-sliders-h" style="font-size:0.7rem;"></i> Filtrele
+                                @if(request()->anyFilled(['tarife','baglanti_grubu','tesisat_no','yerlesim_tipi','end_period']))<span class="adv-active-dot" style="background:#fca5a5;"></span>@endif
+                            </button>
+                        </div>
                     </div>
                 </div>
             </form>
@@ -1161,7 +1290,13 @@ $(document).ready(function() {
         $('#reportResultsContainer table.tbl tbody tr').each(function(index) {
             var $row = $(this);
             var $detailRow = $row.next('tr');
-            if (!$detailRow.find('.detay-panel').length) return;
+            var $panel = $detailRow.find('.detay-panel');
+            if (!$panel.length) return;
+
+            var data = {};
+            try {
+                data = JSON.parse($panel.attr('data-json') || '{}');
+            } catch(e) { console.error('Endeks JSON parsing error:', e); }
 
             var rowId = endeksRowIds[Math.floor(index / 2)];
             $row.removeAttr('onclick');
@@ -1283,6 +1418,11 @@ $(document).ready(function() {
         document.getElementById('emd-header-tesisat').textContent = 'Tesisat No: ' + data.tesisat;
         document.getElementById('emd-donem').textContent = data.donem;
         document.getElementById('emd-carpan').textContent = 'x' + data.carpan;
+        var emdHistBtn = document.getElementById('emd-history-btn');
+        if (emdHistBtn) {
+            emdHistBtn.setAttribute('data-tesisat', data.tesisat || '');
+            emdHistBtn.setAttribute('data-donem', data.donem || '');
+        }
 
         // Temel Bilgiler
         var infos = [
@@ -1322,6 +1462,7 @@ $(document).ready(function() {
                 '</div>';
             }
         });
+
         document.getElementById('emd-endeks-tablo').innerHTML = endeksHtml;
 
         // Finans KPIs
@@ -1349,8 +1490,16 @@ $(document).ready(function() {
         // Analysis Banner
         var a = data.analiz;
         var isErr = a.durum === 'HATALI';
+        var detayHtml = '';
+        if (a.detaylar && a.detaylar.length > 0) {
+            detayHtml = '<div style="margin-top:12px;display:flex;flex-direction:column;gap:8px;">' +
+                a.detaylar.map(function(d) {
+                    return '<div style="background:#fef2f2;border:1px solid #fecaca;border-radius:10px;padding:10px 14px;font-size:0.8rem;color:#7f1d1d;line-height:1.45;font-weight:500;"><i class="fas fa-exclamation-circle" style="color:#ef4444;margin-right:6px;"></i>' + d + '</div>';
+                }).join('') +
+            '</div>';
+        }
         document.getElementById('emd-analiz-banner').innerHTML =
-            '<div class="emd-banner-inner ' + (isErr ? 'error' : 'success') + '">' +
+            '<div class="emd-banner-inner ' + (isErr ? 'error' : 'success') + '" style="flex-wrap:wrap;">' +
                 '<div class="emd-banner-icon" style="background:' + a.renk + '">' +
                     '<i class="fas ' + (isErr ? 'fa-exclamation-triangle' : 'fa-check-circle') + '"></i>' +
                 '</div>' +
@@ -1358,7 +1507,8 @@ $(document).ready(function() {
                     (isErr ? 'DİKKAT: ANOMALİ TESPİT EDİLDİ' : 'ANALİZ BAŞARILI') +
                 '</div><div class="emd-banner-msg">' + a.durum + ' <span>— ' + a.mesaj + '</span></div></div>' +
                 (a.ri_var ? '<div class="emd-reaktif-badge"><i class="fas fa-bolt"></i> Reaktif Ceza Mevcut</div>' : '') +
-            '</div>';
+            '</div>' +
+            detayHtml;
 
         var modal = document.getElementById('endeksDetayModal');
         modal.style.display = 'flex';
@@ -1373,8 +1523,18 @@ $(document).ready(function() {
         setTimeout(function() { modal.style.display = 'none'; }, 280);
     };
 
+    window.closeEndeksGecmis = function() {
+        var modal = document.getElementById('endeksGecmisModal');
+        modal.classList.remove('active');
+        document.body.style.overflow = '';
+        setTimeout(function() { modal.style.display = 'none'; }, 280);
+    };
+
     document.addEventListener('keydown', function(e) {
-        if (e.key === 'Escape') closeEndeksDetay();
+        if (e.key === 'Escape') {
+            closeEndeksDetay();
+            closeEndeksGecmis();
+        }
     });
 
     $(document).on('click', '.endeks-detail-btn', function() {
@@ -1388,6 +1548,141 @@ $(document).ready(function() {
             openEndeksDetay(data);
         } catch(e) { console.error('Endeks detay JSON parse hatası:', e); }
     });
+
+    $(document).on('click', '.endeks-history-btn', function() {
+        var tesisat = $(this).attr('data-tesisat');
+        var donem = $(this).attr('data-donem');
+        if (!tesisat) return;
+
+        Swal.fire({
+            title: 'Yükleniyor...',
+            text: 'Son 6 ayın endeks verileri getiriliyor.',
+            allowOutsideClick: false,
+            didOpen: () => {
+                Swal.showLoading();
+            }
+        });
+
+        $.ajax({
+            url: `{{ url('/raporlar/endeks/gecmis-6-ay') }}/${tesisat}`,
+            type: 'GET',
+            data: { donem: donem },
+            success: function(res) {
+                Swal.close();
+                if (res.success && res.records && res.records.length > 0) {
+                    openEndeksGecmis(res.tesisat_no, res.records);
+                } else {
+                    Swal.fire({
+                        icon: 'info',
+                        title: 'Kayıt Bulunamadı',
+                        text: 'Bu tesisat numarasına ait geçmiş dönem kaydı bulunamadı.',
+                        confirmButtonText: 'Tamam'
+                    });
+                }
+            },
+            error: function() {
+                Swal.close();
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Hata',
+                    text: 'Geçmiş veriler alınırken bir hata oluştu.',
+                    confirmButtonText: 'Tamam'
+                });
+            }
+        });
+    });
+
+    function formatEgmDonem(donemStr) {
+        if (!donemStr) return donemStr;
+        
+        var yil = '', ay = '';
+        if (donemStr.includes('-')) {
+            var parts = donemStr.split('-');
+            yil = parts[0];
+            ay = parts[1];
+        } else if (donemStr.length >= 6) {
+            yil = donemStr.substring(0, 4);
+            ay = donemStr.substring(4, 6);
+        } else {
+            return donemStr;
+        }
+
+        var aylar = {
+            '01': 'Ocak', '02': 'Şubat', '03': 'Mart', '04': 'Nisan',
+            '05': 'Mayıs', '06': 'Haziran', '07': 'Temmuz', '08': 'Ağustos',
+            '09': 'Eylül', '10': 'Ekim', '11': 'Kasım', '12': 'Aralık'
+        };
+        return (aylar[ay] || ay) + ' ' + yil;
+    }
+
+    function openEndeksGecmis(tesisat, records) {
+        document.getElementById('egm-header-tesisat').textContent = 'Tesisat No: ' + tesisat;
+
+        var tbody = document.getElementById('egm-table-body');
+        var html = '';
+
+        records.forEach(function(rec, recIdx) {
+            var isLast = recIdx === records.length - 1;
+
+            // ── Dönem başlık satırı ──────────────────────────────────
+            html += `<tr class="egm-period-header-row">
+                <td colspan="2">
+                    <span class="egm-period-label"><i class="far fa-calendar-alt"></i> ${formatEgmDonem(rec.donem)}</span>
+                    <span class="egm-period-meta">Çarpan: <strong>x${rec.carpan}</strong></span>
+                </td>
+                <td colspan="3" style="text-align: right;">
+                    <span class="egm-period-tutar"><i class="fas fa-lira-sign"></i> ${emdFmt(rec.tutar)} Fatura Tutarı</span>
+                </td>
+            </tr>`;
+
+            // ── Tarife satırları ─────────────────────────────────────
+            var items = [
+                { key: 'T1', label: 'T1', sublabel: 'Gündüz',       data: rec.t1, isAna: false, isReaktif: false },
+                { key: 'T2', label: 'T2', sublabel: 'Puant',         data: rec.t2, isAna: false, isReaktif: false },
+                { key: 'T3', label: 'T3', sublabel: 'Gece',          data: rec.t3, isAna: false, isReaktif: false },
+                { key: 'T0', label: 'T0', sublabel: 'Aktif Toplam', data: rec.t0, isAna: true,  isReaktif: false },
+                { key: 'RI', label: 'Rİ', sublabel: 'Endüktif',      data: rec.ri, isAna: false, isReaktif: true  },
+                { key: 'RC', label: 'RC', sublabel: 'Kapasitif',     data: rec.rc, isAna: false, isReaktif: true  }
+            ];
+
+            items.forEach(function(item, itemIdx) {
+                var isLastItem = itemIdx === items.length - 1;
+                var isNeg = item.data.fark < 0;
+
+                var lblClass = 'egm-badge';
+                if      (item.key === 'T0') lblClass += ' egm-badge-t0';
+                else if (item.key === 'T1') lblClass += ' egm-badge-t1';
+                else if (item.key === 'T2') lblClass += ' egm-badge-t2';
+                else if (item.key === 'T3') lblClass += ' egm-badge-t3';
+                else if (item.key === 'RI') lblClass += ' egm-badge-ri';
+                else if (item.key === 'RC') lblClass += ' egm-badge-rc';
+
+                var tuketimText = item.isReaktif ? '<span style="color:#94a3b8;">—</span>' : emdFmt(item.data.tuketim);
+                var farkColor   = isNeg ? '#dc2626' : '#2563eb';
+
+                var rowCls = item.isAna ? 'egm-row-ana' : (item.isReaktif ? 'egm-row-reaktif' : '');
+                var borderCls = (isLastItem && !isLast) ? 'egm-row-sep' : '';
+
+                html += `<tr class="egm-data-row ${rowCls} ${borderCls}">
+                    <td class="egm-indicator-cell">
+                        <span class="${lblClass}">${item.label}</span>
+                        <span class="egm-indicator-sub">${item.sublabel}</span>
+                    </td>
+                    <td class="egm-num-cell">${emdFmt(item.data.ilk)}</td>
+                    <td class="egm-num-cell">${emdFmt(item.data.son)}</td>
+                    <td class="egm-num-cell" style="font-weight:800; color:${farkColor};">${emdFmt(item.data.fark)}</td>
+                    <td class="egm-num-cell egm-tuketim-cell">${tuketimText}</td>
+                </tr>`;
+            });
+        });
+
+        tbody.innerHTML = html;
+
+        var modal = document.getElementById('endeksGecmisModal');
+        modal.style.display = 'flex';
+        document.body.style.overflow = 'hidden';
+        setTimeout(function() { modal.classList.add('active'); }, 10);
+    }
 
     $(document).on('click', '.endeks-itiraz-btn', function() {
         var id = $(this).data('id');
@@ -1441,6 +1736,9 @@ $(document).ready(function() {
                         <span id="emd-header-tesisat" class="emd-fatura-badge">Tesisat No: —</span>
                         <span class="emd-sep">|</span>
                         <span id="emd-donem" class="emd-donem-pill">—</span>
+                        <button type="button" class="emd-close-btn endeks-history-btn" title="Son 6 Ay" id="emd-history-btn" style="background:rgba(167,139,250,0.15);border-color:rgba(167,139,250,0.3);color:#fff;width:auto;padding:0 14px;gap:6px;font-size:0.8rem;font-weight:700;">
+                            <i class="fas fa-history"></i> <span>Son 6 Aylık Veri</span>
+                        </button>
                     </div>
                 </div>
             </div>
@@ -1479,6 +1777,48 @@ $(document).ready(function() {
 
         {{-- Analysis Banner --}}
         <div id="emd-analiz-banner" class="emd-banner"></div>
+    </div>
+</div>
+
+{{-- ═══ Premium Endeks Geçmiş 6 Ay Modal HTML ═══ --}}
+<div id="endeksGecmisModal">
+    <div class="emd-card" style="max-width: 860px;">
+        {{-- Header --}}
+        <div class="emd-header" style="background: linear-gradient(125deg, #0f172a 0%, #1e1b4b 100%);">
+            <div class="emd-header-left">
+                <div class="emd-header-icon" style="background:rgba(167,139,250,0.15); border-color:rgba(167,139,250,0.3); color:#a78bfa;"><i class="fas fa-history"></i></div>
+                <div>
+                    <div class="emd-eyebrow" style="color:#a78bfa;">Endeks Geçmişi</div>
+                    <div class="emd-title-row">
+                        <span id="egm-header-tesisat" class="emd-fatura-badge">Tesisat No: —</span>
+                        <span class="emd-sep">|</span>
+                        <span class="emd-donem-pill" style="background:rgba(139,92,246,0.15); border-color:rgba(139,92,246,0.3); color:#c084fc;">Son 6 Ay Verisi</span>
+                    </div>
+                </div>
+            </div>
+            <div class="emd-header-right">
+                <button onclick="closeEndeksGecmis()" class="emd-close-btn"><i class="fas fa-times"></i></button>
+            </div>
+        </div>
+
+        {{-- Body --}}
+        <div class="emd-body" style="background:#f8fafc; padding:0;">
+            <div style="overflow-x:auto;">
+                <table class="egm-main-table">
+                    <thead>
+                        <tr>
+                            <th style="width:180px;">Gösterge</th>
+                            <th style="text-align:right;">İlk Endeks</th>
+                            <th style="text-align:right;">Son Endeks</th>
+                            <th style="text-align:right;">Fark</th>
+                            <th style="text-align:right;">Tüketim (kWh)</th>
+                        </tr>
+                    </thead>
+                    <tbody id="egm-table-body">
+                    </tbody>
+                </table>
+            </div>
+        </div>
     </div>
 </div>
 @endsection

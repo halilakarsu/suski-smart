@@ -107,6 +107,20 @@
                     $d0 = $analizFunc($t0Ilk, $t0Son, $t0Fark, $t0Gelen, $t0Gercek, true, $t1Gelen, $t2Gelen, $t3Gelen);
                     $hasError = ($d0['d'] == 'HATALI');
                     $genelDurum = $hasError ? '<span class="status-badge error"><i class="fas fa-exclamation-triangle"></i> DİKKAT</span>' : '<span class="status-badge success"><i class="fas fa-check-circle"></i> TAMAM</span>';
+
+                    $detayliMesajlar = [];
+                    if ($t0Son < $t0Ilk) {
+                        $detayliMesajlar[] = "Son endeks (" . number_format($t0Son, 2, ',', '.') . "), ilk endeksten (" . number_format($t0Ilk, 2, ',', '.') . ") düşük. Sayaç geri sarmış, sıfırlanmış veya ilk-son endeks kolonları ters girilmiş olabilir. Pano/sayaç arızası kontrol edilmelidir.";
+                    }
+                    if ($t0Fark == 0 || $t0Gelen <= 0) {
+                        $detayliMesajlar[] = "Endeks farkı (" . number_format($t0Fark, 2, ',', '.') . ") veya tüketim değeri (" . number_format($t0Gelen, 2, ',', '.') . " kWh) sıfır. Sayaç okunmamış, sayaç/pano arızalı olabilir veya okuma verisi eksik aktarılmış olabilir.";
+                    }
+                    if (abs($t0Gelen - $t0Gercek) > 10 && $t0Fark != 0) {
+                        $detayliMesajlar[] = "Hesaplanan tüketim (" . number_format($t0Gercek, 2, ',', '.') . " kWh = fark " . number_format($t0Fark, 2, ',', '.') . " × çarpan " . $carpan . ") ile faturadaki tüketim (" . number_format($t0Gelen, 2, ',', '.') . " kWh) arasında " . number_format(abs($t0Gelen - $t0Gercek), 2, ',', '.') . " kWh fark var. Çarpan, endeks veya tüketim alanlarından biri hatalı olabilir.";
+                    }
+                    if (($t1Gelen + $t2Gelen + $t3Gelen) > 0 && abs($t0Gelen - ($t1Gelen + $t2Gelen + $t3Gelen)) > 5) {
+                        $detayliMesajlar[] = "T0 tüketimi (" . number_format($t0Gelen, 2, ',', '.') . " kWh), T1+T2+T3 toplamına (" . number_format($t1Gelen + $t2Gelen + $t3Gelen, 2, ',', '.') . " kWh) eşit değil. Aradaki fark: " . number_format(abs($t0Gelen - ($t1Gelen + $t2Gelen + $t3Gelen)), 2, ',', '.') . " kWh. Tarife bazında okuma/aktarma hatası olabilir.";
+                    }
                 @endphp
                 <tr>
                     <td>{{ $results->firstItem() + $i }}</td>
@@ -164,11 +178,12 @@
                             'genel'   => (float)$row->genel_toplam,
                         ],
                         'analiz'    => [
-                            'durum'  => $d0['d'],
-                            'mesaj'  => $d0['a'],
-                            'renk'   => $d0['c'],
-                            'bg'     => $d0['bg'],
-                            'ri_var' => ($riFarkJ > 0 || $rcFarkJ > 0),
+                            'durum'    => $d0['d'],
+                            'mesaj'    => $d0['a'],
+                            'renk'     => $d0['c'],
+                            'bg'       => $d0['bg'],
+                            'ri_var'   => ((float)($row->reaktif_tl ?? 0) > 0),
+                            'detaylar' => $detayliMesajlar,
                         ],
                     ], JSON_UNESCAPED_UNICODE);
                 @endphp
