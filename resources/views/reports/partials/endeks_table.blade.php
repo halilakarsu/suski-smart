@@ -1,4 +1,65 @@
-@if($results->count() > 0)
+@if($results->count() > 0 || (isset($tabCounts) && array_sum($tabCounts) > 0))
+    {{-- TAB UI --}}
+    @if(isset($tabCounts))
+    <div class="glass-card" style="padding: 0; margin-bottom: 20px; overflow: hidden;">
+        <div style="display: flex; overflow-x: auto; gap: 0; scrollbar-width: none; -ms-overflow-style: none; border-bottom: 2px solid #e2e8f0;">
+        @php
+            $tabs = [
+                'sifir_sayac'          => ['label' => 'Sıfır Tüketim',         'icon' => 'fa-tachometer-alt', 'color' => '#7c3aed'],
+                'dusuk'                => ['label' => 'Düşük Tüketim',          'icon' => 'fa-arrow-down',     'color' => '#0369a1'],
+                'astronomik'           => ['label' => 'Yüksek Tüketim',         'icon' => 'fa-arrow-up',       'color' => '#c2410c'],
+                'tarife_degisen'       => ['label' => 'Tarife Değişimi',         'icon' => 'fa-tags',           'color' => '#0f766e'],
+                'carpan_degisimi'      => ['label' => 'Çarpan Değişimi',         'icon' => 'fa-times-circle',   'color' => '#b45309'],
+                'birim_fiyat_degisimi' => ['label' => 'Birim Fiyat Değişimi',   'icon' => 'fa-lira-sign',      'color' => '#6d28d9'],
+                'negatif_endeks'       => ['label' => 'Negatif Endeks',          'icon' => 'fa-minus-circle',   'color' => '#dc2626'],
+                'tutarsiz_endeks'      => ['label' => 'Tutarsız Endeks',         'icon' => 'fa-exclamation-triangle', 'color' => '#ea580c'],
+            ];
+            $active   = $activeTab ?? 'sifir_sayac';
+            $totalAll = array_sum($tabCounts);
+        @endphp
+        @foreach($tabs as $key => $tab)
+            @php
+                $count    = $tabCounts[$key] ?? 0;
+                $isActive = $key === $active;
+                $color    = $tab['color'];
+            @endphp
+            <button
+                class="endeks-tab-btn"
+                data-tab="{{ $key }}"
+                style="
+                    flex-shrink: 0;
+                    display: inline-flex; align-items: center; gap: 7px;
+                    padding: 16px 20px;
+                    background: {{ $isActive ? '#fff' : 'transparent' }};
+                    color: {{ $isActive ? $color : '#64748b' }};
+                    font-weight: {{ $isActive ? '800' : '600' }};
+                    font-size: 0.82rem;
+                    border: none;
+                    border-bottom: 3px solid {{ $isActive ? $color : 'transparent' }};
+                    cursor: pointer;
+                    transition: all 0.2s;
+                    white-space: nowrap;
+                    position: relative;
+                "
+            >
+                <i class="fas {{ $tab['icon'] }}" style="font-size:0.75rem; opacity:{{ $isActive ? '1' : '0.6' }};"></i>
+                {{ $tab['label'] }}
+                <span style="
+                    display: inline-flex; align-items: center; justify-content: center;
+                    min-width: 22px; height: 20px; padding: 0 6px;
+                    background: {{ $isActive ? $color : '#e2e8f0' }};
+                    color: {{ $isActive ? '#fff' : '#64748b' }};
+                    border-radius: 20px;
+                    font-size: 0.7rem; font-weight: 800;
+                    transition: all 0.2s;
+                ">{{ $count }}</span>
+            </button>
+        @endforeach
+        </div>
+    </div>
+    @endif
+
+    @if($results->count() > 0)
     {{-- İSTATİSTİK KARTLARI --}}
     <div class="stats-row">
         <div class="stat-box">
@@ -108,6 +169,7 @@
                     $hasError = ($d0['d'] == 'HATALI');
                     $genelDurum = $hasError ? '<span class="status-badge error"><i class="fas fa-exclamation-triangle"></i> DİKKAT</span>' : '<span class="status-badge success"><i class="fas fa-check-circle"></i> TAMAM</span>';
 
+
                     $detayliMesajlar = [];
                     if ($t0Son < $t0Ilk) {
                         $detayliMesajlar[] = "Son endeks (" . number_format($t0Son, 2, ',', '.') . "), ilk endeksten (" . number_format($t0Ilk, 2, ',', '.') . ") düşük. Sayaç geri sarmış, sıfırlanmış veya ilk-son endeks kolonları ters girilmiş olabilir. Pano/sayaç arızası kontrol edilmelidir.";
@@ -208,10 +270,15 @@
     <div class="pagination-wrap mt-4">
         {!! $results->appends(request()->except('page'))->links('pagination::bootstrap-4') !!}
     </div>
-
+    @else
+        <div class="no-results" style="margin-top: 20px;">
+            <i class="fas fa-search" style="font-size:3rem; color:#cbd5e1; margin-bottom:15px; display:block;"></i>
+            Seçtiğiniz sekmeye ait kayıt bulunamadı. Lütfen başka bir sekme seçin.
+        </div>
+    @endif
 @else
-    <div style="text-align:center;padding:40px;color:#64748b;">
-        <i class="fas fa-inbox fa-3x" style="color:#cbd5e1;margin-bottom:15px;display:block;"></i>
-        Kayıt bulunamadı.
+    <div class="no-results">
+        <i class="fas fa-search" style="font-size:3rem; color:#cbd5e1; margin-bottom:15px; display:block;"></i>
+        Bu kriterlere uygun kayıt bulunamadı. Lütfen filtrelerinizi değiştirip tekrar deneyin.
     </div>
 @endif

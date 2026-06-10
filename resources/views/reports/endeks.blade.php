@@ -679,12 +679,10 @@
         </div>
         <div class="results-loader-spinner"></div>
         <div class="results-loader-title">Endeksler Analiz Ediliyor</div>
-        <div class="results-loader-sub">Negatif, sıfır tüketim ve tutarsız endeksler kontrol ediliyor; hatalı kayıtlar en üste hazırlanıyor…</div>
-        <div class="results-loader-dots">
-            <span></span><span></span><span></span>
-        </div>
+        <div class="results-loader-sub" id="resultsLoaderSub">Kayıtlar analiz ediliyor…</div>
+        <div class="results-loader-progress" id="resultsLoaderProgress" style="font-size:1.1rem;font-weight:800;color:#f59e0b;margin-top:6px;"></div>
         <div class="results-loader-bar">
-            <div class="results-loader-bar-fill"></div>
+            <div class="results-loader-bar-fill" id="resultsLoaderBarFill"></div>
         </div>
     </div>
 </div>
@@ -728,6 +726,7 @@
             @endif
 
             <form action="{{ route('reports.endeks') }}" method="GET" id="mainFilterForm">
+                <input type="hidden" name="tab" id="active_tab" value="{{ request('tab', 'sifir_sayac') }}">
                 <div id="advancedHiddenFields"></div>
                 <div class="row align-items-end">
                     <div class="col-md-4">
@@ -781,7 +780,7 @@
         </div>
 
         <div id="reportResultsContainer">
-            @if(request()->anyFilled(['bolge','start_period','end_period','yerlesim_tipi','baglanti_grubu','tarife']))
+            @if(request()->anyFilled(['bolge','start_period','end_period','yerlesim_tipi','baglanti_grubu','tarife','tesisat_no']))
                 @include('reports.partials.endeks_table')
             @else
                 <div class="glass-card" style="text-align:center;padding:60px 40px;">
@@ -1190,7 +1189,7 @@ $(document).ready(function() {
         $('body').css('overflow', '');
     }
 
-    const resultsLoaderMinDuration = 2000;
+    const resultsLoaderMinDuration = 300; // Gereksiz bekleme kaldırıldı (eski: 2000ms)
 
     function runAfterResultsLoaderDelay(startedAt, callback) {
         const elapsed = Date.now() - startedAt;
@@ -1246,7 +1245,10 @@ $(document).ready(function() {
         e.preventDefault();
         
         const $form = $(this);
+        // start_period form serialize'da var (hero_start_period select'ten), manuel de ekleniyor → önce sil
         let formData = $form.serialize();
+        formData = formData.replace(/(?:^|&)start_period=[^&]*/g, '').replace(/(?:^|&)end_period=[^&]*/g, '');
+        if (formData.startsWith('&')) formData = formData.slice(1);
 
         const heroStartPeriod = $('#hero_start_period').val();
         var sp = heroStartPeriod || $('#modal_start_period').val() || '';
@@ -1281,8 +1283,82 @@ $(document).ready(function() {
         }
 
         var url = $form.attr('action') + '?' + formData;
-        updateResults(url);
+        streamResults(url);
     });
+
+    async function streamResults(url) {
+        showResultsLoader();
+        $('#resultsLoaderProgress').text('');
+        $('#resultsLoaderBarFill').css('width', '0%');
+        $('#resultsLoaderSub').text('Kayıtlar analiz ediliyor…');
+
+        // Güvenlik: 5 dakika sonra stream hâlâ bitmemişse zorla kapat
+        let streamCompleted = false;
+        const streamTimeout = setTimeout(function() {
+            if (!streamCompleted) {
+                hideResultsLoader();
+                Swal.fire({icon: 'warning', title: 'Zaman Aşımı', text: 'Analiz çok uzun sürdü. Lütfen filtre aralığını daraltın.', confirmButtonText: 'Tamam'});
+            }
+        }, 300000); // 5 dakika
+
+        try {
+            const response = await fetch(url, {
+                headers: { 'X-Requested-With': 'XMLHttpRequest' },
+                credentials: 'same-origin'
+            });
+            const reader = response.body.getReader();
+            const decoder = new TextDecoder();
+            let buffer = '';
+
+            while (true) {
+                const { done, value } = await reader.read();
+                if (done) break;
+                buffer += decoder.decode(value, { stream: true });
+
+                const lines = buffer.split('\n');
+                buffer = lines.pop();
+
+                for (const line of lines) {
+                    if (line.startsWith('data: ')) {
+                        try {
+                            const data = JSON.parse(line.slice(6));
+                            handleStreamEvent(data);
+                            // complete gelince döngüyü bitir
+                            if (data.type === 'complete') {
+                                streamCompleted = true;
+                                clearTimeout(streamTimeout);
+                                return;
+                            }
+                        } catch(e) {}
+                    }
+                }
+            }
+        } catch(e) {
+            hideResultsLoader();
+            Swal.fire({icon: 'error', title: 'Hata', text: 'Analiz sırasında bir hata oluştu.', confirmButtonText: 'Tamam'});
+        } finally {
+            hideResultsLoader();
+            streamCompleted = true;
+            clearTimeout(streamTimeout);
+        }
+    }
+
+    function handleStreamEvent(data) {
+        switch (data.type) {
+            case 'start':
+                $('#resultsLoaderSub').text('0 / ' + data.total + ' kayıt analiz edildi');
+                break;
+            case 'progress':
+                var pct = Math.round((data.processed / data.total) * 100);
+                $('#resultsLoaderSub').text(data.processed + ' / ' + data.total + ' kayıt analiz edildi');
+                $('#resultsLoaderBarFill').css('width', pct + '%');
+                break;
+            case 'complete':
+                hideResultsLoader();
+                renderResultsResponse(data);
+                break;
+        }
+    }
 
     // applyAdvancedBtn handler yukarıda tanımlandı
 
@@ -1321,6 +1397,18 @@ $(document).ready(function() {
         e.preventDefault();
         var url = $(this).attr('href');
         updateResults(url, false);
+    });
+
+    // Intercept Tab Clicks
+    $(document).on('click', '.endeks-tab-btn', function(e) {
+        e.preventDefault();
+        var tab = $(this).data('tab');
+        $('#active_tab').val(tab);
+        var currentUrl = new URL(window.location.href);
+        currentUrl.searchParams.set('tab', tab);
+        currentUrl.searchParams.delete('page');
+        window.history.pushState({path: currentUrl.toString()}, '', currentUrl.toString());
+        streamResults(currentUrl.toString());
     });
 
     function parseEndeksNumber(value) {
