@@ -129,6 +129,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/raporlar/anormal-faturalar', [\App\Http\Controllers\AnormalFaturaController::class, 'index'])->name('reports.anormal-faturalar');
     Route::get('/raporlar/koy-merkez', [\App\Http\Controllers\ReportController::class, 'koyMerkez'])->name('reports.koy-merkez');
     Route::get('/raporlar/ek-tuketim', [\App\Http\Controllers\ReportController::class, 'ekTuketim'])->name('reports.ek-tuketim');
+    Route::get('/raporlar/ek-tuketim/son-1-yil/{tesisat_no}', [\App\Http\Controllers\ReportController::class, 'ekTuketimSon1Yil'])->name('reports.ek-tuketim.son-1-yil');
 
     // ── Yardım & Destek ──────────────────────────────────────────────────
     Route::get('/yardim', function () {

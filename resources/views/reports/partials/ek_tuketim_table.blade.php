@@ -75,7 +75,8 @@
                         $tuketim = (float) ($row->fatura_edilecek_toplam_tuketim_kwh ?: ($row->t1_tuketim + $row->t2_tuketim + $row->t3_tuketim + $row->ek_tuketim));
                         $ekTuketim = (float) ($row->ek_tuketim ?: 0);
                         $tutar = (float) ($row->tutar_toplam ?: 0);
-                        $ekTutar = (float) ($row->fatura_tutari_ek ?: 0);
+                        $birimFiyat = (float) str_replace(',', '.', $row->birim_fiyat ?? '0');
+                        $ekTutar = $ekTuketim * $birimFiyat;
                     @endphp
                     <tr>
                         <td style="color:#94a3b8;font-weight:600;font-size:.85rem;">{{ $results->firstItem() + $i }}</td>
@@ -86,9 +87,9 @@
                         <td style="text-align:right;font-weight:800;color:#059669;">{{ number_format($tutar, 2, ',', '.') }}</td>
                         <td style="text-align:right;font-weight:700;color:#c2410c;">{{ number_format($ekTutar, 2, ',', '.') }}</td>
                         <td style="text-align:center;">
-                            <a href="{{ route('reports.endeks', ['tesisat_no' => $row->tesisat_no, 'donem' => $row->donem]) }}" class="btn-detay" target="_blank">
+                            <button type="button" class="btn-detay ek-tuketim-detay-btn" data-tesisat="{{ $row->tesisat_no }}">
                                 <i class="fas fa-search-plus"></i> Detay
-                            </a>
+                            </button>
                         </td>
                     </tr>
                 @empty

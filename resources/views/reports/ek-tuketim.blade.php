@@ -105,6 +105,81 @@
         .main-container { padding: 0 1rem; margin-top: -4rem; }
         .glass-card { padding: 20px; }
     }
+
+    /* ===== EK TÜKETİM DETAY MODAL ===== */
+    #ektDetayModal {
+        display:none; position:fixed; inset:0; z-index:99999;
+        background:rgba(15,23,42,0.7); backdrop-filter:blur(8px); -webkit-backdrop-filter:blur(8px);
+        align-items:center; justify-content:center; padding:20px;
+        opacity:0; transition:opacity .35s ease;
+    }
+    #ektDetayModal.active { opacity:1; }
+    #ektDetayModal .ekt-card {
+        background:rgba(255,255,255,0.97); backdrop-filter:blur(20px); -webkit-backdrop-filter:blur(20px);
+        border:1px solid rgba(255,255,255,0.7); border-radius:32px; width:100%; max-width:860px;
+        box-shadow:0 40px 100px rgba(0,0,0,0.25); overflow:hidden;
+        transform:scale(.95) translateY(10px); transition:all .35s cubic-bezier(.22,1,.36,1); max-height:90vh; display:flex; flex-direction:column;
+    }
+    #ektDetayModal.active .ekt-card { transform:scale(1) translateY(0); }
+    .ekt-header {
+        background:linear-gradient(125deg,#0f172a 0%,#1e1b4b 100%);
+        padding:28px 32px; display:flex; align-items:center; justify-content:space-between;
+        border-bottom:1px solid rgba(255,255,255,0.08); flex-shrink:0;
+    }
+    .ekt-header-left { display:flex; align-items:center; gap:18px; }
+    .ekt-header-icon {
+        width:48px; height:48px; border-radius:16px;
+        background:rgba(59,130,246,0.15); border:1px solid rgba(59,130,246,0.3);
+        display:flex; align-items:center; justify-content:center; color:#60a5fa; font-size:1.2rem; flex-shrink:0;
+    }
+    .ekt-eyebrow { font-size:.75rem; font-weight:700; color:#60a5fa; text-transform:uppercase; letter-spacing:.06em; margin-bottom:4px; }
+    .ekt-title-row { display:flex; align-items:center; gap:12px; flex-wrap:wrap; }
+    .ekt-fatura-badge {
+        font-size:1rem; font-weight:800; color:#fff; letter-spacing:-.01em;
+    }
+    .ekt-sep { color:#475569; font-size:1.1rem; font-weight:300; }
+    .ekt-donem-pill {
+        display:inline-flex; align-items:center; padding:5px 14px; background:rgba(96,165,250,0.15);
+        border:1px solid rgba(96,165,250,0.3); border-radius:20px; color:#93c5fd;
+        font-size:.82rem; font-weight:700;
+    }
+    .ekt-header-right { display:flex; align-items:center; gap:14px; }
+    .ekt-close-btn {
+        width:36px; height:36px; border-radius:50%; background:rgba(255,255,255,0.08);
+        border:1px solid rgba(255,255,255,0.12); color:#94a3b8; cursor:pointer;
+        display:flex; align-items:center; justify-content:center; transition:all .2s; font-size:1rem;
+    }
+    .ekt-close-btn:hover { background:rgba(255,255,255,0.15); color:#fff; }
+
+    .ekt-body { padding:24px 32px; overflow-y:auto; flex:1; }
+    .ekt-section-title {
+        font-size:.85rem; font-weight:800; color:#0f172a; margin-bottom:16px;
+        display:flex; align-items:center; gap:10px; letter-spacing:-.01em;
+    }
+    .ekt-section-title i { padding:8px; background:#eff6ff; border-radius:10px; color:#3b82f6; font-size:.8rem; }
+
+    .ekt-tbl-wrap {
+        overflow-x:auto; border-radius:16px; background:#fff;
+        box-shadow:inset 0 0 0 1px #e2e8f0; margin-top:6px;
+    }
+    .ekt-tbl { width:100%; min-width:700px; border-collapse:separate; border-spacing:0; }
+    .ekt-tbl th {
+        background:#f8fafc; padding:12px 16px; font-size:.72rem; font-weight:800;
+        color:#475569; text-transform:uppercase; letter-spacing:.05em; border-bottom:1px solid #e2e8f0;
+    }
+    .ekt-tbl td { padding:12px 16px; font-size:.85rem; color:#1e293b; border-bottom:1px solid #f1f5f9; background:#fff; }
+    .ekt-tbl tr:hover td { background:#f8fafc; }
+
+    .ekt-loading { text-align:center; padding:60px 20px; }
+    .ekt-spinner {
+        width:48px; height:48px; border:4px solid #e2e8f0; border-top-color:#2563eb;
+        border-radius:50%; animation:ektSpin .8s linear infinite; margin:0 auto 16px;
+    }
+    @keyframes ektSpin { to { transform:rotate(360deg); } }
+    #ektModalBodyContent { min-height:200px; }
+
+    .ekt-empty { text-align:center; padding:60px 20px; color:#94a3b8; }
+    .ekt-empty i { font-size:2.5rem; display:block; margin-bottom:12px; color:#cbd5e1; }
 </style>
 
 <div class="pg-premium p-0">
@@ -153,7 +228,7 @@
 
         <div id="reportResultsContainer">
             @if(request()->anyFilled(['start_period','end_period']))
-                @include('reports.partials.ek_tuketim_table', compact('results', 'totalKWH', 'totalAmount'))
+                @include('reports.partials.ek_tuketim_table', compact('results', 'totalKWH', 'totalAmount', 'totalEkTuketim', 'totalEkTutar'))
             @else
                 <div class="glass-card" style="text-align:center;padding:60px 40px;">
                     <div style="width:80px;height:80px;background:#eff6ff;color:#3b82f6;border-radius:24px;display:flex;align-items:center;justify-content:center;font-size:2.5rem;margin:0 auto 20px;">📊</div>
@@ -164,10 +239,99 @@
         </div>
     </div>
 </div>
+{{-- ═══ Ek Tüketim Detay Modal ═══ --}}
+<div id="ektDetayModal">
+    <div class="ekt-card">
+        <div class="ekt-header">
+            <div class="ekt-header-left">
+                <div class="ekt-header-icon"><i class="fas fa-chart-bar"></i></div>
+                <div>
+                    <div class="ekt-eyebrow">Ek Tüketim Geçmişi</div>
+                    <div class="ekt-title-row">
+                        <span id="ekt-tesisat" class="ekt-fatura-badge">—</span>
+                        <span class="ekt-sep">|</span>
+                        <span class="ekt-donem-pill">Son 1 Yıl</span>
+                    </div>
+                </div>
+            </div>
+            <div class="ekt-header-right">
+                <button onclick="closeEktDetay()" class="ekt-close-btn"><i class="fas fa-times"></i></button>
+            </div>
+        </div>
+        <div class="ekt-body">
+            <div class="ekt-section-title"><i class="fas fa-table"></i> DÖNEM BAZINDA EK TÜKETİM RAPORU</div>
+            <div id="ektModalBodyContent">
+                <div class="ekt-loading">
+                    <div class="ekt-spinner"></div>
+                    <div style="font-weight:700;color:#0f172a;">Yükleniyor...</div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
 @endsection
 
 @push('scripts')
 <script>
+    window.closeEktDetay = function() {
+        var modal = document.getElementById('ektDetayModal');
+        modal.classList.remove('active');
+        document.body.style.overflow = '';
+        setTimeout(function() { modal.style.display = 'none'; }, 280);
+    };
+
+    function openEktDetay(tesisatNo) {
+        var modal = document.getElementById('ektDetayModal');
+        document.getElementById('ekt-tesisat').textContent = 'Tesisat No: ' + tesisatNo;
+        document.getElementById('ektModalBodyContent').innerHTML =
+            '<div class="ekt-loading"><div class="ekt-spinner"></div><div style="font-weight:700;color:#0f172a;">Yükleniyor...</div></div>';
+        modal.style.display = 'flex';
+        document.body.style.overflow = 'hidden';
+        setTimeout(function() { modal.classList.add('active'); }, 10);
+
+        $.ajax({
+            url: '{{ url("/raporlar/ek-tuketim/son-1-yil") }}/' + tesisatNo,
+            type: 'GET',
+            success: function(res) {
+                if (!res.success || !res.records.length) {
+                    document.getElementById('ektModalBodyContent').innerHTML =
+                        '<div class="ekt-empty"><i class="fas fa-inbox"></i><div style="font-weight:700;color:#64748b;">Son 1 yılda ek tüketimli fatura bulunamadı.</div></div>';
+                    return;
+                }
+                var html = '<div class="ekt-tbl-wrap"><table class="ekt-tbl"><thead><tr>' +
+                    '<th>Dönem</th><th style="text-align:right;">Tüketim (kWh)</th><th style="text-align:right;">Ek Tüketim (kWh)</th><th style="text-align:right;">Tutar (₺)</th><th style="text-align:right;">Ek Tutar (₺)</th>' +
+                    '</tr></thead><tbody>';
+                var totalTuketim = 0, totalEkTuketim = 0, totalTutar = 0, totalEkTutar = 0;
+                res.records.forEach(function(r) {
+                    totalTuketim += r.tuketim;
+                    totalEkTuketim += r.ek_tuketim;
+                    totalTutar += r.tutar;
+                    totalEkTutar += r.ek_tutar;
+                    html += '<tr>' +
+                        '<td><span style="display:inline-block;padding:3px 10px;background:#eff6ff;color:#2563eb;border-radius:8px;font-weight:700;font-size:.78rem;">' + r.donem + '</span></td>' +
+                        '<td style="text-align:right;font-weight:700;">' + r.tuketim.toLocaleString('tr-TR', {minimumFractionDigits:2, maximumFractionDigits:2}) + '</td>' +
+                        '<td style="text-align:right;font-weight:700;color:#7c3aed;">' + r.ek_tuketim.toLocaleString('tr-TR', {minimumFractionDigits:2, maximumFractionDigits:2}) + '</td>' +
+                        '<td style="text-align:right;font-weight:800;color:#059669;">' + r.tutar.toLocaleString('tr-TR', {minimumFractionDigits:2, maximumFractionDigits:2}) + '</td>' +
+                        '<td style="text-align:right;font-weight:700;color:#c2410c;">' + r.ek_tutar.toLocaleString('tr-TR', {minimumFractionDigits:2, maximumFractionDigits:2}) + '</td>' +
+                        '</tr>';
+                });
+                html += '</tbody><tfoot><tr style="background:#f1f5f9;font-weight:800;">' +
+                    '<td style="font-size:.85rem;letter-spacing:.03em;">GENEL TOPLAM</td>' +
+                    '<td style="text-align:right;">' + totalTuketim.toLocaleString('tr-TR', {minimumFractionDigits:2, maximumFractionDigits:2}) + '</td>' +
+                    '<td style="text-align:right;">' + totalEkTuketim.toLocaleString('tr-TR', {minimumFractionDigits:2, maximumFractionDigits:2}) + '</td>' +
+                    '<td style="text-align:right;color:#059669;">' + totalTutar.toLocaleString('tr-TR', {minimumFractionDigits:2, maximumFractionDigits:2}) + '</td>' +
+                    '<td style="text-align:right;color:#c2410c;">' + totalEkTutar.toLocaleString('tr-TR', {minimumFractionDigits:2, maximumFractionDigits:2}) + '</td>' +
+                    '</tr></tfoot></table></div>';
+                document.getElementById('ektModalBodyContent').innerHTML = html;
+            },
+            error: function() {
+                document.getElementById('ektModalBodyContent').innerHTML =
+                    '<div class="ekt-empty"><i class="fas fa-exclamation-triangle" style="color:#ef4444;"></i><div style="font-weight:700;color:#dc2626;">Veri alınırken hata oluştu.</div></div>';
+            }
+        });
+    }
+
     $(document).ready(function() {
         $('#ekTuketimFilterForm').on('submit', function(e) {
             if (!$('#start_period').val() && !$('#end_period').val()) {
@@ -188,6 +352,15 @@
                     $('html, body').animate({ scrollTop: $container.offset().top - 100 }, 500);
                 }
             });
+        });
+
+        $(document).on('click', '.ek-tuketim-detay-btn', function() {
+            var tesisat = $(this).data('tesisat');
+            if (tesisat) openEktDetay(tesisat);
+        });
+
+        $(document).on('keydown', function(e) {
+            if (e.key === 'Escape') closeEktDetay();
         });
     });
 </script>

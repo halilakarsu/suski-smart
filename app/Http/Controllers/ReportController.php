@@ -1017,9 +1017,11 @@ class ReportController extends Controller
 
         if ($hasFilter) {
             $query = KesinlesenFatura::where('odeme_durumu', 'odendi')
-                ->where(function ($q) {
-                    $q->where('ek_tuketim', '>', 0)->orWhere('ek_tuketim', '>', '0');
-                });
+                ->whereNotNull('ek_tuketim')
+                ->where('ek_tuketim', '!=', 0)
+                ->where('ek_tuketim', '!=', '0')
+                ->where('ek_tuketim', '!=', '0,00')
+                ->whereRaw("CAST(REPLACE(ek_tuketim, ',', '.') AS DECIMAL(15,2)) != 0");
 
             if ($request->filled('start_period')) {
                 if ($request->filled('end_period')) {
@@ -1033,7 +1035,7 @@ class ReportController extends Controller
             }
 
             $aggregates = (clone $query)->selectRaw(
-                'SUM('.$this->tuketimExpr().') as total_kwh, SUM(COALESCE(tutar_toplam,0)) as total_amount, SUM(COALESCE(ek_tuketim,0)) as total_ek_tuketim, SUM(COALESCE(fatura_tutari_ek,0)) as total_ek_tutar'
+                "SUM({$this->tuketimExpr()}) as total_kwh, SUM(COALESCE(tutar_toplam,0)) as total_amount, SUM(COALESCE(ek_tuketim,0)) as total_ek_tuketim, SUM(COALESCE(ek_tuketim,0) * CAST(REPLACE(COALESCE(birim_fiyat,'0'), ',', '.') AS DECIMAL(15,5))) as total_ek_tutar"
             )->first();
             $totalKWH = (float) ($aggregates->total_kwh ?? 0);
             $totalAmount = (float) ($aggregates->total_amount ?? 0);
@@ -1052,6 +1054,44 @@ class ReportController extends Controller
         $donemler = KesinlesenFatura::where('odeme_durumu', 'odendi')->distinct()->orderBy('donem', 'desc')->pluck('donem');
 
         return view('reports.ek-tuketim', compact('donemler', 'results', 'totalKWH', 'totalAmount', 'totalEkTuketim', 'totalEkTutar'));
+    }
+
+    public function ekTuketimSon1Yil($tesisat_no)
+    {
+        $records = KesinlesenFatura::where('tesisat_no', $tesisat_no)
+            ->where('odeme_durumu', 'odendi')
+            ->whereNotNull('ek_tuketim')
+            ->whereRaw("CAST(REPLACE(ek_tuketim, ',', '.') AS DECIMAL(15,2)) != 0")
+            ->orderBy('donem', 'desc')
+            ->limit(12)
+            ->get();
+
+        $formatted = $records->map(function ($row) {
+            $tuketim = (float) ($row->fatura_edilecek_toplam_tuketim_kwh ?: ($row->t1_tuketim + $row->t2_tuketim + $row->t3_tuketim + $row->ek_tuketim));
+            $ekTuketim = (float) ($row->ek_tuketim ?: 0);
+            $birimFiyat = (float) str_replace(',', '.', $row->birim_fiyat ?? '0');
+
+            return [
+                'donem' => $row->donem,
+                'tesisat_no' => $row->tesisat_no,
+                'tuketim' => $tuketim,
+                'ek_tuketim' => $ekTuketim,
+                'tutar' => (float) ($row->tutar_toplam ?: 0),
+                'ek_tutar' => $ekTuketim * $birimFiyat,
+            ];
+        });
+
+        $abone = \App\Models\Aboneler::where('ABONE_TESIS_NO', $tesisat_no)->first();
+
+        return response()->json([
+            'success' => true,
+            'tesisat_no' => $tesisat_no,
+            'abone' => $abone ? [
+                'bolge' => $abone->BOLGE_ADI,
+                'adres' => $abone->ADRES,
+            ] : null,
+            'records' => $formatted,
+        ]);
     }
 
     public function koyMerkez(Request $request)
