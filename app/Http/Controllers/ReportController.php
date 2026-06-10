@@ -49,7 +49,10 @@ class ReportController extends Controller
         $t0Ilk = "(CASE WHEN {$tariffIlkTotal} > 0 THEN {$tariffIlkTotal} ELSE {$t0IlkRaw} END)";
         $t0Son = "(CASE WHEN {$tariffIlkTotal} > 0 THEN {$tariffSonTotal} ELSE {$t0SonRaw} END)";
         $t0Fark = "({$t0Son} - {$t0Ilk})";
-        $t0Gelen = '(COALESCE(t1_tuketim,0) + COALESCE(t2_tuketim,0) + COALESCE(t3_tuketim,0))';
+        // Tüketimi akıllı seç: önce fatura_edilecek_toplam_tuketim_kwh, yoksa t1+t2+t3
+        $t0Gelen = '(CASE WHEN COALESCE(fatura_edilecek_toplam_tuketim_kwh, 0) > 0'
+                 . ' THEN fatura_edilecek_toplam_tuketim_kwh'
+                 . ' ELSE (COALESCE(t1_tuketim,0) + COALESCE(t2_tuketim,0) + COALESCE(t3_tuketim,0)) END)';
         $carpan = 'COALESCE(NULLIF(carpan,0), 1)';
         $t0Gercek = "({$t0Fark} * {$carpan})";
 
@@ -83,7 +86,10 @@ class ReportController extends Controller
         $t0Ilk = "(CASE WHEN {$tariffIlkTotal} > 0 THEN {$tariffIlkTotal} ELSE {$t0IlkRaw} END)";
         $t0Son = "(CASE WHEN {$tariffIlkTotal} > 0 THEN {$tariffSonTotal} ELSE {$t0SonRaw} END)";
         $t0Fark = "({$t0Son} - {$t0Ilk})";
-        $t0Gelen = '(COALESCE(t1_tuketim,0) + COALESCE(t2_tuketim,0) + COALESCE(t3_tuketim,0))';
+        // Tüketimi akıllı seç: önce fatura_edilecek_toplam_tuketim_kwh, yoksa t1+t2+t3
+        $t0Gelen = '(CASE WHEN COALESCE(fatura_edilecek_toplam_tuketim_kwh, 0) > 0'
+                 . ' THEN fatura_edilecek_toplam_tuketim_kwh'
+                 . ' ELSE (COALESCE(t1_tuketim,0) + COALESCE(t2_tuketim,0) + COALESCE(t3_tuketim,0)) END)';
         $carpan = 'COALESCE(NULLIF(carpan,0), 1)';
         $t0Gercek = "({$t0Fark} * {$carpan})";
 
@@ -454,18 +460,18 @@ class ReportController extends Controller
         if ($count > 0) {
             // Çarpan değişimi kontrolü
             if ($prev) {
-                $prevCarpan = (float)($prev->carpan ?? 1);
-                $curCarpan  = (float)($row->carpan ?? 1);
-                if ($prevCarpan !== $curCarpan && $prevCarpan > 0 && $curCarpan > 0) {
+                $prevCarpan = (float)str_replace(',', '.', $prev->carpan ?? '1');
+                $curCarpan  = (float)str_replace(',', '.', $row->carpan ?? '1');
+                if (abs($prevCarpan - $curCarpan) > 0.001 && $prevCarpan > 0 && $curCarpan > 0) {
                     return 'carpan_degisimi';
                 }
             }
 
             // Birim fiyat değişimi kontrolü
             if ($prev) {
-                $prevBirim = (float)($prev->birim_fiyat ?? 0);
-                $curBirim  = (float)($row->birim_fiyat ?? 0);
-                if ($prevBirim !== $curBirim && $prevBirim > 0 && $curBirim > 0) {
+                $prevBirim = (float)str_replace(',', '.', $prev->birim_fiyat ?? '0');
+                $curBirim  = (float)str_replace(',', '.', $row->birim_fiyat ?? '0');
+                if (abs($prevBirim - $curBirim) > 0.001 && $prevBirim > 0 && $curBirim > 0) {
                     return 'birim_fiyat_degisimi';
                 }
             }
@@ -481,9 +487,18 @@ class ReportController extends Controller
                 }
             }
 
-            // Astronomik tutar kontrolü
+            // Astronomik ve düşük tutar/tüketim kontrolü
             $avgTutar = array_sum($pastTutarlar) / $count;
             $currentTutar = (float) $row->tutar_toplam;
+            $currentTuketim = (float) ($row->fatura_edilecek_toplam_tuketim_kwh ?? 0);
+            $avgTuketim     = array_sum($pastTuketimler) / $count;
+
+            // Eğer tüketim veya tutar sıfırsa (veya sıfırın altındaysa), doğrudan sıfır tüketim kategorisine al. 
+            // 0.5 altı değerler UI'da 0 göründüğü için yuvarlayarak kontrol et.
+            if (round($currentTuketim) <= 0 || round($currentTutar) <= 0) {
+                return 'sifir_sayac';
+            }
+
             if ($avgTutar > 0 && $currentTutar > $avgTutar * 2) {
                 $recent = array_slice($pastTutarlar, -6);
                 $rc = count($recent);
@@ -521,6 +536,24 @@ class ReportController extends Controller
         $hasFilter = $request->anyFilled(['bolge', 'start_period', 'end_period', 'yerlesim_tipi', 'baglanti_grubu', 'tarife', 'tesisat_no']);
 
         if ($hasFilter) {
+            // Eğer normal sayfa yüklemesi ise (AJAX veya EXPORT değilse) analiz yapma, sayfayı boş yükle, JS tetiklesin
+            if (!$request->ajax() && !$request->filled('export')) {
+                $donemler = KesinlesenFatura::where('odeme_durumu', 'odendi')->distinct()->orderBy('donem', 'desc')->pluck('donem');
+                $bolgeler = KesinlesenFatura::where('odeme_durumu', 'odendi')
+                    ->whereNotNull('ilce')->where('ilce', '!=', '')->where('ilce', 'not like', '=%')->where('ilce', 'not like', '#%')
+                    ->whereNotIn('ilce', ['ŞANLIURFA', 'ŞANLIURFA ÖZEL'])
+                    ->distinct()->orderBy('ilce', 'asc')->pluck('ilce');
+                $tarifeler = \App\Models\Aboneler::whereNotNull('tarife')->where('tarife', '!=', '')
+                    ->select('tarife', 'abone_grubu')
+                    ->distinct()
+                    ->get()
+                    ->unique('abone_grubu')
+                    ->sortBy('abone_grubu')
+                    ->values();
+
+                return view('reports.endeks', compact('results', 'donemler', 'bolgeler', 'tarifeler', 'totalKWH', 'totalAmount', 'tabCounts', 'activeTab'));
+            }
+
             $query = KesinlesenFatura::where('odeme_durumu', 'odendi');
 
             if ($request->filled('start_period')) {
@@ -559,15 +592,13 @@ class ReportController extends Controller
                 $query->where('tesisat_no', 'like', '%'.$request->tesisat_no.'%');
             }
 
-            // ── TEMEL OPTİMİZASYON: Anomali filtrelemesi SQL'de yapılır ──────────
-            // Normal kayıtlar (priority=9) veritabanında elenir, PHP'ye çekilmez.
-            // Sadece anormal kayıtlar çekilir → veri büyüklüğü dramatik azalır.
-            $anomalyPriorityExpr  = $this->endeksAnomalyPriorityExpr();
-            $anomalyCategoryExpr  = $this->endeksAnomalyCategoryExpr();
+            // ── Tüm faturalar çekilir, PHP kategorilendirme yapılır ──────────────
+            // SQL temel anomali kategorisini belirler (negatif, sıfır, tutarsız),
+            // PHP history karşılaştırması ile tarife/çarpan/astronomik/düşük tespit eder.
+            $anomalyCategoryExpr = $this->endeksAnomalyCategoryExpr();
 
             $filteredQuery = (clone $query)
-                ->selectRaw("*, ({$anomalyCategoryExpr}) as anomaly_category")
-                ->whereRaw("({$anomalyPriorityExpr}) <> 9"); // normal olanları dışla
+                ->selectRaw("*, ({$anomalyCategoryExpr}) as anomaly_category");
 
             // ── Geçmiş veri çekme (tarife_degisen / astronomik / dusuk için) ─────
             // Sadece SQL tarafından "normal" bulunan ama geçmiş karşılaştırması
@@ -665,7 +696,7 @@ class ReportController extends Controller
             };
 
             // ── Stream modu (AJAX ilk yükleme) ───────────────────────────────────
-            if ($request->ajax() && ! $request->has('page')) {
+            if ($request->ajax() && $request->has('stream') && !$request->has('page')) {
                 return response()->stream(function () use ($allResults, $request, $processCategorization) {
                     // set_time_limit(0) KALDIRILDI — sonsuz döngü riskine karşı 300 sn limit
                     set_time_limit(300);
@@ -679,10 +710,15 @@ class ReportController extends Controller
 
                         $processCategorization($allResults, $anomalous, function () use (&$processed, $total) {
                             $processed++;
-                            if ($processed % 20 === 0 || $processed === $total) {
+                            if ($processed % 100 === 0 || $processed === $total) {
                                 $this->sendStreamEvent('progress', ['processed' => $processed, 'total' => $total]);
                             }
                         });
+
+                        // Tüm anomaliler bulunduktan sonra en yüksek tutardan en düşük tutara sırala
+                        $anomalous = $anomalous->sortByDesc(function ($item) {
+                            return (float) $item->tutar_toplam;
+                        })->values();
 
                         $tabCounts = [
                             'sifir_sayac' => 0, 'negatif_endeks' => 0, 'tutarsiz_endeks' => 0,
@@ -696,28 +732,47 @@ class ReportController extends Controller
                         }
 
                         $activeTab = $request->get('tab', 'sifir_sayac');
-                        // 'tumu' seçiliyse tüm anomalileri göster
-                        if ($activeTab === 'tumu') {
-                            $filteredAnomalous = $anomalous;
-                        } else {
-                            $filteredAnomalous = $anomalous->where('anomaly_category', $activeTab);
+                        $perPage   = 100;
+
+                        // Tüm sekmelerin HTML'ini tek seferde render et — client-side cache için
+                        $tabKeys = ['sifir_sayac', 'negatif_endeks', 'tutarsiz_endeks',
+                                    'dusuk', 'astronomik', 'carpan_degisimi',
+                                    'tarife_degisen', 'birim_fiyat_degisimi'];
+
+                        $allTabHtml    = [];
+                        $allTabRowIds  = [];
+
+                        foreach ($tabKeys as $tabKey) {
+                            $tabAnoms   = $anomalous->where('anomaly_category', $tabKey)->values();
+                            $tabTotalKWH    = $tabAnoms->sum(fn($r) => (float)($r->fatura_edilecek_toplam_tuketim_kwh ?? 0));
+                            $tabTotalAmount = $tabAnoms->sum('tutar_toplam');
+                            $tabResults = new LengthAwarePaginator(
+                                $tabAnoms->forPage(1, $perPage),
+                                $tabAnoms->count(),
+                                $perPage,
+                                1,
+                                ['path' => Paginator::resolveCurrentPath(), 'query' => array_merge($request->except('stream'), ['tab' => $tabKey])]
+                            );
+                            $allTabHtml[$tabKey]   = view('reports.partials.endeks_table', [
+                                'results'     => $tabResults,
+                                'totalKWH'    => $tabTotalKWH,
+                                'totalAmount' => $tabTotalAmount,
+                                'tabCounts'   => $tabCounts,
+                                'activeTab'   => $tabKey,
+                            ])->render();
+                            $allTabRowIds[$tabKey] = $tabAnoms->forPage(1, $perPage)->pluck('id')->values();
                         }
 
-                        $totalKWH    = $filteredAnomalous->sum(fn ($r) => (float) ($r->fatura_edilecek_toplam_tuketim_kwh ?? 0));
-                        $totalAmount = $filteredAnomalous->sum('tutar_toplam');
-                        $page        = Paginator::resolveCurrentPage();
-                        $perPage     = 100;
-                        $results = new LengthAwarePaginator(
-                            $filteredAnomalous->forPage($page, $perPage)->values(),
-                            $filteredAnomalous->count(),
-                            $perPage,
-                            $page,
-                            ['path' => Paginator::resolveCurrentPath(), 'query' => $request->query()]
-                        );
+                        $activeHtml   = $allTabHtml[$activeTab] ?? $allTabHtml['sifir_sayac'] ?? '';
+                        $activeRowIds = $allTabRowIds[$activeTab] ?? $allTabRowIds['sifir_sayac'] ?? [];
 
-                        $html    = view('reports.partials.endeks_table', compact('results', 'totalKWH', 'totalAmount', 'tabCounts', 'activeTab'))->render();
-                        $row_ids = collect($results->items())->pluck('id')->values();
-                        $this->sendStreamEvent('complete', ['html' => $html, 'row_ids' => $row_ids]);
+                        $this->sendStreamEvent('complete', [
+                            'html'        => $activeHtml,
+                            'row_ids'     => $activeRowIds,
+                            'allTabHtml'  => $allTabHtml,
+                            'allTabRowIds'=> $allTabRowIds,
+                            'activeTab'   => $activeTab,
+                        ]);
 
                     } catch (\Throwable $e) {
                         // Herhangi bir hata durumunda complete event'i mutlaka gönder.
@@ -738,6 +793,11 @@ class ReportController extends Controller
             // ── Normal (sayfalı) mod ──────────────────────────────────────────────
             $anomalous = collect();
             $processCategorization($allResults, $anomalous);
+
+            // Tüm anomaliler bulunduktan sonra en yüksek tutardan en düşük tutara sırala
+            $anomalous = $anomalous->sortByDesc(function ($item) {
+                return (float) $item->tutar_toplam;
+            })->values();
 
             $tabCounts = [
                 'sifir_sayac' => 0, 'negatif_endeks' => 0, 'tutarsiz_endeks' => 0,
@@ -767,7 +827,7 @@ class ReportController extends Controller
                 $filteredAnomalous->count(),
                 $perPage,
                 $page,
-                ['path' => Paginator::resolveCurrentPath(), 'query' => $request->query()]
+                ['path' => Paginator::resolveCurrentPath(), 'query' => $request->except('stream')]
             );
 
             if ($request->ajax()) {

@@ -781,7 +781,13 @@
 
         <div id="reportResultsContainer">
             @if(request()->anyFilled(['bolge','start_period','end_period','yerlesim_tipi','baglanti_grubu','tarife','tesisat_no']))
-                @include('reports.partials.endeks_table')
+                <div class="glass-card" style="text-align:center;padding:60px 40px;">
+                    <div style="width:80px;height:80px;background:#eff6ff;color:#2563eb;border-radius:24px;display:flex;align-items:center;justify-content:center;font-size:2rem;margin:0 auto 20px;">
+                        <i class="fas fa-hourglass-half fa-spin"></i>
+                    </div>
+                    <h4 style="font-weight:800;color:var(--text-900);">Analiz Başlatılıyor...</h4>
+                    <p style="color:var(--text-500);max-width:500px;margin:0 auto;">Seçtiğiniz kriterlere göre analiz yapılıyor, lütfen bekleyin.</p>
+                </div>
             @else
                 <div class="glass-card" style="text-align:center;padding:60px 40px;">
                     <div style="width:80px;height:80px;background:#eff6ff;color:#2563eb;border-radius:24px;display:flex;align-items:center;justify-content:center;font-size:2rem;margin:0 auto 20px;">
@@ -987,6 +993,14 @@ $(document).ready(function() {
     initMS('selectAllBolge', 'bolge-checkbox', 'bolgeLabel', 'Bölge Seçin...', 'Tüm Bölgeler Seçili', 'Bölge Seçili');
     initMS('selectAllModalEndeksBolge', 'modal-endeks-bolge-cb', 'ModalEndeksBolgeLabel', 'Bölge Seçin...', 'Tüm Bölgeler Seçili', 'Bölge Seçili');
     initMS('selectAllEndeksTarife', 'endeks-tarife-cb', 'EndeksTarifeLabel', 'Tarife Seçin...', 'Tüm Tarifeler Seçili', 'Tarife Seçili');
+
+    const hasAnyFilter = {{ request()->anyFilled(['bolge','start_period','end_period','yerlesim_tipi','baglanti_grubu','tarife','tesisat_no']) ? 'true' : 'false' }};
+    if (hasAnyFilter && !window._initialLoadTriggered) {
+        window._initialLoadTriggered = true;
+        setTimeout(function() {
+            $('#mainFilterForm').submit();
+        }, 100);
+    }
 
     // Sync Bolge Selection
     $('.bolge-checkbox').on('change', function() {
@@ -1282,11 +1296,21 @@ $(document).ready(function() {
             return;
         }
 
+        // Analiz başlamadan önce cache'i temizle — yeni filtre seçildi
+        window._endeksTabCache = null;
+        // Default tab sifir_sayac — kullanıcı değiştirmediyse
+        if (!$('#active_tab').data('user-changed')) {
+            $('#active_tab').val('sifir_sayac');
+        }
+        $('#active_tab').data('user-changed', false);
         var url = $form.attr('action') + '?' + formData;
         streamResults(url);
     });
 
     async function streamResults(url) {
+        var sep = url.includes('?') ? '&' : '?';
+        var fetchUrl = url + sep + 'stream=1';
+
         showResultsLoader();
         $('#resultsLoaderProgress').text('');
         $('#resultsLoaderBarFill').css('width', '0%');
@@ -1302,7 +1326,7 @@ $(document).ready(function() {
         }, 300000); // 5 dakika
 
         try {
-            const response = await fetch(url, {
+            const response = await fetch(fetchUrl, {
                 headers: { 'X-Requested-With': 'XMLHttpRequest' },
                 credentials: 'same-origin'
             });
@@ -1340,6 +1364,11 @@ $(document).ready(function() {
             hideResultsLoader();
             streamCompleted = true;
             clearTimeout(streamTimeout);
+            // Stream URL'ini tarayıcı geçmişine ekle
+            try {
+                var streamUrl = new URL(url, window.location.href);
+                window.history.pushState({path: streamUrl.toString()}, '', streamUrl.toString());
+            } catch(_) {}
         }
     }
 
@@ -1355,6 +1384,13 @@ $(document).ready(function() {
                 break;
             case 'complete':
                 hideResultsLoader();
+                // Tüm sekmelerin HTML'ini client-side cache'le
+                if (data.allTabHtml) {
+                    window._endeksTabCache = {
+                        html:    data.allTabHtml,
+                        rowIds:  data.allTabRowIds || {}
+                    };
+                }
                 renderResultsResponse(data);
                 break;
         }
@@ -1399,16 +1435,30 @@ $(document).ready(function() {
         updateResults(url, false);
     });
 
-    // Intercept Tab Clicks
+    // Intercept Tab Clicks — cache'ten anlık HTML swap, sunucuya istek gönderilmez
     $(document).on('click', '.endeks-tab-btn', function(e) {
         e.preventDefault();
         var tab = $(this).data('tab');
         $('#active_tab').val(tab);
+
         var currentUrl = new URL(window.location.href);
         currentUrl.searchParams.set('tab', tab);
         currentUrl.searchParams.delete('page');
+        currentUrl.searchParams.delete('stream');
         window.history.pushState({path: currentUrl.toString()}, '', currentUrl.toString());
-        streamResults(currentUrl.toString());
+
+        // Önce client-side cache'e bak — analiz zaten yapıldı, yeniden yapma
+        if (window._endeksTabCache && window._endeksTabCache.html[tab] !== undefined) {
+            var cachedData = {
+                html:    window._endeksTabCache.html[tab],
+                row_ids: window._endeksTabCache.rowIds[tab] || []
+            };
+            renderResultsResponse(cachedData);
+            return;
+        }
+
+        // Cache yoksa (sayfa yenilendi vs.) sunucuya düş — normal AJAX
+        updateResults(currentUrl.toString(), false);
     });
 
     function parseEndeksNumber(value) {
