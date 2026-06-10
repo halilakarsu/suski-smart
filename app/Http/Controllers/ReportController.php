@@ -1060,24 +1060,28 @@ class ReportController extends Controller
     {
         $records = KesinlesenFatura::where('tesisat_no', $tesisat_no)
             ->where('odeme_durumu', 'odendi')
-            ->whereNotNull('ek_tuketim')
-            ->whereRaw("CAST(REPLACE(ek_tuketim, ',', '.') AS DECIMAL(15,2)) != 0")
             ->orderBy('donem', 'desc')
             ->limit(12)
             ->get();
 
         $formatted = $records->map(function ($row) {
-            $tuketim = (float) ($row->fatura_edilecek_toplam_tuketim_kwh ?: ($row->t1_tuketim + $row->t2_tuketim + $row->t3_tuketim + $row->ek_tuketim));
-            $ekTuketim = (float) ($row->ek_tuketim ?: 0);
+            $t1 = (float) ($row->t1_tuketim ?? 0);
+            $t2 = (float) ($row->t2_tuketim ?? 0);
+            $t3 = (float) ($row->t3_tuketim ?? 0);
+            $ek = (float) ($row->ek_tuketim ?: 0);
+            $toplamTuketim = (float) ($row->fatura_edilecek_toplam_tuketim_kwh ?: ($t1 + $t2 + $t3 + $ek));
             $birimFiyat = (float) str_replace(',', '.', $row->birim_fiyat ?? '0');
 
             return [
                 'donem' => $row->donem,
                 'tesisat_no' => $row->tesisat_no,
-                'tuketim' => $tuketim,
-                'ek_tuketim' => $ekTuketim,
+                't1' => $t1,
+                't2' => $t2,
+                't3' => $t3,
+                'toplam_tuketim' => $toplamTuketim,
+                'ek_tuketim' => $ek,
                 'tutar' => (float) ($row->tutar_toplam ?: 0),
-                'ek_tutar' => $ekTuketim * $birimFiyat,
+                'ek_tutar' => $ek * $birimFiyat,
             ];
         });
 

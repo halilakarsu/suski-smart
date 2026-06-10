@@ -296,21 +296,23 @@
             success: function(res) {
                 if (!res.success || !res.records.length) {
                     document.getElementById('ektModalBodyContent').innerHTML =
-                        '<div class="ekt-empty"><i class="fas fa-inbox"></i><div style="font-weight:700;color:#64748b;">Son 1 yılda ek tüketimli fatura bulunamadı.</div></div>';
+                        '<div class="ekt-empty"><i class="fas fa-inbox"></i><div style="font-weight:700;color:#64748b;">Son 1 yılda fatura bulunamadı.</div></div>';
                     return;
                 }
                 var html = '<div class="ekt-tbl-wrap"><table class="ekt-tbl"><thead><tr>' +
-                    '<th>Dönem</th><th style="text-align:right;">Tüketim (kWh)</th><th style="text-align:right;">Ek Tüketim (kWh)</th><th style="text-align:right;">Tutar (₺)</th><th style="text-align:right;">Ek Tutar (₺)</th>' +
+                    '<th>Dönem</th><th style="text-align:right;">T1 (kWh)</th><th style="text-align:right;">T2 (kWh)</th><th style="text-align:right;">T3 (kWh)</th><th style="text-align:right;">Toplam (kWh)</th><th style="text-align:right;">Ek Tüketim (kWh)</th><th style="text-align:right;">Tutar (₺)</th><th style="text-align:right;">Ek Tutar (₺)</th>' +
                     '</tr></thead><tbody>';
-                var totalTuketim = 0, totalEkTuketim = 0, totalTutar = 0, totalEkTutar = 0;
+                var total1 = 0, total2 = 0, total3 = 0, totalToplam = 0, totalEk = 0, totalTutar = 0, totalEkTutar = 0;
                 res.records.forEach(function(r) {
-                    totalTuketim += r.tuketim;
-                    totalEkTuketim += r.ek_tuketim;
-                    totalTutar += r.tutar;
-                    totalEkTutar += r.ek_tutar;
+                    total1 += r.t1; total2 += r.t2; total3 += r.t3;
+                    totalToplam += r.toplam_tuketim; totalEk += r.ek_tuketim;
+                    totalTutar += r.tutar; totalEkTutar += r.ek_tutar;
                     html += '<tr>' +
                         '<td><span style="display:inline-block;padding:3px 10px;background:#eff6ff;color:#2563eb;border-radius:8px;font-weight:700;font-size:.78rem;">' + r.donem + '</span></td>' +
-                        '<td style="text-align:right;font-weight:700;">' + r.tuketim.toLocaleString('tr-TR', {minimumFractionDigits:2, maximumFractionDigits:2}) + '</td>' +
+                        '<td style="text-align:right;font-weight:600;">' + r.t1.toLocaleString('tr-TR', {minimumFractionDigits:2, maximumFractionDigits:2}) + '</td>' +
+                        '<td style="text-align:right;font-weight:600;">' + r.t2.toLocaleString('tr-TR', {minimumFractionDigits:2, maximumFractionDigits:2}) + '</td>' +
+                        '<td style="text-align:right;font-weight:600;">' + r.t3.toLocaleString('tr-TR', {minimumFractionDigits:2, maximumFractionDigits:2}) + '</td>' +
+                        '<td style="text-align:right;font-weight:700;">' + r.toplam_tuketim.toLocaleString('tr-TR', {minimumFractionDigits:2, maximumFractionDigits:2}) + '</td>' +
                         '<td style="text-align:right;font-weight:700;color:#7c3aed;">' + r.ek_tuketim.toLocaleString('tr-TR', {minimumFractionDigits:2, maximumFractionDigits:2}) + '</td>' +
                         '<td style="text-align:right;font-weight:800;color:#059669;">' + r.tutar.toLocaleString('tr-TR', {minimumFractionDigits:2, maximumFractionDigits:2}) + '</td>' +
                         '<td style="text-align:right;font-weight:700;color:#c2410c;">' + r.ek_tutar.toLocaleString('tr-TR', {minimumFractionDigits:2, maximumFractionDigits:2}) + '</td>' +
@@ -318,8 +320,11 @@
                 });
                 html += '</tbody><tfoot><tr style="background:#f1f5f9;font-weight:800;">' +
                     '<td style="font-size:.85rem;letter-spacing:.03em;">GENEL TOPLAM</td>' +
-                    '<td style="text-align:right;">' + totalTuketim.toLocaleString('tr-TR', {minimumFractionDigits:2, maximumFractionDigits:2}) + '</td>' +
-                    '<td style="text-align:right;">' + totalEkTuketim.toLocaleString('tr-TR', {minimumFractionDigits:2, maximumFractionDigits:2}) + '</td>' +
+                    '<td style="text-align:right;">' + total1.toLocaleString('tr-TR', {minimumFractionDigits:2, maximumFractionDigits:2}) + '</td>' +
+                    '<td style="text-align:right;">' + total2.toLocaleString('tr-TR', {minimumFractionDigits:2, maximumFractionDigits:2}) + '</td>' +
+                    '<td style="text-align:right;">' + total3.toLocaleString('tr-TR', {minimumFractionDigits:2, maximumFractionDigits:2}) + '</td>' +
+                    '<td style="text-align:right;">' + totalToplam.toLocaleString('tr-TR', {minimumFractionDigits:2, maximumFractionDigits:2}) + '</td>' +
+                    '<td style="text-align:right;">' + totalEk.toLocaleString('tr-TR', {minimumFractionDigits:2, maximumFractionDigits:2}) + '</td>' +
                     '<td style="text-align:right;color:#059669;">' + totalTutar.toLocaleString('tr-TR', {minimumFractionDigits:2, maximumFractionDigits:2}) + '</td>' +
                     '<td style="text-align:right;color:#c2410c;">' + totalEkTutar.toLocaleString('tr-TR', {minimumFractionDigits:2, maximumFractionDigits:2}) + '</td>' +
                     '</tr></tfoot></table></div>';
