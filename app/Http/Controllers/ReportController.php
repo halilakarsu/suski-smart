@@ -431,6 +431,111 @@ class ReportController extends Controller
 
         return view('reports.detailed', compact('results', 'donemler', 'bolgeler', 'totalKWH', 'totalAmount', 'tarifeler'));
     }
+    public function tuketim(Request $request)
+    {
+        $results = collect();
+        $totalKWH = 0;
+        $totalAmount = 0;
+
+        $hasFilter = $request->anyFilled(['bolge', 'tesisat_no', 'start_period', 'end_period', 'yerlesim_tipi', 'baglanti_grubu', 'tarife']);
+
+        if ($hasFilter) {
+            $query = KesinlesenFatura::where('odeme_durumu', 'odendi')->select('kesinlesen_faturalar.*');
+
+            if ($request->filled('start_period')) {
+                if ($request->filled('end_period')) {
+                    $query->where('donem', '>=', $request->start_period)
+                        ->where('donem', '<=', $request->end_period);
+                } else {
+                    $query->where('donem', '=', $request->start_period);
+                }
+            } elseif ($request->filled('end_period')) {
+                $query->where('donem', '<=', $request->end_period);
+            }
+            if ($request->filled('bolge')) {
+                $query->whereIn('ilce', (array) $request->bolge);
+            }
+            if ($request->filled('tesisat_no')) {
+                $query->where('tesisat_no', 'like', '%'.$request->tesisat_no.'%');
+            }
+            if ($request->filled('yerlesim_tipi')) {
+                $typeMap = ['koy' => 'KÖY', 'merkez' => 'MERKEZ'];
+                $type = $typeMap[$request->yerlesim_tipi] ?? null;
+
+                if ($type) {
+                    $query->whereIn('kesinlesen_faturalar.tesisat_no', function ($q) use ($type) {
+                        $q->select('ABONE_TESIS_NO')
+                            ->from('aboneler')
+                            ->where('yerlesim_turu', $type);
+                    });
+                }
+            }
+            if ($request->filled('baglanti_grubu')) {
+                $query->whereIn('tesisat_no', function ($q) use ($request) {
+                    $q->select('ABONE_TESIS_NO')->from('aboneler')->where('baglanti_grubu', $request->baglanti_grubu);
+                });
+            }
+            if ($request->filled('tarife')) {
+                $query->whereIn('tesisat_no', function ($q) use ($request) {
+                    $q->select('ABONE_TESIS_NO')->from('aboneler')->whereIn('tarife', (array) $request->tarife);
+                });
+            }
+
+            // Tek sorguda hem kwh hem tutar toplama
+            $aggregates = (clone $query)->selectRaw(
+                'SUM('.$this->tuketimExpr().') as total_kwh, SUM(COALESCE(tutar_toplam,0)) as total_amount'
+            )->first();
+            $totalKWH    = (float) ($aggregates->total_kwh    ?? 0);
+            $totalAmount = (float) ($aggregates->total_amount ?? 0);
+
+            if ($request->filled('export')) {
+                $results = $query->orderBy('tutar_toplam', 'desc')->get();
+                $filters = $request->only(['bolge', 'tesisat_no', 'start_period', 'end_period', 'tarife']);
+
+                if ($request->export === 'excel') {
+                    set_time_limit(600);
+                    ini_set('memory_limit', '-1');
+
+                    return \Maatwebsite\Excel\Facades\Excel::download(
+                        new \App\Exports\DetailedReportExport($results, $totalKWH, $totalAmount, $filters),
+                        'Tuketim_Rapor_'.now()->format('Ymd_His').'.xlsx'
+                    );
+                } elseif ($request->export === 'pdf') {
+                    set_time_limit(0);
+                    ini_set('memory_limit', '-1');
+                    $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadView(
+                        'reports.detailed-pdf',
+                        ['results' => $results, 'type' => 'detailed', 'filters' => $filters]
+                    )
+                        ->setPaper('a4', 'landscape');
+
+                    return $pdf->download('Tuketim_Rapor_'.now()->format('Ymd_His').'.pdf');
+                }
+            }
+
+            $results = $query->orderBy('tutar_toplam', 'desc')->paginate(10)->appends($request->all());
+
+            if ($request->ajax()) {
+                return view('reports.partials.detailed_table', compact('results', 'totalKWH', 'totalAmount'))->render();
+            }
+        }
+
+        $donemler = KesinlesenFatura::where('odeme_durumu', 'odendi')->distinct()->orderBy('donem', 'desc')->pluck('donem');
+        $bolgeler = KesinlesenFatura::where('odeme_durumu', 'odendi')
+            ->whereNotNull('ilce')->where('ilce', '!=', '')->where('ilce', 'not like', '=%')->where('ilce', 'not like', '#%')
+            ->whereNotIn('ilce', ['ŞANLIURFA', 'ŞANLIURFA ÖZEL'])
+            ->distinct()->orderBy('ilce', 'asc')->pluck('ilce');
+        $tarifeler = \App\Models\Aboneler::whereNotNull('tarife')->where('tarife', '!=', '')
+            ->select('tarife', 'abone_grubu')
+            ->distinct()
+            ->get()
+            ->unique('abone_grubu')
+            ->sortBy('abone_grubu')
+            ->values();
+
+        return view('reports.tuketim', compact('results', 'donemler', 'bolgeler', 'totalKWH', 'totalAmount', 'tarifeler'));
+    }
+
 
     private function sendStreamEvent(string $type, array $data): void
     {

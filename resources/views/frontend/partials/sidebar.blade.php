@@ -98,6 +98,11 @@
 										<span class="sub-item">Detaylı Fatura Raporu</span>
 									</a>
 								</li>
+								<li class="{{ request()->routeIs('reports.tuketim') ? 'active' : '' }}">
+									<a href="{{ route('reports.tuketim') }}">
+										<span class="sub-item">Tüketim Dönem Raporu</span>
+									</a>
+								</li>
 								<li class="{{ request()->routeIs('reports.koy-merkez') ? 'active' : '' }}">
 									<a href="{{ route('reports.koy-merkez') }}">
 										<span class="sub-item">Köy / Merkez Raporu</span>
