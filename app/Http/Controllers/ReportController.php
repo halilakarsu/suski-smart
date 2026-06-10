@@ -51,8 +51,8 @@ class ReportController extends Controller
         $t0Fark = "({$t0Son} - {$t0Ilk})";
         // Tüketimi akıllı seç: önce fatura_edilecek_toplam_tuketim_kwh, yoksa t1+t2+t3
         $t0Gelen = '(CASE WHEN COALESCE(fatura_edilecek_toplam_tuketim_kwh, 0) > 0'
-                 . ' THEN fatura_edilecek_toplam_tuketim_kwh'
-                 . ' ELSE (COALESCE(t1_tuketim,0) + COALESCE(t2_tuketim,0) + COALESCE(t3_tuketim,0)) END)';
+                 .' THEN fatura_edilecek_toplam_tuketim_kwh'
+                 .' ELSE (COALESCE(t1_tuketim,0) + COALESCE(t2_tuketim,0) + COALESCE(t3_tuketim,0)) END)';
         $carpan = 'COALESCE(NULLIF(carpan,0), 1)';
         $t0Gercek = "({$t0Fark} * {$carpan})";
 
@@ -88,8 +88,8 @@ class ReportController extends Controller
         $t0Fark = "({$t0Son} - {$t0Ilk})";
         // Tüketimi akıllı seç: önce fatura_edilecek_toplam_tuketim_kwh, yoksa t1+t2+t3
         $t0Gelen = '(CASE WHEN COALESCE(fatura_edilecek_toplam_tuketim_kwh, 0) > 0'
-                 . ' THEN fatura_edilecek_toplam_tuketim_kwh'
-                 . ' ELSE (COALESCE(t1_tuketim,0) + COALESCE(t2_tuketim,0) + COALESCE(t3_tuketim,0)) END)';
+                 .' THEN fatura_edilecek_toplam_tuketim_kwh'
+                 .' ELSE (COALESCE(t1_tuketim,0) + COALESCE(t2_tuketim,0) + COALESCE(t3_tuketim,0)) END)';
         $carpan = 'COALESCE(NULLIF(carpan,0), 1)';
         $t0Gercek = "({$t0Fark} * {$carpan})";
 
@@ -336,7 +336,7 @@ class ReportController extends Controller
         $hasFilter = $request->anyFilled(['bolge', 'tesisat_no', 'start_period', 'end_period', 'yerlesim_tipi', 'baglanti_grubu', 'tarife']);
 
         if ($hasFilter) {
-            $query = KesinlesenFatura::where('odeme_durumu', 'odendi')->select('kesinlesen_faturalar.*');
+            $query = KesinlesenFatura::where('odeme_durumu', 'odendi');
 
             if ($request->filled('start_period')) {
                 if ($request->filled('end_period')) {
@@ -381,8 +381,10 @@ class ReportController extends Controller
             $aggregates = (clone $query)->selectRaw(
                 'SUM('.$this->tuketimExpr().') as total_kwh, SUM(COALESCE(tutar_toplam,0)) as total_amount'
             )->first();
-            $totalKWH    = (float) ($aggregates->total_kwh    ?? 0);
+            $totalKWH = (float) ($aggregates->total_kwh ?? 0);
             $totalAmount = (float) ($aggregates->total_amount ?? 0);
+
+            $query->select('kesinlesen_faturalar.*');
 
             if ($request->filled('export')) {
                 $results = $query->orderBy('tutar_toplam', 'desc')->get();
@@ -431,111 +433,125 @@ class ReportController extends Controller
 
         return view('reports.detailed', compact('results', 'donemler', 'bolgeler', 'totalKWH', 'totalAmount', 'tarifeler'));
     }
+
     public function tuketim(Request $request)
     {
         $results = collect();
         $totalKWH = 0;
         $totalAmount = 0;
+        $donemler = collect();
+        $pivotData = collect();
+        $pivotPeriods = collect();
 
-        $hasFilter = $request->anyFilled(['bolge', 'tesisat_no', 'start_period', 'end_period', 'yerlesim_tipi', 'baglanti_grubu', 'tarife']);
+        $hasFilter = $request->anyFilled(['start_period', 'end_period']);
 
         if ($hasFilter) {
-            $query = KesinlesenFatura::where('odeme_durumu', 'odendi')->select('kesinlesen_faturalar.*');
+            $baseQuery = KesinlesenFatura::where('odeme_durumu', 'odendi');
 
             if ($request->filled('start_period')) {
                 if ($request->filled('end_period')) {
-                    $query->where('donem', '>=', $request->start_period)
+                    $baseQuery->where('donem', '>=', $request->start_period)
                         ->where('donem', '<=', $request->end_period);
                 } else {
-                    $query->where('donem', '=', $request->start_period);
+                    $baseQuery->where('donem', '=', $request->start_period);
                 }
             } elseif ($request->filled('end_period')) {
-                $query->where('donem', '<=', $request->end_period);
-            }
-            if ($request->filled('bolge')) {
-                $query->whereIn('ilce', (array) $request->bolge);
-            }
-            if ($request->filled('tesisat_no')) {
-                $query->where('tesisat_no', 'like', '%'.$request->tesisat_no.'%');
-            }
-            if ($request->filled('yerlesim_tipi')) {
-                $typeMap = ['koy' => 'KÖY', 'merkez' => 'MERKEZ'];
-                $type = $typeMap[$request->yerlesim_tipi] ?? null;
-
-                if ($type) {
-                    $query->whereIn('kesinlesen_faturalar.tesisat_no', function ($q) use ($type) {
-                        $q->select('ABONE_TESIS_NO')
-                            ->from('aboneler')
-                            ->where('yerlesim_turu', $type);
-                    });
-                }
-            }
-            if ($request->filled('baglanti_grubu')) {
-                $query->whereIn('tesisat_no', function ($q) use ($request) {
-                    $q->select('ABONE_TESIS_NO')->from('aboneler')->where('baglanti_grubu', $request->baglanti_grubu);
-                });
-            }
-            if ($request->filled('tarife')) {
-                $query->whereIn('tesisat_no', function ($q) use ($request) {
-                    $q->select('ABONE_TESIS_NO')->from('aboneler')->whereIn('tarife', (array) $request->tarife);
-                });
+                $baseQuery->where('donem', '<=', $request->end_period);
             }
 
-            // Tek sorguda hem kwh hem tutar toplama
-            $aggregates = (clone $query)->selectRaw(
+            // Toplam KWH
+            $aggregates = (clone $baseQuery)->selectRaw(
                 'SUM('.$this->tuketimExpr().') as total_kwh, SUM(COALESCE(tutar_toplam,0)) as total_amount'
             )->first();
-            $totalKWH    = (float) ($aggregates->total_kwh    ?? 0);
+            $totalKWH = (float) ($aggregates->total_kwh ?? 0);
             $totalAmount = (float) ($aggregates->total_amount ?? 0);
 
-            if ($request->filled('export')) {
-                $results = $query->orderBy('tutar_toplam', 'desc')->get();
-                $filters = $request->only(['bolge', 'tesisat_no', 'start_period', 'end_period', 'tarife']);
+            // Pivot için dönem listesi
+            $pivotPeriods = (clone $baseQuery)->distinct()->orderBy('donem')->pluck('donem');
 
-                if ($request->export === 'excel') {
+            // Pivot verisi: tesisat_no, donem, tuketim
+            $raw = (clone $baseQuery)
+                ->selectRaw('tesisat_no, donem, SUM('.$this->tuketimExpr().') as tuketim')
+                ->groupBy('tesisat_no', 'donem')
+                ->orderBy('tesisat_no')
+                ->orderBy('donem')
+                ->get();
+
+            // Matrise çevir: [tesisat_no][donem] = tuketim
+            $matrix = [];
+            $tesisatTotals = [];
+            $periodTotals = [];
+            foreach ($raw as $r) {
+                $ts = $r->tesisat_no;
+                $don = $r->donem;
+                $val = (float) $r->tuketim;
+                if (! isset($matrix[$ts])) {
+                    $matrix[$ts] = [];
+                }
+                $matrix[$ts][$don] = $val;
+                $tesisatTotals[$ts] = ($tesisatTotals[$ts] ?? 0) + $val;
+                $periodTotals[$don] = ($periodTotals[$don] ?? 0) + $val;
+            }
+
+            // Büyük tüketimden küçüğe sırala
+            uksort($matrix, function ($a, $b) use ($matrix) {
+                return array_sum($matrix[$b] ?? []) <=> (array_sum($matrix[$a] ?? []));
+            });
+
+            $allPivot = collect($matrix);
+
+            // Sütun toplamları (tüm veri için)
+            $colTotals = [];
+            foreach ($pivotPeriods as $period) {
+                $colTotals[$period] = $allPivot->sum(fn ($d) => $d[$period] ?? 0);
+            }
+
+            $perPage = 50;
+            $page = $request->integer('page', 1);
+            $offset = ($page - 1) * $perPage;
+            $total = $allPivot->count();
+            $pivotData = new LengthAwarePaginator(
+                $allPivot->slice($offset, $perPage),
+                $total,
+                $perPage,
+                $page,
+                ['path' => $request->url(), 'query' => $request->except('page')]
+            );
+
+            if ($request->ajax()) {
+                return view('reports.partials.tuketim_table', compact('pivotData', 'pivotPeriods', 'totalKWH', 'totalAmount', 'colTotals'))->render();
+            }
+
+            if ($request->filled('export')) {
+                if ($request->export === 'pdf') {
+                    set_time_limit(0);
+                    ini_set('memory_limit', '-1');
+                    $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadView(
+                        'reports.tuketim-excel',
+                        compact('pivotData', 'pivotPeriods', 'totalKWH', 'totalAmount')
+                    )->setPaper('a4', 'landscape');
+
+                    return $pdf->download('Tuketim_Raporu_'.now()->format('Ymd_His').'.pdf');
+                } else {
                     set_time_limit(600);
                     ini_set('memory_limit', '-1');
 
                     return \Maatwebsite\Excel\Facades\Excel::download(
-                        new \App\Exports\DetailedReportExport($results, $totalKWH, $totalAmount, $filters),
-                        'Tuketim_Rapor_'.now()->format('Ymd_His').'.xlsx'
+                        new \App\Exports\TuketimExport($pivotData, $pivotPeriods, $totalKWH),
+                        'Tuketim_Raporu_'.now()->format('Ymd_His').'.xlsx'
                     );
-                } elseif ($request->export === 'pdf') {
-                    set_time_limit(0);
-                    ini_set('memory_limit', '-1');
-                    $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadView(
-                        'reports.detailed-pdf',
-                        ['results' => $results, 'type' => 'detailed', 'filters' => $filters]
-                    )
-                        ->setPaper('a4', 'landscape');
-
-                    return $pdf->download('Tuketim_Rapor_'.now()->format('Ymd_His').'.pdf');
                 }
-            }
-
-            $results = $query->orderBy('tutar_toplam', 'desc')->paginate(10)->appends($request->all());
-
-            if ($request->ajax()) {
-                return view('reports.partials.detailed_table', compact('results', 'totalKWH', 'totalAmount'))->render();
             }
         }
 
+        if ($request->ajax() && $hasFilter) {
+            return view('reports.partials.tuketim_table', compact('pivotData', 'pivotPeriods', 'totalKWH', 'totalAmount'))->render();
+        }
+
         $donemler = KesinlesenFatura::where('odeme_durumu', 'odendi')->distinct()->orderBy('donem', 'desc')->pluck('donem');
-        $bolgeler = KesinlesenFatura::where('odeme_durumu', 'odendi')
-            ->whereNotNull('ilce')->where('ilce', '!=', '')->where('ilce', 'not like', '=%')->where('ilce', 'not like', '#%')
-            ->whereNotIn('ilce', ['ŞANLIURFA', 'ŞANLIURFA ÖZEL'])
-            ->distinct()->orderBy('ilce', 'asc')->pluck('ilce');
-        $tarifeler = \App\Models\Aboneler::whereNotNull('tarife')->where('tarife', '!=', '')
-            ->select('tarife', 'abone_grubu')
-            ->distinct()
-            ->get()
-            ->unique('abone_grubu')
-            ->sortBy('abone_grubu')
-            ->values();
 
-        return view('reports.tuketim', compact('results', 'donemler', 'bolgeler', 'totalKWH', 'totalAmount', 'tarifeler'));
+        return view('reports.tuketim', compact('donemler', 'pivotData', 'pivotPeriods', 'totalKWH', 'totalAmount'));
     }
-
 
     private function sendStreamEvent(string $type, array $data): void
     {
@@ -565,8 +581,8 @@ class ReportController extends Controller
         if ($count > 0) {
             // Çarpan değişimi kontrolü
             if ($prev) {
-                $prevCarpan = (float)str_replace(',', '.', $prev->carpan ?? '1');
-                $curCarpan  = (float)str_replace(',', '.', $row->carpan ?? '1');
+                $prevCarpan = (float) str_replace(',', '.', $prev->carpan ?? '1');
+                $curCarpan = (float) str_replace(',', '.', $row->carpan ?? '1');
                 if (abs($prevCarpan - $curCarpan) > 0.001 && $prevCarpan > 0 && $curCarpan > 0) {
                     return 'carpan_degisimi';
                 }
@@ -574,8 +590,8 @@ class ReportController extends Controller
 
             // Birim fiyat değişimi kontrolü
             if ($prev) {
-                $prevBirim = (float)str_replace(',', '.', $prev->birim_fiyat ?? '0');
-                $curBirim  = (float)str_replace(',', '.', $row->birim_fiyat ?? '0');
+                $prevBirim = (float) str_replace(',', '.', $prev->birim_fiyat ?? '0');
+                $curBirim = (float) str_replace(',', '.', $row->birim_fiyat ?? '0');
                 if (abs($prevBirim - $curBirim) > 0.001 && $prevBirim > 0 && $curBirim > 0) {
                     return 'birim_fiyat_degisimi';
                 }
@@ -583,10 +599,10 @@ class ReportController extends Controller
 
             // Tarife değişimi kontrolü
             if ($prev) {
-                $prevTarif  = trim($prev->tarife   ?? '');
+                $prevTarif = trim($prev->tarife ?? '');
                 $prevTarif2 = trim($prev->tarife_2 ?? '');
-                $curTarif   = trim($row->tarife    ?? '');
-                $curTarif2  = trim($row->tarife_2  ?? '');
+                $curTarif = trim($row->tarife ?? '');
+                $curTarif2 = trim($row->tarife_2 ?? '');
                 if ($prevTarif !== $curTarif || $prevTarif2 !== $curTarif2) {
                     return 'tarife_degisen';
                 }
@@ -596,9 +612,9 @@ class ReportController extends Controller
             $avgTutar = array_sum($pastTutarlar) / $count;
             $currentTutar = (float) $row->tutar_toplam;
             $currentTuketim = (float) ($row->fatura_edilecek_toplam_tuketim_kwh ?? 0);
-            $avgTuketim     = array_sum($pastTuketimler) / $count;
+            $avgTuketim = array_sum($pastTuketimler) / $count;
 
-            // Eğer tüketim veya tutar sıfırsa (veya sıfırın altındaysa), doğrudan sıfır tüketim kategorisine al. 
+            // Eğer tüketim veya tutar sıfırsa (veya sıfırın altındaysa), doğrudan sıfır tüketim kategorisine al.
             // 0.5 altı değerler UI'da 0 göründüğü için yuvarlayarak kontrol et.
             if (round($currentTuketim) <= 0 || round($currentTutar) <= 0) {
                 return 'sifir_sayac';
@@ -628,21 +644,21 @@ class ReportController extends Controller
 
     public function endeks(Request $request)
     {
-        $results   = collect();
-        $totalKWH  = 0;
+        $results = collect();
+        $totalKWH = 0;
         $totalAmount = 0;
-        $tabCounts  = [
+        $tabCounts = [
             'sifir_sayac' => 0, 'negatif_endeks' => 0, 'tutarsiz_endeks' => 0,
             'dusuk' => 0, 'astronomik' => 0, 'carpan_degisimi' => 0,
             'tarife_degisen' => 0, 'birim_fiyat_degisimi' => 0,
         ];
-        $activeTab   = $request->get('tab', 'sifir_sayac');
+        $activeTab = $request->get('tab', 'sifir_sayac');
 
         $hasFilter = $request->anyFilled(['bolge', 'start_period', 'end_period', 'yerlesim_tipi', 'baglanti_grubu', 'tarife', 'tesisat_no']);
 
         if ($hasFilter) {
             // Eğer normal sayfa yüklemesi ise (AJAX veya EXPORT değilse) analiz yapma, sayfayı boş yükle, JS tetiklesin
-            if (!$request->ajax() && !$request->filled('export')) {
+            if (! $request->ajax() && ! $request->filled('export')) {
                 $donemler = KesinlesenFatura::where('odeme_durumu', 'odendi')->distinct()->orderBy('donem', 'desc')->pluck('donem');
                 $bolgeler = KesinlesenFatura::where('odeme_durumu', 'odendi')
                     ->whereNotNull('ilce')->where('ilce', '!=', '')->where('ilce', 'not like', '=%')->where('ilce', 'not like', '#%')
@@ -715,7 +731,7 @@ class ReportController extends Controller
                 ->get();
 
             $tesisatNumberList = $allResults->pluck('tesisat_no')->filter()->unique()->values();
-            $allHistorical     = collect();
+            $allHistorical = collect();
 
             if ($tesisatNumberList->count() > 0) {
                 $minDonem = $allResults->min('donem');
@@ -725,7 +741,10 @@ class ReportController extends Controller
                     $y = (int) $parts[0];
                     $m = (int) ($parts[1] ?? 1);
                     $m -= 18;
-                    while ($m <= 0) { $y--; $m += 12; }
+                    while ($m <= 0) {
+                        $y--;
+                        $m += 12;
+                    }
                     $minHistoryDonem = sprintf('%d-%02d', $y, $m);
                 }
 
@@ -770,15 +789,15 @@ class ReportController extends Controller
                 foreach ($resultsByTesisat as $tesisatNo => $records) {
                     $records = $records->sortBy('donem')->values();
                     $history = $historicalSorted[$tesisatNo] ?? collect();
-                    $hCount  = $history->count();
+                    $hCount = $history->count();
                     $hCursor = 0;
 
-                    $pastTutarlar   = [];
+                    $pastTutarlar = [];
                     $pastTuketimler = [];
 
                     foreach ($records as $row) {
                         for (; $hCursor < $hCount && $history[$hCursor]->donem < $row->donem; $hCursor++) {
-                            $pastTutarlar[]   = (float) $history[$hCursor]->tutar_toplam;
+                            $pastTutarlar[] = (float) $history[$hCursor]->tutar_toplam;
                             $pastTuketimler[] = (float) ($history[$hCursor]->fatura_edilecek_toplam_tuketim_kwh ?? 0);
                         }
 
@@ -801,7 +820,7 @@ class ReportController extends Controller
             };
 
             // ── Stream modu (AJAX ilk yükleme) ───────────────────────────────────
-            if ($request->ajax() && $request->has('stream') && !$request->has('page')) {
+            if ($request->ajax() && $request->has('stream') && ! $request->has('page')) {
                 return response()->stream(function () use ($allResults, $request, $processCategorization) {
                     // set_time_limit(0) KALDIRILDI — sonsuz döngü riskine karşı 300 sn limit
                     set_time_limit(300);
@@ -832,24 +851,26 @@ class ReportController extends Controller
                         ];
                         foreach ($anomalous as $a) {
                             $cat = $a->anomaly_category;
-                            if (!isset($tabCounts[$cat])) $tabCounts[$cat] = 0;
+                            if (! isset($tabCounts[$cat])) {
+                                $tabCounts[$cat] = 0;
+                            }
                             $tabCounts[$cat]++;
                         }
 
                         $activeTab = $request->get('tab', 'sifir_sayac');
-                        $perPage   = 100;
+                        $perPage = 100;
 
                         // Tüm sekmelerin HTML'ini tek seferde render et — client-side cache için
                         $tabKeys = ['sifir_sayac', 'negatif_endeks', 'tutarsiz_endeks',
-                                    'dusuk', 'astronomik', 'carpan_degisimi',
-                                    'tarife_degisen', 'birim_fiyat_degisimi'];
+                            'dusuk', 'astronomik', 'carpan_degisimi',
+                            'tarife_degisen', 'birim_fiyat_degisimi'];
 
-                        $allTabHtml    = [];
-                        $allTabRowIds  = [];
+                        $allTabHtml = [];
+                        $allTabRowIds = [];
 
                         foreach ($tabKeys as $tabKey) {
-                            $tabAnoms   = $anomalous->where('anomaly_category', $tabKey)->values();
-                            $tabTotalKWH    = $tabAnoms->sum(fn($r) => (float)($r->fatura_edilecek_toplam_tuketim_kwh ?? 0));
+                            $tabAnoms = $anomalous->where('anomaly_category', $tabKey)->values();
+                            $tabTotalKWH = $tabAnoms->sum(fn ($r) => (float) ($r->fatura_edilecek_toplam_tuketim_kwh ?? 0));
                             $tabTotalAmount = $tabAnoms->sum('tutar_toplam');
                             $tabResults = new LengthAwarePaginator(
                                 $tabAnoms->forPage(1, $perPage),
@@ -858,39 +879,39 @@ class ReportController extends Controller
                                 1,
                                 ['path' => Paginator::resolveCurrentPath(), 'query' => array_merge($request->except('stream'), ['tab' => $tabKey])]
                             );
-                            $allTabHtml[$tabKey]   = view('reports.partials.endeks_table', [
-                                'results'     => $tabResults,
-                                'totalKWH'    => $tabTotalKWH,
+                            $allTabHtml[$tabKey] = view('reports.partials.endeks_table', [
+                                'results' => $tabResults,
+                                'totalKWH' => $tabTotalKWH,
                                 'totalAmount' => $tabTotalAmount,
-                                'tabCounts'   => $tabCounts,
-                                'activeTab'   => $tabKey,
+                                'tabCounts' => $tabCounts,
+                                'activeTab' => $tabKey,
                             ])->render();
                             $allTabRowIds[$tabKey] = $tabAnoms->forPage(1, $perPage)->pluck('id')->values();
                         }
 
-                        $activeHtml   = $allTabHtml[$activeTab] ?? $allTabHtml['sifir_sayac'] ?? '';
+                        $activeHtml = $allTabHtml[$activeTab] ?? $allTabHtml['sifir_sayac'] ?? '';
                         $activeRowIds = $allTabRowIds[$activeTab] ?? $allTabRowIds['sifir_sayac'] ?? [];
 
                         $this->sendStreamEvent('complete', [
-                            'html'        => $activeHtml,
-                            'row_ids'     => $activeRowIds,
-                            'allTabHtml'  => $allTabHtml,
-                            'allTabRowIds'=> $allTabRowIds,
-                            'activeTab'   => $activeTab,
+                            'html' => $activeHtml,
+                            'row_ids' => $activeRowIds,
+                            'allTabHtml' => $allTabHtml,
+                            'allTabRowIds' => $allTabRowIds,
+                            'activeTab' => $activeTab,
                         ]);
 
                     } catch (\Throwable $e) {
                         // Herhangi bir hata durumunda complete event'i mutlaka gönder.
                         // Aksi halde JS'teki while(true) döngüsü sonsuza açık kalır.
                         $this->sendStreamEvent('complete', [
-                            'html'    => '<div style="padding:20px;color:#dc2626;font-weight:700;"><i class="fas fa-exclamation-triangle"></i> Analiz hatası: ' . htmlspecialchars($e->getMessage()) . '</div>',
+                            'html' => '<div style="padding:20px;color:#dc2626;font-weight:700;"><i class="fas fa-exclamation-triangle"></i> Analiz hatası: '.htmlspecialchars($e->getMessage()).'</div>',
                             'row_ids' => [],
-                            'error'   => true,
+                            'error' => true,
                         ]);
                     }
                 }, 200, [
-                    'Content-Type'      => 'text/event-stream',
-                    'Cache-Control'     => 'no-cache',
+                    'Content-Type' => 'text/event-stream',
+                    'Cache-Control' => 'no-cache',
                     'X-Accel-Buffering' => 'no',
                 ]);
             }
@@ -911,7 +932,9 @@ class ReportController extends Controller
             ];
             foreach ($anomalous as $a) {
                 $cat = $a->anomaly_category;
-                if (!isset($tabCounts[$cat])) $tabCounts[$cat] = 0;
+                if (! isset($tabCounts[$cat])) {
+                    $tabCounts[$cat] = 0;
+                }
                 $tabCounts[$cat]++;
             }
 
@@ -923,10 +946,10 @@ class ReportController extends Controller
                 $filteredAnomalous = $anomalous->where('anomaly_category', $activeTab);
             }
 
-            $totalKWH    = $filteredAnomalous->sum(fn ($r) => (float) ($r->fatura_edilecek_toplam_tuketim_kwh ?? 0));
+            $totalKWH = $filteredAnomalous->sum(fn ($r) => (float) ($r->fatura_edilecek_toplam_tuketim_kwh ?? 0));
             $totalAmount = $filteredAnomalous->sum('tutar_toplam');
-            $page        = Paginator::resolveCurrentPage();
-            $perPage     = 100;
+            $page = Paginator::resolveCurrentPage();
+            $perPage = 100;
             $results = new LengthAwarePaginator(
                 $filteredAnomalous->forPage($page, $perPage)->values(),
                 $filteredAnomalous->count(),
@@ -937,7 +960,7 @@ class ReportController extends Controller
 
             if ($request->ajax()) {
                 return response()->json([
-                    'html'    => view('reports.partials.endeks_table', compact('results', 'totalKWH', 'totalAmount', 'tabCounts', 'activeTab'))->render(),
+                    'html' => view('reports.partials.endeks_table', compact('results', 'totalKWH', 'totalAmount', 'tabCounts', 'activeTab'))->render(),
                     'row_ids' => collect($results->items())->pluck('id')->values(),
                 ]);
             }
@@ -957,7 +980,7 @@ class ReportController extends Controller
                     ini_set('memory_limit', '-1');
                     $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadView('reports.pdf', [
                         'results' => $filteredAnomalous,
-                        'type'    => 'endeks',
+                        'type' => 'endeks',
                         'filters' => $filters,
                     ])->setPaper('a4', 'landscape');
 
@@ -982,13 +1005,62 @@ class ReportController extends Controller
         return view('reports.endeks', compact('results', 'donemler', 'bolgeler', 'tarifeler', 'totalKWH', 'totalAmount', 'tabCounts', 'activeTab'));
     }
 
+    public function ekTuketim(Request $request)
+    {
+        $results = collect();
+        $totalKWH = 0;
+        $totalAmount = 0;
+        $totalEkTuketim = 0;
+        $totalEkTutar = 0;
+
+        $hasFilter = $request->anyFilled(['start_period', 'end_period']);
+
+        if ($hasFilter) {
+            $query = KesinlesenFatura::where('odeme_durumu', 'odendi')
+                ->where(function ($q) {
+                    $q->where('ek_tuketim', '>', 0)->orWhere('ek_tuketim', '>', '0');
+                });
+
+            if ($request->filled('start_period')) {
+                if ($request->filled('end_period')) {
+                    $query->where('donem', '>=', $request->start_period)
+                        ->where('donem', '<=', $request->end_period);
+                } else {
+                    $query->where('donem', '=', $request->start_period);
+                }
+            } elseif ($request->filled('end_period')) {
+                $query->where('donem', '<=', $request->end_period);
+            }
+
+            $aggregates = (clone $query)->selectRaw(
+                'SUM('.$this->tuketimExpr().') as total_kwh, SUM(COALESCE(tutar_toplam,0)) as total_amount, SUM(COALESCE(ek_tuketim,0)) as total_ek_tuketim, SUM(COALESCE(fatura_tutari_ek,0)) as total_ek_tutar'
+            )->first();
+            $totalKWH = (float) ($aggregates->total_kwh ?? 0);
+            $totalAmount = (float) ($aggregates->total_amount ?? 0);
+            $totalEkTuketim = (float) ($aggregates->total_ek_tuketim ?? 0);
+            $totalEkTutar = (float) ($aggregates->total_ek_tutar ?? 0);
+
+            $query->select('kesinlesen_faturalar.*');
+
+            $results = $query->orderBy('donem', 'desc')->orderBy('tutar_toplam', 'desc')->paginate(20)->appends($request->all());
+
+            if ($request->ajax()) {
+                return view('reports.partials.ek_tuketim_table', compact('results', 'totalKWH', 'totalAmount', 'totalEkTuketim', 'totalEkTutar'))->render();
+            }
+        }
+
+        $donemler = KesinlesenFatura::where('odeme_durumu', 'odendi')->distinct()->orderBy('donem', 'desc')->pluck('donem');
+
+        return view('reports.ek-tuketim', compact('donemler', 'results', 'totalKWH', 'totalAmount', 'totalEkTuketim', 'totalEkTutar'));
+    }
+
     public function koyMerkez(Request $request)
     {
-        $results           = collect();
-        $totalKoyTuketim   = 0;
-        $totalKoyTutar     = 0;
+        $results = collect();
+        $totalKoyTuketim = 0;
+        $totalKoyTutar = 0;
         $totalMerkezTuketim = 0;
-        $totalMerkezTutar  = 0;
+        $totalMerkezTutar = 0;
 
         $hasFilter = $request->anyFilled(['bolge', 'start_period', 'end_period', 'baglanti_grubu', 'tarife']);
 
@@ -1023,7 +1095,7 @@ class ReportController extends Controller
             }
 
             $tuketimExpr = $this->tuketimExpr();
-            $tutarExpr   = 'COALESCE(tutar_toplam, fatura_tutari, 0)';
+            $tutarExpr = 'COALESCE(tutar_toplam, fatura_tutari, 0)';
 
             $isKoyCondition = "kesinlesen_faturalar.tesisat_no IN (
                 SELECT ABONE_TESIS_NO FROM aboneler WHERE yerlesim_turu = 'KÖY'
@@ -1044,10 +1116,10 @@ class ReportController extends Controller
                 ->orderBy('ilce', 'asc')
                 ->get();
 
-            $totalKoyTuketim    = $results->sum('koy_tuketim');
-            $totalKoyTutar      = $results->sum('koy_tutar');
+            $totalKoyTuketim = $results->sum('koy_tuketim');
+            $totalKoyTutar = $results->sum('koy_tutar');
             $totalMerkezTuketim = $results->sum('merkez_tuketim');
-            $totalMerkezTutar   = $results->sum('merkez_tutar');
+            $totalMerkezTutar = $results->sum('merkez_tutar');
 
             if ($request->ajax()) {
                 return view('reports.partials.koy_merkez_table', compact('results'))->render();
@@ -1055,11 +1127,11 @@ class ReportController extends Controller
 
             if ($request->filled('export') && $results->count() > 0) {
                 $filters = $request->only(['bolge', 'start_period', 'end_period', 'tarife']);
-                $totals  = [
-                    'koy_tuketim'    => $totalKoyTuketim,
-                    'koy_tutar'      => $totalKoyTutar,
+                $totals = [
+                    'koy_tuketim' => $totalKoyTuketim,
+                    'koy_tutar' => $totalKoyTutar,
                     'merkez_tuketim' => $totalMerkezTuketim,
-                    'merkez_tutar'   => $totalMerkezTutar,
+                    'merkez_tutar' => $totalMerkezTutar,
                 ];
 
                 if ($request->export === 'excel') {
@@ -1075,7 +1147,7 @@ class ReportController extends Controller
                     ini_set('memory_limit', '-1');
                     $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadView('reports.pdf', [
                         'results' => $results,
-                        'type'    => 'koy_merkez',
+                        'type' => 'koy_merkez',
                         'filters' => $filters,
                     ])->setPaper('a4', 'landscape');
 
@@ -1138,18 +1210,18 @@ class ReportController extends Controller
 
             $t0Tuketim = $hasTariff ? ($t1Tuketim + $t2Tuketim + $t3Tuketim) : (float) ($row->fatura_edilecek_toplam_tuketim_kwh ?? 0);
 
-            $riIlk  = (float) str_replace(',', '.', $row->ri_ilk_endeks ?? 0);
-            $riSon  = (float) str_replace(',', '.', $row->ri_son_endeks ?? 0);
+            $riIlk = (float) str_replace(',', '.', $row->ri_ilk_endeks ?? 0);
+            $riSon = (float) str_replace(',', '.', $row->ri_son_endeks ?? 0);
             $riFark = $row->ri_fark_endeks !== null ? (float) str_replace(',', '.', $row->ri_fark_endeks) : ($riSon - $riIlk);
 
-            $rcIlk  = (float) str_replace(',', '.', $row->rc_ilk_endeks ?? 0);
-            $rcSon  = (float) str_replace(',', '.', $row->rc_son_endeks ?? 0);
+            $rcIlk = (float) str_replace(',', '.', $row->rc_ilk_endeks ?? 0);
+            $rcSon = (float) str_replace(',', '.', $row->rc_son_endeks ?? 0);
             $rcFark = $row->rc_fark_endeks !== null ? (float) str_replace(',', '.', $row->rc_fark_endeks) : ($rcSon - $rcIlk);
 
             return [
-                'donem'  => $row->donem,
+                'donem' => $row->donem,
                 'carpan' => $carpan,
-                'tutar'  => (float) ($row->tutar_toplam ?? 0),
+                'tutar' => (float) ($row->tutar_toplam ?? 0),
                 't0' => ['ilk' => $t0Ilk, 'son' => $t0Son, 'fark' => $t0Fark, 'tuketim' => $t0Tuketim],
                 't1' => ['ilk' => $t1Ilk, 'son' => $t1Son, 'fark' => $t1Fark, 'tuketim' => $t1Tuketim],
                 't2' => ['ilk' => $t2Ilk, 'son' => $t2Son, 'fark' => $t2Fark, 'tuketim' => $t2Tuketim],
@@ -1160,9 +1232,9 @@ class ReportController extends Controller
         });
 
         return response()->json([
-            'success'    => true,
+            'success' => true,
             'tesisat_no' => $tesisat_no,
-            'records'    => $formatted,
+            'records' => $formatted,
         ]);
     }
 }

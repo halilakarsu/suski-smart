@@ -73,35 +73,7 @@
     .btn-outline-pro:hover { background: #f8fafc; color: var(--text-slate-900); border-color: #cbd5e1; }
     .btn-success-pro { background: linear-gradient(135deg, #059669, #10b981); color: white !important; }
 
-    /* Multi-select label truncation */
-    .custom-multi-select { position: relative; width: 100%; z-index: 1000; }
-    .custom-multi-select .dropdown-toggle {
-        text-align: left; background: #fff; border: 1.5px solid #e2e8f0;
-        padding: 12px 16px; border-radius: 12px; font-size: .92rem; color: var(--text-slate-900);
-        display: flex; justify-content: space-between; align-items: center; width: 100%;
-        transition: all 0.2s; font-weight: 500;
-    }
-    .custom-multi-select .dropdown-toggle span {
-        white-space: nowrap;
-        overflow: hidden;
-        text-overflow: ellipsis;
-        max-width: calc(100% - 20px);
-    }
-    .custom-multi-select .dropdown-toggle::after { display: none !important; }
-    .custom-multi-select .dropdown-menu {
-        width: 100%; border-radius: 16px; border: 1.5px solid #e2e8f0;
-        box-shadow: 0 20px 40px rgba(0,0,0,0.15); padding: 10px; max-height: 260px; overflow-y: auto; margin-top: 6px;
-        background: #fff; z-index: 99999 !important; position: absolute !important;
-    }
-    .custom-multi-select .form-check { padding: 7px 10px; margin-bottom: 1px; border-radius: 9px; transition: background 0.15s; display: flex; align-items: center; gap: 10px; cursor: pointer; }
-    .custom-multi-select .form-check:hover { background: #eff6ff; }
-    .custom-multi-select .form-check.checked-row { background: #eff6ff; }
-    .custom-multi-select .form-check-input { position: absolute; opacity: 0; width: 0; height: 0; pointer-events: none; }
-    .custom-multi-select .cb-box { width: 20px; height: 20px; min-width: 20px; border-radius: 5px; border: 2px solid #cbd5e1; background: #fff; display: flex; align-items: center; justify-content: center; transition: all 0.18s; flex-shrink: 0; }
-    .custom-multi-select .cb-box svg { width: 11px; height: 11px; stroke: #fff; stroke-width: 3; stroke-linecap: round; stroke-linejoin: round; fill: none; opacity: 0; transition: opacity 0.15s; }
-    .custom-multi-select .form-check-input:checked ~ .cb-box { background: #2563eb; border-color: #2563eb; }
-    .custom-multi-select .form-check-input:checked ~ .cb-box svg { opacity: 1; }
-    .custom-multi-select .select-all-wrap { border-bottom: 1.5px solid #e2e8f0; margin-bottom: 6px; padding-bottom: 6px; }
+
 
     /* Stats Row Premium */
     .stats-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 24px; margin-bottom: 30px; }
@@ -117,12 +89,7 @@
     .stat-val { font-size: 1.4rem; font-weight: 800; color: #0f172a; line-height: 1.2; letter-spacing: -0.02em; }
     .stat-lbl { font-size: 0.8rem; font-weight: 600; color: #64748b; text-transform: uppercase; letter-spacing: 0.05em; margin-top: 2px; }
 
-    /* ===== ADVANCED MODAL BUTTON ===== */
-    .btn-advanced-pro { position:relative; padding:12px 18px; border-radius:14px; font-weight:700; font-size:.9rem; display:inline-flex; align-items:center; justify-content:center; gap:8px; transition:all .3s; border:1.5px solid #c7d2fe; cursor:pointer; background:linear-gradient(135deg,#eff6ff,#f5f3ff); color:#4f46e5; box-shadow:0 4px 12px rgba(79,70,229,.1); }
-    .btn-advanced-pro:hover { transform:translateY(-2px); box-shadow:0 8px 20px rgba(79,70,229,.2); border-color:#818cf8; }
-    .adv-active-dot { width:8px; height:8px; border-radius:50%; background:#ef4444; display:inline-block; animation:pulse-dot 1.5s infinite; }
-    @keyframes pulse-dot { 0%,100%{transform:scale(1);opacity:1;} 50%{transform:scale(1.4);opacity:.7;} }
-    .adv-badge { display:inline-flex; align-items:center; background:#eff6ff; color:#1d4ed8; border:1px solid #bfdbfe; border-radius:20px; font-size:.75rem; font-weight:700; padding:3px 10px; }
+
 
     /* Stats & Table Responsive Fixes */
     .stats-row { 
@@ -208,11 +175,7 @@
                 <p class="hero-subtitle">Bireysel faturaların okuma ve maliyet detaylarını inceleyin</p>
             </div>
             <div class="d-flex gap-2 align-items-center">
-                <button type="button" class="btn-advanced-pro" data-toggle="modal" data-target="#detAdvModal" style="background: rgba(255,255,255,0.15); color: white; border-color: rgba(255,255,255,0.3); box-shadow: none;">
-                    <i class="fas fa-sliders-h"></i> Detaylı Filtre
-                    @if(request()->anyFilled(['tarife','baglanti_grubu','tesisat_no','yerlesim_tipi','end_period']))<span class="adv-active-dot" style="background:#fca5a5;"></span>@endif
-                </button>
-                <div class="dropdown" id="detExportBtnContainer" style="display: {{ request()->anyFilled(['bolge','start_period','end_period','tesisat_no','tarife','baglanti_grubu','yerlesim_tipi']) ? 'block' : 'none' }};">
+                <div class="dropdown" id="detExportBtnContainer" style="display: {{ request()->anyFilled(['start_period','end_period']) ? 'block' : 'none' }};">
                     <button type="button" class="btn-pro btn-outline-pro dropdown-toggle" data-toggle="dropdown" style="background: rgba(255,255,255,0.15); color: white; border-color: rgba(255,255,255,0.3); box-shadow: none;">
                         <i class="fas fa-file-export"></i> Dışa Aktar
                     </button>
@@ -230,59 +193,33 @@
         <div class="glass-card filter-card">
             <h5 class="section-title"><i class="fas fa-filter"></i> Filtreleme Kriterleri</h5>
 
-            @if(request()->anyFilled(['tarife','baglanti_grubu','tesisat_no','yerlesim_tipi']))
-            <div style="margin-bottom:16px;padding:10px 16px;background:linear-gradient(135deg,rgba(37,99,235,.07),rgba(79,70,229,.07));border:1.5px solid rgba(37,99,235,.2);border-radius:12px;display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
-                <i class="fas fa-sliders-h" style="color:#2563eb;"></i>
-                <span style="font-size:.83rem;font-weight:700;color:#1d4ed8;">Aktif Filtreler:</span>
-                @if(request('tarife')) <span class="adv-badge">Tarife: {{ count(request('tarife')) }} seçili</span> @endif
-                @if(request('baglanti_grubu')) <span class="adv-badge">{{ request('baglanti_grubu') }}</span> @endif
-                @if(request('yerlesim_tipi')) <span class="adv-badge">{{ ucfirst(request('yerlesim_tipi')) }}</span> @endif
-                @if(request('tesisat_no')) <span class="adv-badge">Tesisat: {{ request('tesisat_no') }}</span> @endif
-            </div>
-            @endif
 
             <form action="{{ route('reports.tuketim') }}" method="GET" id="detailedFilterForm">
-                <div id="detAdvHidden"></div>
                 <div class="row align-items-end">
-                    <div class="col-md-4">
+                    <div class="col-md-5">
                         <div class="form-group-pro" style="margin-bottom:0;">
-                            <label><i class="fas fa-map-marker-alt me-2"></i> Bölge Seçimi</label>
-                            <div class="dropdown custom-multi-select">
-                                <button class="dropdown-toggle" type="button" id="DetHeroBolgeDropdown" data-toggle="dropdown" style="height: 47px;">
-                                    <span id="DetHeroBolgeLabel">Bölge Seçin...</span>
-                                    <i class="fas fa-chevron-down" style="font-size:.75rem;color:#94a3b8;"></i>
-                                </button>
-                                <div class="dropdown-menu" onclick="event.stopPropagation();">
-                                    <div class="form-check select-all-wrap" id="selectAllDetHeroBolgeRow">
-                                        <input class="form-check-input" type="checkbox" id="selectAllDetHeroBolge">
-                                        <span class="cb-box"><svg viewBox="0 0 12 10"><polyline points="1,5 4,9 11,1"/></svg></span>
-                                        <label class="form-check-label fw-bold" for="selectAllDetHeroBolge">Tümünü Seç</label>
-                                    </div>
-                                    @foreach($bolgeler as $bolge)
-                                        <div class="form-check det-hero-bolge-row" onclick="toggleCheckbox(this)">
-                                            <input class="form-check-input det-hero-bolge-cb" type="checkbox" name="bolge[]" value="{{ $bolge }}" id="herobolge_{{ $loop->index }}"
-                                                {{ (!request()->has('bolge') || (is_array(request('bolge')) && in_array($bolge, request('bolge')))) ? 'checked' : '' }}>
-                                            <span class="cb-box"><svg viewBox="0 0 12 10"><polyline points="1,5 4,9 11,1"/></svg></span>
-                                            <label class="form-check-label" for="herobolge_{{ $loop->index }}">{{ $bolge }}</label>
-                                        </div>
-                                    @endforeach
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="col-md-4">
-                        <div class="form-group-pro" style="margin-bottom:0;">
-                            <label><i class="far fa-calendar-alt me-2"></i> Dönem Seçimi</label>
-                            <select name="start_period" id="hero_start_period" class="form-control-pro" style="height: 47px;">
-                                <option value="">Tümü</option>
+                            <label><i class="far fa-calendar-alt me-2"></i> Dönem Başlangıç</label>
+                            <select name="start_period" id="start_period" class="form-control-pro" style="height: 47px;">
+                                <option value="">Seçiniz</option>
                                 @foreach($donemler as $d)
                                     <option value="{{ $d }}" {{ request('start_period') == $d ? 'selected' : '' }}>{{ $d }}</option>
                                 @endforeach
                             </select>
                         </div>
                     </div>
-                    <div class="col-md-4">
-                        <button type="submit" class="btn-pro btn-primary-pro w-100 justify-content-center" style="height: 47px; background: linear-gradient(135deg, #2563eb, #4f46e5); font-weight: 800;"><i class="fas fa-search"></i> Sonuçları Getir</button>
+                    <div class="col-md-5">
+                        <div class="form-group-pro" style="margin-bottom:0;">
+                            <label><i class="far fa-calendar-check me-2"></i> Dönem Bitiş</label>
+                            <select name="end_period" id="end_period" class="form-control-pro" style="height: 47px;">
+                                <option value="">Seçiniz</option>
+                                @foreach($donemler as $d)
+                                    <option value="{{ $d }}" {{ request('end_period') == $d ? 'selected' : '' }}>{{ $d }}</option>
+                                @endforeach
+                            </select>
+                        </div>
+                    </div>
+                    <div class="col-md-2">
+                        <button type="submit" class="btn-pro btn-primary-pro w-100 justify-content-center" style="height: 47px; background: linear-gradient(135deg, #2563eb, #4f46e5); font-weight: 800;"><i class="fas fa-search"></i> Getir</button>
                     </div>
                 </div>
             </form>
@@ -290,8 +227,8 @@
 
         {{-- SONUÇLAR KONTEYNERI --}}
         <div id="reportResultsContainer">
-            @if(request()->anyFilled(['bolge','start_period','end_period','tesisat_no','tarife','baglanti_grubu','yerlesim_tipi']))
-                @include('reports.partials.detailed_table', ['results' => $results, 'totalKWH' => $totalKWH, 'totalAmount' => $totalAmount])
+            @if(request()->anyFilled(['start_period','end_period']))
+                @include('reports.partials.tuketim_table', ['pivotData' => $pivotData, 'pivotPeriods' => $pivotPeriods, 'totalKWH' => $totalKWH, 'totalAmount' => $totalAmount, 'colTotals' => $colTotals ?? []])
             @else
                 <div class="glass-card" style="text-align:center;padding:60px 40px;">
                     <div style="width:80px;height:80px;background:#eff6ff;color:#3b82f6;border-radius:24px;display:flex;align-items:center;justify-content:center;font-size:2.5rem;margin:0 auto 20px;">📄</div>
@@ -303,149 +240,6 @@
     </div>
 </div>
 
-{{-- GELİŞMİŞ FİLTRE MODALI --}}
-<div class="modal fade" id="detAdvModal" tabindex="-1" role="dialog" aria-hidden="true" style="backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); background: rgba(15, 23, 42, 0.4);">
-    <div class="modal-dialog modal-dialog-centered" style="max-width: 65%;" role="document">
-        <div class="modal-content" style="border-radius:28px; border:1px solid rgba(255,255,255,0.2); overflow:hidden; box-shadow:0 40px 100px rgba(0,0,0,0.25); background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(20px);">
-            <div class="modal-header" style="background:linear-gradient(135deg, rgba(15, 23, 42, 0.95), rgba(30, 27, 75, 0.95)); border:none; padding:30px 35px; border-bottom: 1px solid rgba(255,255,255,0.1); position: relative;">
-                <div>
-                    <h5 class="modal-title" style="color:#fff; font-weight:800; font-size:1.35rem; margin:0; letter-spacing:-0.02em;">
-                        <div style="display:inline-flex;align-items:center;justify-content:center;width:38px;height:38px;background:rgba(96,165,250,0.2);border-radius:12px;margin-right:12px;color:#60a5fa;"><i class="fas fa-sliders-h"></i></div>
-                        Gelişmiş Filtreleme
-                    </h5>
-                    <p style="color:#94a3b8; font-size:0.85rem; margin:8px 0 0 50px; font-weight:500;">Fatura detaylarını daha spesifik kriterlere göre daraltın.</p>
-                </div>
-                <button type="button" class="close" data-dismiss="modal" style="color:#fff; opacity:0.8; font-size:1.6rem; background:rgba(255,255,255,0.1); border:none; cursor:pointer; width:40px; height:40px; border-radius:50%; display:flex; align-items:center; justify-content:center; transition:all 0.2s; margin-top:-10px;">
-                    <span aria-hidden="true" style="margin-top:-2px;">&times;</span>
-                </button>
-            </div>
-            <div class="modal-body" style="padding:45px 35px; min-height: 55vh; display: flex; flex-direction: column; justify-content: space-around;">
-                
-                <!-- ROW 1: Bölgeler & Tesisat No -->
-                <div class="row">
-                    <div class="col-md-6" style="margin-bottom: 25px;">
-                        <label style="display:block; font-size:0.82rem; font-weight:800; color:#475569; margin-bottom:10px; text-transform:uppercase; letter-spacing:0.04em;">
-                            <i class="fas fa-map-marker-alt" style="color:#3b82f6; margin-right:6px; font-size:1rem; vertical-align:middle;"></i> Bölgeler
-                        </label>
-                        <div class="dropdown custom-multi-select modal-ms">
-                            <button class="dropdown-toggle" type="button" id="ModalDetBolgeDropdown" data-toggle="dropdown" style="padding: 12px 18px; font-size: 0.95rem; border-radius: 12px;">
-                                <span id="ModalDetBolgeLabel">Bölge Seçin...</span>
-                                <i class="fas fa-chevron-down" style="font-size:0.8rem; color:#94a3b8;"></i>
-                            </button>
-                            <div class="dropdown-menu" onclick="event.stopPropagation();" style="border-radius: 16px; padding: 12px; border: 1px solid #e2e8f0; box-shadow: 0 20px 40px rgba(0,0,0,0.08);">
-                                <div class="form-check select-all-wrap" id="selectAllModalDetBolgeRow" style="padding-bottom: 10px; border-bottom: 2px solid #f1f5f9; margin-bottom: 10px;">
-                                    <input class="form-check-input" type="checkbox" id="selectAllModalDetBolge">
-                                    <span class="cb-box"><svg viewBox="0 0 12 10"><polyline points="1,5 4,9 11,1"/></svg></span>
-                                    <label class="form-check-label fw-bold" style="color: #0f172a;" for="selectAllModalDetBolge">Tümünü Seç</label>
-                                </div>
-                                @foreach($bolgeler as $bolge)
-                                    <div class="form-check modal-det-bolge-row" onclick="toggleCheckbox(this)">
-                                        <input class="form-check-input modal-det-bolge-cb" type="checkbox" value="{{ $bolge }}" id="modaldetbolge_{{ $loop->index }}"
-                                            {{ (!request()->has('bolge') || (is_array(request('bolge')) && in_array($bolge, request('bolge')))) ? 'checked' : '' }}>
-                                        <span class="cb-box"><svg viewBox="0 0 12 10"><polyline points="1,5 4,9 11,1"/></svg></span>
-                                        <label class="form-check-label" for="modaldetbolge_{{ $loop->index }}">{{ $bolge }}</label>
-                                    </div>
-                                @endforeach
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <div class="col-md-6" style="margin-bottom: 25px;">
-                        <label style="display:block; font-size:0.82rem; font-weight:800; color:#475569; margin-bottom:10px; text-transform:uppercase; letter-spacing:0.04em;">
-                            <i class="fas fa-hashtag" style="color:#ea580c; margin-right:6px; font-size:1rem; vertical-align:middle;"></i> Abone / Tesisat No
-                        </label>
-                        <input type="text" id="det_tesisat" class="form-control-pro" value="{{ request('tesisat_no') }}" placeholder="Örn: 123456" style="padding: 12px 18px; border-radius: 12px; font-family: monospace; font-size: 1.05rem; height: 47px;">
-                    </div>
-                </div>
-
-                <!-- ROW 2: Dönem Aralığı Başlangıç & Bitiş -->
-                <div class="row" style="background: rgba(241, 245, 249, 0.5); padding: 15px; border-radius: 16px; margin-bottom: 25px;">
-                    <div class="col-md-6">
-                        <label style="display:block; font-size:0.82rem; font-weight:800; color:#475569; margin-bottom:10px; text-transform:uppercase; letter-spacing:0.04em;">
-                            <i class="far fa-calendar-alt" style="color:#64748b; margin-right:6px; font-size:1rem; vertical-align:middle;"></i> Başlangıç Dönemi
-                        </label>
-                        <select id="modal_start_period" class="form-control-pro" style="padding: 12px 18px; border-radius: 12px; height: 47px;">
-                            <option value="">Tümü</option>
-                            @foreach($donemler as $d)
-                                <option value="{{ $d }}" {{ request('start_period') == $d ? 'selected' : '' }}>{{ $d }}</option>
-                            @endforeach
-                        </select>
-                    </div>
-                    <div class="col-md-6">
-                        <label style="display:block; font-size:0.82rem; font-weight:800; color:#475569; margin-bottom:10px; text-transform:uppercase; letter-spacing:0.04em;">
-                            <i class="far fa-calendar-check" style="color:#64748b; margin-right:6px; font-size:1rem; vertical-align:middle;"></i> Bitiş Dönemi
-                        </label>
-                        <select id="modal_end_period" class="form-control-pro" style="padding: 12px 18px; border-radius: 12px; height: 47px;">
-                            <option value="">Tümü</option>
-                            @foreach($donemler as $d)
-                                <option value="{{ $d }}" {{ request('end_period') == $d ? 'selected' : '' }}>{{ $d }}</option>
-                            @endforeach
-                        </select>
-                    </div>
-                </div>
-
-                <!-- ROW 3: 3 Selectbox Yan Yana -->
-                <div class="row">
-                    <div class="col-md-4" style="margin-bottom: 10px;">
-                        <label style="display:block; font-size:0.82rem; font-weight:800; color:#475569; margin-bottom:10px; text-transform:uppercase; letter-spacing:0.04em;">
-                            <i class="fas fa-plug" style="color:#059669; margin-right:6px; font-size:1rem; vertical-align:middle;"></i> Bağlantı Grubu
-                        </label>
-                        <select id="det_baglanti" class="form-control-pro" style="padding: 12px 18px; border-radius: 12px; height: 47px;">
-                            <option value="">Tümü</option>
-                            <option value="AG" {{ request('baglanti_grubu')=='AG'?'selected':'' }}>AG – Alçak Gerilim</option>
-                            <option value="OG" {{ request('baglanti_grubu')=='OG'?'selected':'' }}>OG – Orta Gerilim</option>
-                        </select>
-                    </div>
-
-                    <div class="col-md-4" style="margin-bottom: 10px;">
-                        <label style="display:block; font-size:0.82rem; font-weight:800; color:#475569; margin-bottom:10px; text-transform:uppercase; letter-spacing:0.04em;">
-                            <i class="fas fa-city" style="color:#9333ea; margin-right:6px; font-size:1rem; vertical-align:middle;"></i> Yerleşim Türü
-                        </label>
-                        <select id="det_yerlesim" class="form-control-pro" style="padding: 12px 18px; border-radius: 12px; height: 47px;">
-                            <option value="">Tümü</option>
-                            <option value="merkez" {{ request('yerlesim_tipi')=='merkez'?'selected':'' }}>Merkez</option>
-                            <option value="koy" {{ request('yerlesim_tipi')=='koy'?'selected':'' }}>Köy</option>
-                        </select>
-                    </div>
-
-                    <div class="col-md-4" style="margin-bottom: 10px;">
-                        <label style="display:block; font-size:0.82rem; font-weight:800; color:#475569; margin-bottom:10px; text-transform:uppercase; letter-spacing:0.04em;">
-                            <i class="fas fa-tags" style="color:#dc2626; margin-right:6px; font-size:1rem; vertical-align:middle;"></i> Abone Tarife Grubu
-                        </label>
-                        <div class="dropdown custom-multi-select modal-ms">
-                            <button class="dropdown-toggle" type="button" id="DetTarifeDropdown" data-toggle="dropdown" style="padding: 12px 18px; font-size: 0.95rem; border-radius: 12px; height: 47px;">
-                                <span id="DetTarifeLabel">Tüm Tarifeler</span>
-                                <i class="fas fa-chevron-down" style="font-size:0.8rem; color:#94a3b8;"></i>
-                            </button>
-                            <div class="dropdown-menu" onclick="event.stopPropagation();" style="border-radius: 16px; padding: 12px; border: 1px solid #e2e8f0; box-shadow: 0 20px 40px rgba(0,0,0,0.08);">
-                                <div class="form-check select-all-wrap" id="selectAllDetTarifeRow" style="padding-bottom: 10px; border-bottom: 2px solid #f1f5f9; margin-bottom: 10px;">
-                                    <input class="form-check-input" type="checkbox" id="selectAllDetTarife">
-                                    <span class="cb-box"><svg viewBox="0 0 12 10"><polyline points="1,5 4,9 11,1"/></svg></span>
-                                    <label class="form-check-label fw-bold" style="color: #0f172a;" for="selectAllDetTarife">Tümünü Seç</label>
-                                </div>
-                                @foreach($tarifeler as $t)
-                                    <div class="form-check det-tarife-row" onclick="toggleCheckbox(this)">
-                                        <input class="form-check-input det-tarife-cb" type="checkbox" value="{{ $t->tarife }}" id="dettarife_{{ $loop->index }}"
-                                            {{ (!request()->has('tarife') || (is_array(request('tarife')) && in_array($t->tarife, request('tarife')))) ? 'checked' : '' }}>
-                                        <span class="cb-box"><svg viewBox="0 0 12 10"><polyline points="1,5 4,9 11,1"/></svg></span>
-                                        <label class="form-check-label" for="dettarife_{{ $loop->index }}">{{ $t->abone_grubu ?: $t->tarife }}</label>
-                                    </div>
-                                @endforeach
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-            </div>
-            <div class="modal-footer" style="background: rgba(248, 250, 252, 0.8); border-top: 1px solid rgba(226, 232, 240, 0.8); padding: 25px 35px; display:flex; justify-content:space-between; align-items: center; border-bottom-left-radius: 28px; border-bottom-right-radius: 28px;">
-                <button type="button" class="btn-pro btn-outline-pro" id="detClearBtn" style="border-radius: 12px; font-weight: 700; transition: all 0.2s;"><i class="fas fa-eraser"></i> Filtreleri Temizle</button>
-                <div class="d-flex gap-3">
-                    <button type="button" class="btn-pro btn-primary-pro" id="detApplyBtn" style="border-radius: 12px; font-weight: 700; padding-left: 28px; padding-right: 28px; transition: all 0.2s;"><i class="fas fa-check"></i> Sonuçları Getir</button>
-                </div>
-            </div>
-        </div>
-    </div>
-</div>
 
 {{-- EXPORT LOADING OVERLAY --}}
 <div id="detExportOverlay">
@@ -497,43 +291,12 @@ function showDetReady(type, blobUrl) {
     $('#detOverlayClose').show();
 }
 
-function buildFormData(extraPage) {
-    const params = new URLSearchParams();
-
-    // Bölge: modal öncelikli, yoksa hero
-    const modalBolge = $('.modal-det-bolge-cb:checked').map(function(){ return $(this).val(); }).get();
-    const heroBolge  = $('.det-hero-bolge-cb:checked').map(function(){ return $(this).val(); }).get();
-    const bolgeList  = modalBolge.length ? modalBolge : heroBolge;
-    bolgeList.forEach(function(v){ params.append('bolge[]', v); });
-
-    // Dönem: modal_start_period öncelikli, yoksa hero_start_period
-    const startPeriod = $('#modal_start_period').val() || $('#hero_start_period').val();
-    const endPeriod   = $('#modal_end_period').val();
-    if (startPeriod) params.set('start_period', startPeriod);
-    if (endPeriod)   params.set('end_period', endPeriod);
-
-    // Tarife
-    $('.det-tarife-cb:checked').each(function(){ params.append('tarife[]', $(this).val()); });
-
-    // Modal diğer filtreler
-    const tesisatNo   = $('#det_tesisat').val().trim();
-    const baglantiGrp = $('#det_baglanti').val();
-    const yerlesim    = $('#det_yerlesim').val();
-    if (tesisatNo)   params.set('tesisat_no', tesisatNo);
-    if (baglantiGrp) params.set('baglanti_grubu', baglantiGrp);
-    if (yerlesim)    params.set('yerlesim_tipi', yerlesim);
-
-    if (extraPage)   params.set('page', extraPage);
-
-    return params.toString();
-}
 
 async function handleExport(type) {
     showDetOverlay(type);
     const form = document.getElementById('detailedFilterForm');
-    
-    // buildFormData() fonksiyonu ile tüm filtreleri topla
-    const params = buildFormData(null);
+    const formData = new FormData(form);
+    const params = new URLSearchParams(formData).toString();
     
     try {
         const response = await fetch(`${form.action}?${params}&export=${type}`);
@@ -550,64 +313,8 @@ async function handleExport(type) {
     }
 }
 
-function toggleCheckbox(row) {
-    if (window.event && (window.event.target.tagName === 'INPUT' || window.event.target.tagName === 'LABEL')) return;
-    const cb = row.querySelector('input[type="checkbox"]');
-    cb.checked = !cb.checked;
-    cb.dispatchEvent(new Event('change', { bubbles: true }));
-}
 
 $(document).ready(function() {
-    function initMS(saId, cbClass, lblId, ph, allTxt, cntTxt) {
-        const $sa=$('#'+saId),$cbs=$('.'+cbClass),$lbl=$('#'+lblId),$saRow=$('#'+saId+'Row');
-        function upLbl(){
-            const n=$cbs.filter(':checked').length;
-            $lbl.text(n===0?ph:n===$cbs.length?allTxt:n+' '+cntTxt);
-            $sa.prop('checked',n===$cbs.length && n > 0);
-            $cbs.each(function(){$(this).closest('.form-check').toggleClass('checked-row',$(this).is(':checked'));});
-        }
-        if($saRow.length){$saRow.on('click',function(e){if(e.target.tagName!=='INPUT' && e.target.tagName!=='LABEL')$sa.prop('checked',!$sa.prop('checked')).trigger('change');});}
-        $sa.on('change',function(){
-            $cbs.prop('checked',$(this).is(':checked')).trigger('change');
-            upLbl();
-        });
-        $cbs.on('change',function(){upLbl();});
-        upLbl();
-    }
-    
-    let isSyncing = false;
-    initMS('selectAllDetHeroBolge','det-hero-bolge-cb','DetHeroBolgeLabel','Bölge Seçin...','Tüm Bölgeler Seçili','Bölge Seçili');
-    initMS('selectAllModalDetBolge','modal-det-bolge-cb','ModalDetBolgeLabel','Bölge Seçin...','Tüm Bölgeler Seçili','Bölge Seçili');
-    initMS('selectAllDetTarife','det-tarife-cb','DetTarifeLabel','Tarife Seçin...','Tüm Tarifeler Seçili','Tarife Seçili');
-
-    // Sync Bolge Selection
-    $('.det-hero-bolge-cb').on('change', function() {
-        if(isSyncing) return;
-        isSyncing = true;
-        const val = $(this).val();
-        const checked = $(this).is(':checked');
-        const $target = $(`.modal-det-bolge-cb[value="${val}"]`);
-        if ($target.is(':checked') !== checked) {
-            $target.prop('checked', checked).trigger('change');
-        }
-        isSyncing = false;
-    });
-    $('.modal-det-bolge-cb').on('change', function() {
-        if(isSyncing) return;
-        isSyncing = true;
-        const val = $(this).val();
-        const checked = $(this).is(':checked');
-        const $target = $(`.det-hero-bolge-cb[value="${val}"]`);
-        if ($target.is(':checked') !== checked) {
-            $target.prop('checked', checked).trigger('change');
-        }
-        isSyncing = false;
-    });
-
-    // Sync Period
-    $('#hero_start_period').on('change', function() { $('#modal_start_period').val($(this).val()); });
-    $('#modal_start_period').on('change', function() { $('#hero_start_period').val($(this).val()); });
-
     $('.btn-export-trigger').click(function(e) {
         e.preventDefault();
         handleExport($(this).data('type'));
@@ -620,7 +327,7 @@ $(document).ready(function() {
         } else {
             const a = document.createElement('a');
             a.href = lastDownloadUrl;
-            a.download = 'Detayli_Rapor.xlsx';
+            a.download = 'Tuketim_Raporu.xlsx';
             document.body.appendChild(a); a.click(); document.body.removeChild(a);
         }
         hideDetOverlay();
@@ -628,68 +335,25 @@ $(document).ready(function() {
 
     $('#detOverlayClose').click(hideDetOverlay);
 
-    $('#detClearBtn').click(function() {
-        $('.modal-det-bolge-cb').prop('checked', false).trigger('change');
-        $('.det-tarife-cb').prop('checked', false).trigger('change');
-        $('#det_tesisat').val('');
-        $('#modal_start_period').val('');
-        $('#modal_end_period').val('');
-        $('#det_baglanti').val('');
-        $('#det_yerlesim').val('');
-    });
-
     $('#detailedFilterForm').on('submit', function(e) {
-        e.preventDefault();
-        const $form = $(this);
-        const $container = $('#reportResultsContainer');
-        const formData = buildFormData(null);
-
-        let hasFilter = false;
-        const parsedParams = new URLSearchParams(formData);
-        for (let [key, value] of parsedParams.entries()) {
-            if (key !== 'page' && key !== 'export' && value.trim() !== '') {
-                hasFilter = true;
-                break;
-            }
-        }
-        if (!hasFilter) {
-            Swal.fire({icon: 'warning', title: 'Uyarı', text: 'Lütfen sonuçları getirmeden önce en az bir filtreleme seçeneği seçiniz.', confirmButtonText: 'Tamam'});
+        if (!$('#start_period').val() && !$('#end_period').val()) {
+            e.preventDefault();
+            Swal.fire({icon: 'warning', title: 'Uyarı', text: 'Lütfen dönem aralığı seçiniz.', confirmButtonText: 'Tamam'});
             return;
         }
+    });
+
+    $(document).on('click', '#reportResultsContainer .pagination a', function(e) {
+        e.preventDefault();
+        const href = $(this).attr('href');
+        const $container = $('#reportResultsContainer');
 
         $container.css('opacity', '0.5');
         $.ajax({
-            url: $form.attr('action'),
-            data: formData,
+            url: href,
             success: function(html) {
                 $container.html(html).css('opacity', '1');
                 $('html, body').animate({ scrollTop: $container.offset().top - 100 }, 500);
-                $('#detExportBtnContainer').fadeIn();
-            },
-            error: function() {
-                $container.css('opacity', '1');
-                alert('Rapor yüklenirken bir hata oluştu.');
-            }
-        });
-    });
-
-    $('#detApplyBtn').click(() => { $('#detAdvModal').modal('hide'); $('#detailedFilterForm').submit(); });
-    
-    // AJAX Pagination support
-    $(document).on('click', '#reportResultsContainer .pagination a', function(e) {
-        e.preventDefault();
-        const url = new URL($(this).attr('href'));
-        const page = url.searchParams.get('page');
-        const $form = $('#detailedFilterForm');
-        const formData = buildFormData(page);
-
-        $('#reportResultsContainer').css('opacity', '0.5');
-        $.ajax({
-            url: $form.attr('action'),
-            data: formData,
-            success: function(html) {
-                $('#reportResultsContainer').html(html).css('opacity', '1');
-                $('html, body').animate({ scrollTop: $('#reportResultsContainer').offset().top - 100 }, 500);
             }
         });
     });

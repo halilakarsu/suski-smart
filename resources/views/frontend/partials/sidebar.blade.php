@@ -108,6 +108,11 @@
 										<span class="sub-item">Köy / Merkez Raporu</span>
 									</a>
 								</li>
+								<li class="{{ request()->routeIs('reports.ek-tuketim') ? 'active' : '' }}">
+									<a href="{{ route('reports.ek-tuketim') }}">
+										<span class="sub-item">Ek Tüketim Raporu</span>
+									</a>
+								</li>
 							</ul>
 						</div>
 					</li>
