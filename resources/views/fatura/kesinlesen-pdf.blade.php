@@ -135,7 +135,7 @@
         <thead>
             <tr>
                 <th width="8%" class="text-center">SIRA</th>
-                <th width="32%" class="text-left">BÖLGE</th>
+                <th width="32%" class="text-left">ADRES</th>
                 <th width="20%" class="text-center">TESİSAT NO</th>
                 <th width="20%" class="text-right">TÜKETİM (KWH)</th>
                 <th width="20%" class="text-right">TOPLAM TUTAR</th>
@@ -146,7 +146,7 @@
             @foreach($faturalar as $f)
                 <tr>
                     <td class="text-center">{{ $i++ }}</td>
-                    <td class="text-left">{{ $f->ilce }}</td>
+                    <td class="text-left">{{ $f->adres }}</td>
                     <td class="text-center">{{ $f->abone_tesis_no ?? $f->tesisat_no }}</td>
                     <td class="text-right">{{ number_format((float) $f->fatura_edilecek_toplam_tuketim_kwh, 2, ',', '.') }}
                     </td>

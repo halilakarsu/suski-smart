@@ -34,8 +34,7 @@
         </tr>
         <tr>
             <th style="font-weight:bold; background-color:#1a73e8; color:#ffffff; border:1px solid #1a73e8;">SIRA</th>
-            <th style="font-weight:bold; background-color:#1a73e8; color:#ffffff; border:1px solid #1a73e8;">BÖLGE /
-                KURUM</th>
+            <th style="font-weight:bold; background-color:#1a73e8; color:#ffffff; border:1px solid #1a73e8;">ADRES</th>
             <th style="font-weight:bold; background-color:#1a73e8; color:#ffffff; border:1px solid #1a73e8;">TESİSAT NO
             </th>
             <th
@@ -48,7 +47,7 @@
         @foreach($faturalar as $index => $fatura)
             <tr>
                 <td style="text-align:center;">{{ $loop->iteration }}</td>
-                <td style="text-align:left;">{{ $fatura->ilce }}</td>
+                <td style="text-align:left;">{{ $fatura->adres }}</td>
                 <td style="text-align:center;">{{ $fatura->abone_tesis_no ?? $fatura->tesisat_no }}</td>
                 <td style="text-align:right;">{{ (float) $fatura->fatura_edilecek_toplam_tuketim_kwh }}</td>
                 <td style="text-align:right;">{{ (float) $fatura->tutar_toplam }}</td>

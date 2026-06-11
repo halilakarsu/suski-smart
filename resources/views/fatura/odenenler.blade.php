@@ -1037,7 +1037,7 @@
                     const anomaliler = f.payload?._tuketim_anomalileri || [];
                     const hasA = anomaliler.length > 0;
                     rows += `<tr class="${hasA ? 'anomaly-row' : ''}">
-                                                                                                                            <td><span class="district-badge">${f.bolge_display || '—'}</span></td>
+                                                                                                                             <td><span class="district-badge">${f.adres || '—'}</span></td>
                                                                                                                             <td><span class="account-mono">${f.abone_tesis_no || f.tesisat_no || ''}</span></td>
                                                                                                                             <td><span class="badge-pro badge-blue">${f.donem || ''}</span></td>
                                                                                                                             <td style="text-align:right;font-weight:700;color:#2563eb;">${fmt(f.fatura_edilecek_toplam_tuketim_kwh, 2)}</td>
@@ -1120,7 +1120,7 @@
                 document.getElementById('table-section').innerHTML = `<div class="glass-card">
 
                                                                                                                         <div class="table-responsive"><table class="table-pro"><thead><tr>
-                                                                                                                            <th>Bölge / Kurum</th><th>Abone No</th><th>Dönem</th>
+                                                                                                                             <th>Adres</th><th>Abone No</th><th>Dönem</th>
                                                                                                                             <th style="text-align:right;">Tüketim (kWh)</th><th style="text-align:right;">Tutar</th><th style="text-align:right;">İşlem</th>
                                                                                                                         </tr></thead><tbody>${rows}</tbody></table></div>${pager}</div>`;
             }
