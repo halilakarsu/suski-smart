@@ -1957,6 +1957,32 @@ $(document).ready(function() {
         return null;
     }
 
+    function pdfFaturaDetay(efksId) {
+        $('#pdfFaturaDetayModal').modal('show');
+        document.getElementById('pdfDetayModalBody').innerHTML = '<div class="text-center py-5"><i class="fas fa-spinner fa-spin" style="font-size:2rem;color:#3b82f6;"></i><p class="mt-3 font-weight-bold text-muted">Yükleniyor...</p></div>';
+
+        fetch('/raporlar/endeks/pdf-karsilastir/fatura-detay/' + encodeURIComponent(efksId))
+            .then(function(r) { return r.json(); })
+            .then(function(data) {
+                if (!data.success) {
+                    document.getElementById('pdfDetayModalBody').innerHTML = '<div class="text-center py-5 text-danger font-weight-bold">Kayıt bulunamadı.</div>';
+                    return;
+                }
+                var html = '<div style="display:grid; grid-template-columns:1fr 1fr; gap:12px;">';
+                data.fields.forEach(function(f) {
+                    html += '<div style="background:#fff; border-radius:12px; padding:12px 16px; border:1px solid #f1f5f9; display:flex; flex-direction:column; gap:2px;">' +
+                        '<span style="font-size:.65rem; font-weight:800; color:#64748b; text-transform:uppercase; letter-spacing:0.06em;">' + f.key + '</span>' +
+                        '<span style="font-size:.9rem; font-weight:700; color:#0f172a; word-break:break-all;">' + (f.value || '—') + '</span>' +
+                        '</div>';
+                });
+                html += '</div>';
+                document.getElementById('pdfDetayModalBody').innerHTML = html;
+            })
+            .catch(function() {
+                document.getElementById('pdfDetayModalBody').innerHTML = '<div class="text-center py-5 text-danger font-weight-bold">Bir hata oluştu.</div>';
+            });
+    }
+
     function showPdfDetayliSonuc(eslesenList, eslesmeyenPdf, sistemdeOlan) {
         document.getElementById('detayOzetEslesen').textContent = eslesenList.length;
         document.getElementById('detayOzetPdfYok').textContent = sistemdeOlan.length; // sistemde olan faturanın pdf'i yok
@@ -1979,6 +2005,7 @@ $(document).ready(function() {
                 '<td style="padding:18px 25px; color:#475569; font-weight:600;">' + (inv.fatura_no || '-') + '</td>' +
                 '<td style="padding:18px 25px; font-size:0.85rem; color:#64748b; font-weight:500;">' + (inv.hesap_adi || '-') + '</td>' +
                 '<td style="padding:18px 25px; font-weight:800; color:#0f172a; font-size:1.05rem;">' + (inv.tutar || '-') + '</td>' +
+                '<td style="padding:18px 25px;"><button class="btn" style="padding:6px 14px; border-radius:10px; background:linear-gradient(135deg,#2563eb,#4f46e5); color:#fff; font-weight:700; font-size:.8rem; border:none; cursor:pointer; transition: all .2s;" onmouseover="this.style.transform=\'scale(1.05)\'" onmouseout="this.style.transform=\'scale(1)\'" onclick="pdfFaturaDetay(\'' + inv.id + '\')"><i class="fas fa-eye mr-1"></i> Detay</button></td>' +
                 '</tr>';
         });
 
@@ -1991,13 +2018,14 @@ $(document).ready(function() {
                 '<td style="padding:18px 25px; color:#cbd5e1; font-weight:500;">-</td>' +
                 '<td style="padding:18px 25px; color:#94a3b8; font-size:0.85rem;">Klasördeki bu dosya sistem verilerinde eşleşmedi.</td>' +
                 '<td style="padding:18px 25px; color:#cbd5e1; font-weight:500;">-</td>' +
+                '<td style="padding:18px 25px;"></td>' +
                 '</tr>';
         });
 
         if (!eslesmeyenPdf.length && !sistemdeOlan.length) {
-            html += '<tr><td colspan="6" class="text-center" style="padding: 60px 20px;"><div style="display:inline-block; padding:30px 40px; background:linear-gradient(135deg, rgba(16,185,129,0.1), rgba(5,150,105,0.05)); border-radius:24px; border:1px solid rgba(16,185,129,0.2);"><i class="fas fa-check-circle" style="font-size:3.5rem; color:#10b981; margin-bottom:15px; filter:drop-shadow(0 10px 15px rgba(16,185,129,0.3));"></i><h4 style="color:#059669; font-weight:800; margin:0; font-size:1.4rem;">Kusursuz Eşleşme!</h4><p style="color:#047857; margin-top:8px; font-weight:500; opacity:0.8;">Tüm klasördeki PDF dosyaları sistemdeki faturalarla eksiksiz olarak eşleşti. Herhangi bir uyumsuzluk bulunmamaktadır.</p></div></td></tr>';
+            html += '<tr><td colspan="7" class="text-center" style="padding: 60px 20px;"><div style="display:inline-block; padding:30px 40px; background:linear-gradient(135deg, rgba(16,185,129,0.1), rgba(5,150,105,0.05)); border-radius:24px; border:1px solid rgba(16,185,129,0.2);"><i class="fas fa-check-circle" style="font-size:3.5rem; color:#10b981; margin-bottom:15px; filter:drop-shadow(0 10px 15px rgba(16,185,129,0.3));"></i><h4 style="color:#059669; font-weight:800; margin:0; font-size:1.4rem;">Kusursuz Eşleşme!</h4><p style="color:#047857; margin-top:8px; font-weight:500; opacity:0.8;">Tüm klasördeki PDF dosyaları sistemdeki faturalarla eksiksiz olarak eşleşti. Herhangi bir uyumsuzluk bulunmamaktadır.</p></div></td></tr>';
         } else if (!html) {
-            html = '<tr><td colspan="6" class="text-center py-5 text-muted font-weight-bold">Gösterilecek uyumsuzluk bulunamadı.</td></tr>';
+            html = '<tr><td colspan="7" class="text-center py-5 text-muted font-weight-bold">Gösterilecek uyumsuzluk bulunamadı.</td></tr>';
         }
 
         tbody.innerHTML = html;
@@ -2447,6 +2475,32 @@ $(document).ready(function() {
 }
 </style>
 
+{{-- ═══ Fatura Detay Modal ═══ --}}
+<div class="modal fade" id="pdfFaturaDetayModal" tabindex="-1" role="dialog" aria-hidden="true" style="backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); background: rgba(15, 23, 42, 0.5);">
+    <div class="modal-dialog modal-dialog-centered modal-lg" role="document" style="max-width: 800px;">
+        <div class="modal-content" style="border-radius:28px; border:1px solid rgba(255,255,255,0.2); overflow:hidden; box-shadow:0 40px 100px rgba(0,0,0,0.25); background: #f8fafc;">
+            <div class="modal-header" style="background:linear-gradient(135deg, #0f172a, #1e3a5f); border:none; padding:24px 32px;">
+                <div>
+                    <h5 class="modal-title" style="color:#fff; font-weight:800; font-size:1.2rem; display:flex; align-items:center; gap:12px;">
+                        <div style="width:36px; height:36px; border-radius:10px; background:rgba(59,130,246,0.2); display:flex; align-items:center; justify-content:center; color:#60a5fa;"><i class="fas fa-file-invoice"></i></div>
+                        Fatura Detayı
+                    </h5>
+                    <p style="color:#94a3b8; font-size:.8rem; margin:6px 0 0 48px; font-weight:500;">Hamveri içindeki tüm alanlar</p>
+                </div>
+                <button type="button" class="close" data-dismiss="modal" style="color:#fff; opacity:0.8; font-size:1.5rem; background:rgba(255,255,255,0.08); border:none; width:36px; height:36px; border-radius:50%; display:flex; align-items:center; justify-content:center;">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body" id="pdfDetayModalBody" style="padding:28px; max-height:70vh; overflow-y:auto; background:#f8fafc;">
+                <div class="text-center py-5 text-muted font-weight-bold">Yükleniyor...</div>
+            </div>
+            <div class="modal-footer" style="border-top:1px solid #e2e8f0; padding:16px 32px; background:#fff;">
+                <button type="button" class="btn" data-dismiss="modal" style="border-radius:12px; font-weight:700; padding:8px 24px; background:#fff; color:#475569; border:1px solid #e2e8f0;">Kapat</button>
+            </div>
+        </div>
+    </div>
+</div>
+
 {{-- ═══ Pdf-Fatura Analiz Modal HTML ═══ --}}
 <div class="modal fade" id="pdfAnalizModal" tabindex="-1" role="dialog" aria-hidden="true" style="backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); background: rgba(15, 23, 42, 0.4);">
     <div class="modal-dialog modal-dialog-centered modal-xl" role="document">
@@ -2546,7 +2600,7 @@ $(document).ready(function() {
 
 {{-- ═══ Detaylı Sonuçlar Modalı ═══ --}}
 <div class="modal fade" id="pdfDetayliSonucModal" tabindex="-1" role="dialog" aria-hidden="true" style="backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); background: rgba(15, 23, 42, 0.7);">
-    <div class="modal-dialog modal-dialog-centered" role="document" style="max-width: 96%;">
+    <div class="modal-dialog modal-dialog-centered" role="document" style="max-width: 86%;">
         <div class="modal-content" style="border-radius:32px; border:1px solid rgba(255,255,255,0.15); overflow:hidden; box-shadow:0 50px 100px -20px rgba(0,0,0,0.5), inset 0 1px 1px rgba(255,255,255,0.3); background: #f8fafc;">
             
             <div class="modal-header" style="background:linear-gradient(135deg, #0f172a, #1e1b4b); border:none; padding:30px 45px; position: relative; overflow:hidden;">
@@ -2625,6 +2679,7 @@ $(document).ready(function() {
                                     <th style="padding:20px 25px; color:#64748b; font-weight:800; font-size:0.85rem; text-transform:uppercase; letter-spacing:0.5px;">Fatura No</th>
                                     <th style="padding:20px 25px; color:#64748b; font-weight:800; font-size:0.85rem; text-transform:uppercase; letter-spacing:0.5px;">Hesap Adı / Ünvan</th>
                                     <th style="padding:20px 25px; color:#64748b; font-weight:800; font-size:0.85rem; text-transform:uppercase; letter-spacing:0.5px;">Tutar</th>
+                                    <th style="padding:20px 25px; color:#64748b; font-weight:800; font-size:0.85rem; text-transform:uppercase; letter-spacing:0.5px;">İşlem</th>
                                 </tr>
                             </thead>
                             <tbody id="detayliAnalizTableBody">

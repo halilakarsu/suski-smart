@@ -125,6 +125,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/raporlar/ek-tuketim', [\App\Http\Controllers\ReportController::class, 'ekTuketim'])->name('reports.ek-tuketim');
     Route::get('/raporlar/ek-tuketim/son-1-yil/{tesisat_no}', [\App\Http\Controllers\ReportController::class, 'ekTuketimSon1Yil'])->name('reports.ek-tuketim.son-1-yil');
     Route::get('/raporlar/endeks/pdf-karsilastir/faturalar/{donem}', [\App\Http\Controllers\ReportController::class, 'pdfKarsilastirFaturalar'])->name('reports.endeks.pdf-karsilastir.faturalar');
+    Route::get('/raporlar/endeks/pdf-karsilastir/fatura-detay/{efksId}', [\App\Http\Controllers\ReportController::class, 'pdfKarsilastirFaturaDetay'])->name('reports.endeks.pdf-karsilastir.fatura-detay');
 
     // ── Yardım & Destek ──────────────────────────────────────────────────
     Route::get('/yardim', function () {

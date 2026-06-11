@@ -1033,13 +1033,19 @@ class ReportController extends Controller
                     $efks = trim((string) $val);
                 }
                 if ($upKey === 'FATURA_NO' || str_contains($upKey, 'FATURA')) {
-                    if (!$faturaNo) $faturaNo = $val;
+                    if (! $faturaNo) {
+                        $faturaNo = $val;
+                    }
                 }
                 if (str_contains($upKey, 'HESAP') || str_contains($upKey, 'MUSTERI') || str_contains($upKey, 'ABONE') || str_contains($upKey, 'UNVAN')) {
-                    if (!$hesapAdi) $hesapAdi = $val;
+                    if (! $hesapAdi) {
+                        $hesapAdi = $val;
+                    }
                 }
                 if ($upKey === 'TUTAR_TOPLAM' || $upKey === 'GENEL_TOPLAM' || str_contains($upKey, 'ODENECEK') || $upKey === 'TUTAR') {
-                    if (!$tutar) $tutar = $val;
+                    if (! $tutar) {
+                        $tutar = $val;
+                    }
                 }
             }
             if ($efks && $efks !== '') {
@@ -1047,7 +1053,7 @@ class ReportController extends Controller
                     'id' => $efks,
                     'fatura_no' => $faturaNo ?? '-',
                     'hesap_adi' => $hesapAdi ?? '-',
-                    'tutar' => $tutar ?? '-'
+                    'tutar' => $tutar ?? '-',
                 ];
             }
         }
@@ -1059,6 +1065,45 @@ class ReportController extends Controller
             'donem' => $donem,
             'faturalar' => $cwDegerler,
             'toplam' => count($cwDegerler),
+        ]);
+    }
+
+    public function pdfKarsilastirFaturaDetay($efksId)
+    {
+        $importLogIds = \App\Models\ImportLog::pluck('id');
+        $row = \App\Models\Hamveri::whereIn('import_log_id', $importLogIds)
+            ->whereNotNull('payload')
+            ->get(['payload'])
+            ->first(function ($r) use ($efksId) {
+                $payload = $r->payload;
+                if (! is_array($payload)) {
+                    return false;
+                }
+                foreach ($payload as $key => $val) {
+                    if (strtoupper(trim($key)) === 'EFKS_FATURA_ID' && trim((string) $val) === $efksId) {
+                        return true;
+                    }
+                }
+
+                return false;
+            });
+
+        if (! $row) {
+            return response()->json(['success' => false, 'message' => 'Kayıt bulunamadı.']);
+        }
+
+        $fields = [];
+        foreach ($row->payload as $key => $val) {
+            $fields[] = [
+                'key' => $key,
+                'value' => $val,
+            ];
+        }
+
+        return response()->json([
+            'success' => true,
+            'efks_id' => $efksId,
+            'fields' => $fields,
         ]);
     }
 
