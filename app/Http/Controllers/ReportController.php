@@ -1022,16 +1022,16 @@ class ReportController extends Controller
                 continue;
             }
 
-            // CW anahtarını bul (büyük/küçük harf duyarsız)
-            $cw = null;
+            // EFKS_FATURA_ID anahtarını bul (büyük/küçük harf duyarsız)
+            $efks = null;
             foreach ($payload as $key => $val) {
-                if (strtoupper(trim($key)) === 'CW') {
-                    $cw = trim((string) $val);
+                if (strtoupper(trim($key)) === 'EFKS_FATURA_ID') {
+                    $efks = trim((string) $val);
                     break;
                 }
             }
-            if ($cw && $cw !== '') {
-                $cwDegerler[] = $cw;
+            if ($efks && $efks !== '') {
+                $cwDegerler[] = $efks;
             }
         }
 
