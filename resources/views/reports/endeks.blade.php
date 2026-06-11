@@ -779,6 +779,33 @@
             </form>
         </div>
 
+        {{-- PDF KARŞILAŞTIRMA --}}
+        <div class="glass-card" style="padding:20px 24px;">
+            <div class="row align-items-end">
+                <div class="col-md-4">
+                    <div class="form-group-pro" style="margin-bottom:0;">
+                        <label><i class="far fa-calendar-alt"></i> Karşılaştırma Dönemi</label>
+                        <select id="pdfKarsilastirDonem" class="form-control-pro" style="height:38px;font-size:.8rem;">
+                            <option value="">Seçiniz</option>
+                            @foreach($donemler as $d)
+                                <option value="{{ $d }}">{{ $d }}</option>
+                            @endforeach
+                        </select>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <button type="button" id="pdfKarsilastirBtn" class="btn-pro btn-primary-pro justify-content-center" style="height:38px;font-size:.8rem;width:100%;">
+                        <i class="fas fa-file-pdf"></i> PDF Dosyalarını Seç & Karşılaştır
+                    </button>
+                    <input type="file" id="pdfFileInput" accept=".pdf" multiple style="display:none;">
+                </div>
+                <div class="col-md-4" id="pdfKarsilastirOzet" style="display:none;">
+                    <div style="display:flex;gap:8px;flex-wrap:wrap;"></div>
+                </div>
+            </div>
+            <div id="pdfKarsilastirSonuc" style="display:none;margin-top:16px;padding-top:16px;border-top:1px solid #e2e8f0;"></div>
+        </div>
+
         <div id="reportResultsContainer">
             @if(request()->anyFilled(['bolge','start_period','end_period','yerlesim_tipi','baglanti_grubu','tarife','tesisat_no']))
                 <div class="glass-card" style="text-align:center;padding:60px 40px;">
@@ -1857,6 +1884,169 @@ $(document).ready(function() {
         if (e.persisted) closeExportOverlay();
     });
 
+    /* ─── PDF Karşılaştırma (Client-side, progress bar ile) ─── */
+    var pdfCompareFiles = [];
+    var pdfCompareFaturaSet = {};
+    var pdfCompareCancelled = false;
+
+    function pdfShowOverlay() {
+        $('#pdfSpinner').show();
+        $('#pdfSuccessIcon').hide();
+        $('#pdfProgressBar').css('width', '0%');
+        $('#pdfProgressText').text('0 / 0');
+        $('#pdfOverlayClose').hide();
+        $('#pdfCompareOverlay').addClass('active');
+    }
+
+    function pdfHideOverlay() {
+        $('#pdfCompareOverlay').removeClass('active');
+    }
+
+    function pdfExtractNumber(name) {
+        var n = name.replace(/\.pdf$/i, '').trim();
+        var m = n.match(/\d+/);
+        return m ? m[0] : null;
+    }
+
+    function pdfMatchFilename(filename, set) {
+        var name = filename.replace(/\.pdf$/i, '').trim();
+        if (set[name]) return name;
+        var nums = name.match(/\d+/g);
+        if (nums) {
+            for (var i = 0; i < nums.length; i++) {
+                if (set[nums[i]]) return nums[i];
+            }
+        }
+        return null;
+    }
+
+    function pdfShowResults(eslesenList, eslesmeyenPdf, sistemdeOlan) {
+        var sonucDiv = document.getElementById('pdfKarsilastirSonuc');
+        var ozetDiv = document.getElementById('pdfKarsilastirOzet');
+
+        ozetDiv.style.display = 'block';
+        ozetDiv.innerHTML =
+            '<div style="display:flex;gap:8px;flex-wrap:wrap;">' +
+            '<span style="background:#f0fdf4;padding:4px 10px;border-radius:8px;font-size:.75rem;font-weight:700;color:#16a34a;"><i class="fas fa-check"></i> ' + eslesenList.length + ' Eşleşti</span>' +
+            '<span style="background:#fef2f2;padding:4px 10px;border-radius:8px;font-size:.75rem;font-weight:700;color:#dc2626;"><i class="fas fa-times"></i> ' + eslesmeyenPdf.length + ' Eşleşmedi</span>' +
+            '<span style="background:#fff7ed;padding:4px 10px;border-radius:8px;font-size:.75rem;font-weight:700;color:#ea580c;"><i class="fas fa-exclamation-triangle"></i> ' + sistemdeOlan.length + ' Sistemde Eksik</span>' +
+            '</div>';
+
+        var html = '';
+        if (eslesmeyenPdf.length) {
+            html += '<div style="margin-bottom:8px;"><span style="font-size:.75rem;font-weight:800;color:#dc2626;text-transform:uppercase;">Eşleşmeyen PDF Dosyaları:</span>';
+            html += '<div style="display:flex;flex-wrap:wrap;gap:6px;margin-top:6px;">';
+            eslesmeyenPdf.forEach(function(f) {
+                html += '<span style="background:#fef2f2;padding:4px 10px;border-radius:6px;font-size:.75rem;font-weight:600;color:#991b1b;border:1px solid #fecaca;">' + f + '</span>';
+            });
+            html += '</div></div>';
+        }
+        if (sistemdeOlan.length) {
+            html += '<div><span style="font-size:.75rem;font-weight:800;color:#ea580c;text-transform:uppercase;">Sistemde Olup PDF\'de Olmayan Fatura No:</span>';
+            html += '<div style="display:flex;flex-wrap:wrap;gap:6px;margin-top:6px;">';
+            sistemdeOlan.forEach(function(f) {
+                html += '<span style="background:#fff7ed;padding:4px 10px;border-radius:6px;font-size:.75rem;font-weight:600;color:#9a3412;border:1px solid #fed7aa;">' + f + '</span>';
+            });
+            html += '</div></div>';
+        }
+        if (!html) {
+            html = '<div style="text-align:center;padding:12px;color:#16a34a;font-weight:700;font-size:.85rem;"><i class="fas fa-check-circle"></i> Tüm PDF dosyaları sistemdeki faturalarla eşleşti.</div>';
+        }
+        sonucDiv.innerHTML = html;
+        sonucDiv.style.display = 'block';
+    }
+
+    document.getElementById('pdfKarsilastirBtn').addEventListener('click', function() {
+        document.getElementById('pdfFileInput').click();
+    });
+
+    document.getElementById('pdfFileInput').addEventListener('change', function(e) {
+        var files = e.target.files;
+        if (!files.length) return;
+
+        var donem = document.getElementById('pdfKarsilastirDonem').value;
+        if (!donem) {
+            Swal.fire({ icon: 'warning', title: 'Uyarı', text: 'Lütfen önce karşılaştırma dönemi seçin.', confirmButtonText: 'Tamam' });
+            return;
+        }
+
+        pdfCompareFiles = Array.from(files).map(function(f) { return f.name; });
+        pdfCompareCancelled = false;
+        pdfShowOverlay();
+
+        $('#pdfLoaderTitle').text('Fatura Listesi Alınıyor…');
+        $('#pdfLoaderSub').text('Seçilen döneme ait sistem faturaları yükleniyor.');
+
+        fetch('/raporlar/endeks/pdf-karsilastir/faturalar/' + encodeURIComponent(donem))
+            .then(function(r) { return r.json(); })
+            .then(function(data) {
+                if (!data.success) throw new Error('Veri alınamadı');
+
+                pdfCompareFaturaSet = {};
+                data.faturalar.forEach(function(f) { pdfCompareFaturaSet[f] = true; });
+
+                $('#pdfLoaderTitle').text('PDF Karşılaştırılıyor…');
+                $('#pdfLoaderSub').text('Seçilen PDF dosyaları sistem faturalarıyla tek tek eşleştiriliyor.');
+
+                var eslesenList = [];
+                var eslesmeyenPdf = [];
+                var toplam = pdfCompareFiles.length;
+                var sira = 0;
+
+                function sonraki() {
+                    if (pdfCompareCancelled) {
+                        pdfHideOverlay();
+                        return;
+                    }
+                    if (sira >= toplam) {
+                        // Bitti
+                        var eslenenSet = {};
+                        eslesenList.forEach(function(e) { eslenenSet[e] = true; });
+                        var sistemdeOlan = data.faturalar.filter(function(f) { return !eslenenSet[f]; });
+
+                        $('#pdfSpinner').hide();
+                        $('#pdfSuccessIcon').css('display', 'flex');
+                        $('#pdfLoaderTitle').text('Karşılaştırma Tamamlandı!');
+                        $('#pdfLoaderSub').text('Sonuçlar aşağıda listeleniyor.');
+                        $('#pdfProgressBar').css('width', '100%');
+                        $('#pdfProgressText').text(toplam + ' / ' + toplam);
+                        $('#pdfOverlayClose').show();
+
+                        pdfShowResults(eslesenList, eslesmeyenPdf, sistemdeOlan);
+                        return;
+                    }
+
+                    var fname = pdfCompareFiles[sira];
+                    var matched = pdfMatchFilename(fname, pdfCompareFaturaSet);
+                    if (matched) {
+                        eslesenList.push(matched);
+                    } else {
+                        eslesmeyenPdf.push(fname);
+                    }
+                    sira++;
+                    var pct = Math.round((sira / toplam) * 100);
+                    $('#pdfProgressBar').css('width', pct + '%');
+                    $('#pdfProgressText').text(sira + ' / ' + toplam);
+                    setTimeout(sonraki, 60);
+                }
+
+                sonraki();
+            })
+            .catch(function() {
+                $('#pdfLoaderTitle').text('Hata Oluştu');
+                $('#pdfLoaderSub').text('Fatura listesi alınırken bir hata meydana geldi.');
+                $('#pdfSpinner').hide();
+                $('#pdfOverlayClose').show();
+            });
+
+        e.target.value = '';
+    });
+
+    $('#pdfOverlayClose').on('click', function() {
+        pdfCompareCancelled = true;
+        pdfHideOverlay();
+    });
+
 });
 </script>
 @endpush
@@ -1959,4 +2149,58 @@ $(document).ready(function() {
         </div>
     </div>
 </div>
+
+{{-- ═══ PDF Karşılaştırma Progress Overlay ═══ --}}
+<div id="pdfCompareOverlay">
+    <div class="pdf-loader-box">
+        <div class="pdf-success-icon" id="pdfSuccessIcon"><i class="fas fa-check"></i></div>
+        <div class="pdf-spinner" id="pdfSpinner"></div>
+        <div class="pdf-loader-title" id="pdfLoaderTitle">PDF Karşılaştırılıyor…</div>
+        <div class="pdf-loader-sub" id="pdfLoaderSub">Seçilen PDF dosyaları sistem faturalarıyla tek tek eşleştiriliyor.</div>
+        <div class="pdf-progress-wrap"><div class="pdf-progress-bar" id="pdfProgressBar"></div></div>
+        <div style="margin-top:8px;font-size:.8rem;font-weight:600;color:#64748b;" id="pdfProgressText">0 / 0</div>
+        <button class="pdf-close-btn" id="pdfOverlayClose"><i class="fas fa-times"></i> Kapat</button>
+    </div>
+</div>
 @endsection
+
+@push('styles')
+<style>
+    #pdfCompareOverlay {
+        display:none; position:fixed; inset:0; z-index:99999;
+        background:rgba(15,23,42,0.75); backdrop-filter:blur(6px); -webkit-backdrop-filter:blur(6px);
+        align-items:center; justify-content:center; flex-direction:column;
+    }
+    #pdfCompareOverlay.active { display:flex; }
+    .pdf-loader-box {
+        background:rgba(255,255,255,0.97); border-radius:24px; padding:40px 50px;
+        text-align:center; box-shadow:0 30px 80px rgba(0,0,0,0.25);
+        animation:fadeScaleIn .35s ease; min-width:320px;
+    }
+    .pdf-spinner {
+        width:64px; height:64px; border:5px solid #e2e8f0;
+        border-top-color:#2563eb; border-radius:50%;
+        animation:pdfSpin .85s linear infinite; margin:0 auto 20px;
+    }
+    @keyframes pdfSpin { to{transform:rotate(360deg);} }
+    .pdf-loader-title { font-size:1.15rem; font-weight:800; color:#0f172a; margin-bottom:6px; }
+    .pdf-loader-sub   { font-size:.85rem; color:#64748b; font-weight:500; }
+    .pdf-progress-wrap { width:220px; height:6px; background:#e2e8f0; border-radius:99px; margin:16px auto 0; overflow:hidden; }
+    .pdf-progress-bar {
+        height:100%; width:0%;
+        background:linear-gradient(90deg,#2563eb,#4f46e5); border-radius:99px;
+        transition: width .15s ease;
+    }
+    .pdf-success-icon {
+        display:none; width:64px; height:64px; border-radius:50%;
+        background:#dcfce7; color:#16a34a; font-size:1.8rem;
+        align-items:center; justify-content:center; margin:0 auto 16px;
+    }
+    .pdf-close-btn {
+        margin-top:18px; padding:7px 20px; border-radius:10px; border:1px solid #e2e8f0;
+        background:#f8fafc; color:#64748b; font-weight:700; font-size:.83rem;
+        cursor:pointer; display:none;
+    }
+    .pdf-close-btn:hover { background:#f1f5f9; color:#0f172a; }
+</style>
+@endpush

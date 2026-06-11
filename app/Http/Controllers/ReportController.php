@@ -1008,6 +1008,44 @@ class ReportController extends Controller
         return view('reports.endeks', compact('results', 'donemler', 'bolgeler', 'tarifeler', 'totalKWH', 'totalAmount', 'tabCounts', 'activeTab'));
     }
 
+    public function pdfKarsilastirFaturalar($donem)
+    {
+        $rows = KesinlesenFatura::where('odeme_durumu', 'odendi')
+            ->where('donem', $donem)
+            ->whereNotNull('payload')
+            ->get(['payload']);
+
+        $cwDegerler = [];
+        foreach ($rows as $row) {
+            $payload = $row->payload;
+            if (! is_array($payload)) {
+                continue;
+            }
+
+            // CW anahtarını bul (büyük/küçük harf duyarsız)
+            $cw = null;
+            foreach ($payload as $key => $val) {
+                if (strtoupper(trim($key)) === 'CW') {
+                    $cw = trim((string) $val);
+                    break;
+                }
+            }
+            if ($cw && $cw !== '') {
+                $cwDegerler[] = $cw;
+            }
+        }
+
+        $cwDegerler = array_unique($cwDegerler);
+        sort($cwDegerler);
+
+        return response()->json([
+            'success' => true,
+            'donem' => $donem,
+            'faturalar' => array_values($cwDegerler),
+            'toplam' => count($cwDegerler),
+        ]);
+    }
+
     public function ekTuketim(Request $request)
     {
         $results = collect();
