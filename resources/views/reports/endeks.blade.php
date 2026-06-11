@@ -2002,8 +2002,6 @@ $(document).ready(function() {
                 '<td style="padding:18px 25px;"><span class="badge" style="background:rgba(239,68,68,0.15); color:#dc2626; padding:8px 14px; border-radius:10px; font-weight:800; font-size:0.8rem; letter-spacing:0.5px;"><i class="fas fa-file-excel mr-2"></i>Sistemde Var, PDF Yok</span></td>' +
                 '<td style="padding:18px 25px; color:#ef4444; font-style:italic; font-weight:500;">- Bulunamadı -</td>' +
                 '<td style="padding:18px 25px; font-weight:800; color:#334155;">' + inv.id + '</td>' +
-                '<td style="padding:18px 25px; color:#475569; font-weight:600;">' + (inv.fatura_no || '-') + '</td>' +
-                '<td style="padding:18px 25px; font-size:0.85rem; color:#64748b; font-weight:500;">' + (inv.hesap_adi || '-') + '</td>' +
                 '<td style="padding:18px 25px; font-weight:800; color:#0f172a; font-size:1.05rem;">' + (inv.tutar || '-') + '</td>' +
                 '<td style="padding:18px 25px;"><button class="btn" style="padding:6px 14px; border-radius:10px; background:linear-gradient(135deg,#2563eb,#4f46e5); color:#fff; font-weight:700; font-size:.8rem; border:none; cursor:pointer; transition: all .2s;" onmouseover="this.style.transform=\'scale(1.05)\'" onmouseout="this.style.transform=\'scale(1)\'" onclick="pdfFaturaDetay(\'' + inv.id + '\')"><i class="fas fa-eye mr-1"></i> Detay</button></td>' +
                 '</tr>';
@@ -2016,16 +2014,14 @@ $(document).ready(function() {
                 '<td style="padding:18px 25px; font-family:\'Fira Code\', monospace; color:#ea580c; font-weight:700;">' + pdfName + '</td>' +
                 '<td style="padding:18px 25px; color:#cbd5e1; font-weight:500;">-</td>' +
                 '<td style="padding:18px 25px; color:#cbd5e1; font-weight:500;">-</td>' +
-                '<td style="padding:18px 25px; color:#94a3b8; font-size:0.85rem;">Klasördeki bu dosya sistem verilerinde eşleşmedi.</td>' +
-                '<td style="padding:18px 25px; color:#cbd5e1; font-weight:500;">-</td>' +
                 '<td style="padding:18px 25px;"></td>' +
                 '</tr>';
         });
 
         if (!eslesmeyenPdf.length && !sistemdeOlan.length) {
-            html += '<tr><td colspan="7" class="text-center" style="padding: 60px 20px;"><div style="display:inline-block; padding:30px 40px; background:linear-gradient(135deg, rgba(16,185,129,0.1), rgba(5,150,105,0.05)); border-radius:24px; border:1px solid rgba(16,185,129,0.2);"><i class="fas fa-check-circle" style="font-size:3.5rem; color:#10b981; margin-bottom:15px; filter:drop-shadow(0 10px 15px rgba(16,185,129,0.3));"></i><h4 style="color:#059669; font-weight:800; margin:0; font-size:1.4rem;">Kusursuz Eşleşme!</h4><p style="color:#047857; margin-top:8px; font-weight:500; opacity:0.8;">Tüm klasördeki PDF dosyaları sistemdeki faturalarla eksiksiz olarak eşleşti. Herhangi bir uyumsuzluk bulunmamaktadır.</p></div></td></tr>';
+            html += '<tr><td colspan="5" class="text-center" style="padding: 60px 20px;"><div style="display:inline-block; padding:30px 40px; background:linear-gradient(135deg, rgba(16,185,129,0.1), rgba(5,150,105,0.05)); border-radius:24px; border:1px solid rgba(16,185,129,0.2);"><i class="fas fa-check-circle" style="font-size:3.5rem; color:#10b981; margin-bottom:15px; filter:drop-shadow(0 10px 15px rgba(16,185,129,0.3));"></i><h4 style="color:#059669; font-weight:800; margin:0; font-size:1.4rem;">Kusursuz Eşleşme!</h4><p style="color:#047857; margin-top:8px; font-weight:500; opacity:0.8;">Tüm klasördeki PDF dosyaları sistemdeki faturalarla eksiksiz olarak eşleşti. Herhangi bir uyumsuzluk bulunmamaktadır.</p></div></td></tr>';
         } else if (!html) {
-            html = '<tr><td colspan="7" class="text-center py-5 text-muted font-weight-bold">Gösterilecek uyumsuzluk bulunamadı.</td></tr>';
+            html = '<tr><td colspan="5" class="text-center py-5 text-muted font-weight-bold">Gösterilecek uyumsuzluk bulunamadı.</td></tr>';
         }
 
         tbody.innerHTML = html;
@@ -2676,8 +2672,6 @@ $(document).ready(function() {
                                     <th style="padding:20px 25px; color:#64748b; font-weight:800; font-size:0.85rem; text-transform:uppercase; letter-spacing:0.5px;">Durum</th>
                                     <th style="padding:20px 25px; color:#64748b; font-weight:800; font-size:0.85rem; text-transform:uppercase; letter-spacing:0.5px;">PDF Dosya Adı</th>
                                     <th style="padding:20px 25px; color:#64748b; font-weight:800; font-size:0.85rem; text-transform:uppercase; letter-spacing:0.5px;">EFKS ID</th>
-                                    <th style="padding:20px 25px; color:#64748b; font-weight:800; font-size:0.85rem; text-transform:uppercase; letter-spacing:0.5px;">Fatura No</th>
-                                    <th style="padding:20px 25px; color:#64748b; font-weight:800; font-size:0.85rem; text-transform:uppercase; letter-spacing:0.5px;">Hesap Adı / Ünvan</th>
                                     <th style="padding:20px 25px; color:#64748b; font-weight:800; font-size:0.85rem; text-transform:uppercase; letter-spacing:0.5px;">Tutar</th>
                                     <th style="padding:20px 25px; color:#64748b; font-weight:800; font-size:0.85rem; text-transform:uppercase; letter-spacing:0.5px;">İşlem</th>
                                 </tr>
