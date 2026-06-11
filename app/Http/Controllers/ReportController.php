@@ -442,6 +442,7 @@ class ReportController extends Controller
         $donemler = collect();
         $pivotData = collect();
         $pivotPeriods = collect();
+        $veri = $request->get('veri', 'tuketim');
 
         $hasFilter = $request->anyFilled(['start_period', 'end_period']);
 
@@ -469,22 +470,23 @@ class ReportController extends Controller
             // Pivot için dönem listesi
             $pivotPeriods = (clone $baseQuery)->distinct()->orderBy('donem')->pluck('donem');
 
-            // Pivot verisi: tesisat_no, donem, tuketim
+            // Pivot verisi: tesisat_no, donem, deger
+            $valueExpr = ($veri === 'tutar') ? 'COALESCE(tutar_toplam, 0)' : $this->tuketimExpr();
             $raw = (clone $baseQuery)
-                ->selectRaw('tesisat_no, donem, SUM('.$this->tuketimExpr().') as tuketim')
+                ->selectRaw("tesisat_no, donem, SUM({$valueExpr}) as deger")
                 ->groupBy('tesisat_no', 'donem')
                 ->orderBy('tesisat_no')
                 ->orderBy('donem')
                 ->get();
 
-            // Matrise çevir: [tesisat_no][donem] = tuketim
+            // Matrise çevir: [tesisat_no][donem] = deger
             $matrix = [];
             $tesisatTotals = [];
             $periodTotals = [];
             foreach ($raw as $r) {
                 $ts = $r->tesisat_no;
                 $don = $r->donem;
-                $val = (float) $r->tuketim;
+                $val = (float) $r->deger;
                 if (! isset($matrix[$ts])) {
                     $matrix[$ts] = [];
                 }
@@ -519,7 +521,7 @@ class ReportController extends Controller
             );
 
             if ($request->ajax()) {
-                return view('reports.partials.tuketim_table', compact('pivotData', 'pivotPeriods', 'totalKWH', 'totalAmount', 'colTotals'))->render();
+                return view('reports.partials.tuketim_table', compact('pivotData', 'pivotPeriods', 'totalKWH', 'totalAmount', 'colTotals', 'veri'))->render();
             }
 
             if ($request->filled('export')) {
@@ -528,7 +530,7 @@ class ReportController extends Controller
                     ini_set('memory_limit', '-1');
                     $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadView(
                         'reports.tuketim-excel',
-                        compact('pivotData', 'pivotPeriods', 'totalKWH', 'totalAmount')
+                        compact('pivotData', 'pivotPeriods', 'totalKWH', 'totalAmount', 'veri')
                     )->setPaper('a4', 'landscape');
 
                     return $pdf->download('Tuketim_Raporu_'.now()->format('Ymd_His').'.pdf');
@@ -537,7 +539,7 @@ class ReportController extends Controller
                     ini_set('memory_limit', '-1');
 
                     return \Maatwebsite\Excel\Facades\Excel::download(
-                        new \App\Exports\TuketimExport($pivotData, $pivotPeriods, $totalKWH),
+                        new \App\Exports\TuketimExport($pivotData, $pivotPeriods, $totalKWH, $veri),
                         'Tuketim_Raporu_'.now()->format('Ymd_His').'.xlsx'
                     );
                 }
@@ -545,12 +547,12 @@ class ReportController extends Controller
         }
 
         if ($request->ajax() && $hasFilter) {
-            return view('reports.partials.tuketim_table', compact('pivotData', 'pivotPeriods', 'totalKWH', 'totalAmount'))->render();
+            return view('reports.partials.tuketim_table', compact('pivotData', 'pivotPeriods', 'totalKWH', 'totalAmount', 'veri'))->render();
         }
 
         $donemler = KesinlesenFatura::where('odeme_durumu', 'odendi')->distinct()->orderBy('donem', 'desc')->pluck('donem');
 
-        return view('reports.tuketim', compact('donemler', 'pivotData', 'pivotPeriods', 'totalKWH', 'totalAmount'));
+        return view('reports.tuketim', compact('donemler', 'pivotData', 'pivotPeriods', 'totalKWH', 'totalAmount', 'veri'));
     }
 
     private function sendStreamEvent(string $type, array $data): void

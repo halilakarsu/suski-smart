@@ -171,8 +171,8 @@
     <div class="page-hero">
         <div class="hero-container">
             <div class="hero-title-group">
-                <h1 class="hero-title">Tüketim Dönem  Raporu</h1>
-                <p class="hero-subtitle">Bireysel faturaların okuma ve maliyet detaylarını inceleyin</p>
+                <h1 class="hero-title">{{ request('veri') === 'tutar' ? 'Tutar Bazlı Dönem Raporu' : 'Tüketim Dönem Raporu' }}</h1>
+                <p class="hero-subtitle">{{ request('veri') === 'tutar' ? 'Dönemlere göre fatura tutarlarını görüntüleyin' : 'Bireysel faturaların tüketim ve maliyet detaylarını inceleyin' }}</p>
             </div>
             <div class="d-flex gap-2 align-items-center">
                 <div class="dropdown" id="detExportBtnContainer" style="display: {{ request()->anyFilled(['start_period','end_period']) ? 'block' : 'none' }};">
@@ -207,7 +207,7 @@
                             </select>
                         </div>
                     </div>
-                    <div class="col-md-5">
+                    <div class="col-md-4">
                         <div class="form-group-pro" style="margin-bottom:0;">
                             <label><i class="far fa-calendar-check me-2"></i> Dönem Bitiş</label>
                             <select name="end_period" id="end_period" class="form-control-pro" style="height: 47px;">
@@ -215,6 +215,15 @@
                                 @foreach($donemler as $d)
                                     <option value="{{ $d }}" {{ request('end_period') == $d ? 'selected' : '' }}>{{ $d }}</option>
                                 @endforeach
+                            </select>
+                        </div>
+                    </div>
+                    <div class="col-md-2">
+                        <div class="form-group-pro" style="margin-bottom:0;">
+                            <label><i class="fas fa-chart-bar me-2"></i> Veri</label>
+                            <select name="veri" id="veri" class="form-control-pro" style="height: 47px;">
+                                <option value="tuketim" {{ request('veri', 'tuketim') == 'tuketim' ? 'selected' : '' }}>Tüketim (kWh)</option>
+                                <option value="tutar" {{ request('veri') == 'tutar' ? 'selected' : '' }}>Tutar (TL)</option>
                             </select>
                         </div>
                     </div>
@@ -228,12 +237,12 @@
         {{-- SONUÇLAR KONTEYNERI --}}
         <div id="reportResultsContainer">
             @if(request()->anyFilled(['start_period','end_period']))
-                @include('reports.partials.tuketim_table', ['pivotData' => $pivotData, 'pivotPeriods' => $pivotPeriods, 'totalKWH' => $totalKWH, 'totalAmount' => $totalAmount, 'colTotals' => $colTotals ?? []])
+                @include('reports.partials.tuketim_table', ['pivotData' => $pivotData, 'pivotPeriods' => $pivotPeriods, 'totalKWH' => $totalKWH, 'totalAmount' => $totalAmount, 'colTotals' => $colTotals ?? [], 'veri' => $veri ?? 'tuketim'])
             @else
                 <div class="glass-card" style="text-align:center;padding:60px 40px;">
                     <div style="width:80px;height:80px;background:#eff6ff;color:#3b82f6;border-radius:24px;display:flex;align-items:center;justify-content:center;font-size:2.5rem;margin:0 auto 20px;">📄</div>
-                    <h4 style="font-weight:800;color:var(--text-slate-900);">Tüketim Dönem Raporu</h4>
-                    <p style="color:var(--text-slate-500);max-width:500px;margin:0 auto;">Dönemlere ait tüketim rakamlarını incelemek için filtreleri kullanın.</p>
+                    <h4 style="font-weight:800;color:var(--text-slate-900);">{{ request('veri') === 'tutar' ? 'Tutar Bazlı Dönem Raporu' : 'Tüketim Dönem Raporu' }}</h4>
+                    <p style="color:var(--text-slate-500);max-width:500px;margin:0 auto;">{{ request('veri') === 'tutar' ? 'Dönemlere ait fatura tutarlarını görüntülemek için filtreleri kullanın.' : 'Dönemlere ait tüketim rakamlarını görüntülemek için filtreleri kullanın.' }}</p>
                 </div>
             @endif
         </div>

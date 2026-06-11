@@ -2,7 +2,7 @@
 <html>
 <head>
     <meta charset="utf-8">
-    <title>Tüketim Dönem Raporu</title>
+    <title>{{ ($veri ?? 'tuketim') === 'tutar' ? 'Tutar Bazlı Dönem Raporu' : 'Tüketim Dönem Raporu' }}</title>
     <style>
         body { font-family: DejaVu Sans, sans-serif; font-size: 8pt; margin: 10px; }
         table { width: 100%; border-collapse: collapse; }
@@ -16,7 +16,7 @@
     </style>
 </head>
 <body>
-    <h2>Tüketim Dönem Raporu</h2>
+    <h2>{{ ($veri ?? 'tuketim') === 'tutar' ? 'Tutar Bazlı Dönem Raporu' : 'Tüketim Dönem Raporu' }}</h2>
     <p style="font-size:7pt;color:#6b7280;margin-bottom:10px;">
         Dönem: {{ request('start_period') }} - {{ request('end_period') }} | {{ count($pivotData) }} tesisat
     </p>

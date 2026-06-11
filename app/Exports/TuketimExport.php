@@ -14,11 +14,14 @@ class TuketimExport implements FromView, WithTitle
 
     protected $totalKWH;
 
-    public function __construct($pivotData, $pivotPeriods, float $totalKWH)
+    protected $veri;
+
+    public function __construct($pivotData, $pivotPeriods, float $totalKWH, $veri = 'tuketim')
     {
         $this->pivotData = $pivotData;
         $this->pivotPeriods = $pivotPeriods;
         $this->totalKWH = $totalKWH;
+        $this->veri = $veri;
     }
 
     public function view(): View
@@ -27,6 +30,7 @@ class TuketimExport implements FromView, WithTitle
             'pivotData' => $this->pivotData,
             'pivotPeriods' => $this->pivotPeriods,
             'totalKWH' => $this->totalKWH,
+            'veri' => $this->veri,
         ]);
     }
 

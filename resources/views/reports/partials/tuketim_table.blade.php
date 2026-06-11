@@ -12,7 +12,7 @@
 <div class="glass-card" style="padding:0; overflow:hidden;">
     <div style="padding:12px 16px; border-bottom:1px solid #e2e8f0; display:flex; align-items:center; gap:8px;">
         <i class="fas fa-table" style="color:#3b82f6; font-size:0.85rem;"></i>
-        <span style="font-size:0.8rem; font-weight:800; color:#0f172a;">Tüketim Dönem Raporu</span>
+        <span style="font-size:0.8rem; font-weight:800; color:#0f172a;">{{ ($veri ?? 'tuketim') === 'tutar' ? 'Tutar Bazlı Dönem Raporu' : 'Tüketim Dönem Raporu' }}</span>
         <span style="font-size:0.7rem; color:#94a3b8; font-weight:500;">
             {{ $pivotData->total() }} tesisat
             @if(request()->filled('start_period') && request()->filled('end_period'))
