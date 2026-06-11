@@ -1957,7 +1957,7 @@ $(document).ready(function() {
         return null;
     }
 
-    function pdfFaturaDetay(efksId) {
+    window.pdfFaturaDetay = function(efksId) {
         var overlay = document.getElementById('pdfFaturaDetayOverlay');
         var body = document.getElementById('fdoBody');
         document.getElementById('fdoTitle').textContent = 'EFKS ID: ' + efksId;
@@ -1990,11 +1990,11 @@ $(document).ready(function() {
             .catch(function() {
                 body.innerHTML = '<div class="text-center py-5 text-danger fw-bold">Bir hata oluştu. Lütfen tekrar deneyin.</div>';
             });
-    }
+    };
 
-    function pdfFaturaDetayKapat() {
+    window.pdfFaturaDetayKapat = function() {
         document.getElementById('pdfFaturaDetayOverlay').classList.remove('fdo-active');
-    }
+    };
 
     function showPdfDetayliSonuc(eslesenList, eslesmeyenPdf, sistemdeOlan) {
         document.getElementById('detayOzetEslesen').textContent = eslesenList.length;
