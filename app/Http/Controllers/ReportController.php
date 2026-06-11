@@ -1010,8 +1010,8 @@ class ReportController extends Controller
 
     public function pdfKarsilastirFaturalar($donem)
     {
-        $rows = KesinlesenFatura::where('odeme_durumu', 'odendi')
-            ->where('donem', $donem)
+        $importLogIds = \App\Models\ImportLog::where('donem', $donem)->pluck('id');
+        $rows = \App\Models\Hamveri::whereIn('import_log_id', $importLogIds)
             ->whereNotNull('payload')
             ->get(['payload']);
 
@@ -1022,26 +1022,42 @@ class ReportController extends Controller
                 continue;
             }
 
-            // EFKS_FATURA_ID anahtarını bul (büyük/küçük harf duyarsız)
             $efks = null;
+            $faturaNo = null;
+            $hesapAdi = null;
+            $tutar = null;
+
             foreach ($payload as $key => $val) {
-                if (strtoupper(trim($key)) === 'EFKS_FATURA_ID') {
+                $upKey = strtoupper(trim($key));
+                if ($upKey === 'EFKS_FATURA_ID') {
                     $efks = trim((string) $val);
-                    break;
+                }
+                if ($upKey === 'FATURA_NO' || str_contains($upKey, 'FATURA')) {
+                    if (!$faturaNo) $faturaNo = $val;
+                }
+                if (str_contains($upKey, 'HESAP') || str_contains($upKey, 'MUSTERI') || str_contains($upKey, 'ABONE') || str_contains($upKey, 'UNVAN')) {
+                    if (!$hesapAdi) $hesapAdi = $val;
+                }
+                if ($upKey === 'TUTAR_TOPLAM' || $upKey === 'GENEL_TOPLAM' || str_contains($upKey, 'ODENECEK') || $upKey === 'TUTAR') {
+                    if (!$tutar) $tutar = $val;
                 }
             }
             if ($efks && $efks !== '') {
-                $cwDegerler[] = $efks;
+                $cwDegerler[$efks] = [
+                    'id' => $efks,
+                    'fatura_no' => $faturaNo ?? '-',
+                    'hesap_adi' => $hesapAdi ?? '-',
+                    'tutar' => $tutar ?? '-'
+                ];
             }
         }
 
-        $cwDegerler = array_unique($cwDegerler);
-        sort($cwDegerler);
+        ksort($cwDegerler);
 
         return response()->json([
             'success' => true,
             'donem' => $donem,
-            'faturalar' => array_values($cwDegerler),
+            'faturalar' => $cwDegerler,
             'toplam' => count($cwDegerler),
         ]);
     }
