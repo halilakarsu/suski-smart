@@ -1958,75 +1958,92 @@ $(document).ready(function() {
     }
 
     function pdfFaturaDetay(efksId) {
-        $('#pdfFaturaDetayModal').modal('show');
-        document.getElementById('pdfDetayModalBody').innerHTML = '<div class="text-center py-5"><i class="fas fa-spinner fa-spin" style="font-size:2rem;color:#3b82f6;"></i><p class="mt-3 font-weight-bold text-muted">Yükleniyor...</p></div>';
+        var overlay = document.getElementById('pdfFaturaDetayOverlay');
+        var body = document.getElementById('fdoBody');
+        document.getElementById('fdoTitle').textContent = 'EFKS ID: ' + efksId;
+        body.innerHTML = '<div class="fdo-loading"><i class="fas fa-spinner fa-spin"></i><p>Yükleniyor...</p></div>';
+        overlay.classList.add('fdo-active');
 
         fetch('/raporlar/endeks/pdf-karsilastir/fatura-detay/' + encodeURIComponent(efksId))
             .then(function(r) { return r.json(); })
             .then(function(data) {
                 if (!data.success) {
-                    document.getElementById('pdfDetayModalBody').innerHTML = '<div class="text-center py-5 text-danger font-weight-bold">Kayıt bulunamadı.</div>';
+                    body.innerHTML = '<div class="text-center py-5 text-danger fw-bold" style="font-size:1.1rem;">Kayıt bulunamadı.</div>';
                     return;
                 }
-                var html = '<div style="display:grid; grid-template-columns:1fr 1fr; gap:12px;">';
+
+                var html = '<div style="display:grid; grid-template-columns:repeat(auto-fill, minmax(220px,1fr)); gap:12px;">';
                 data.fields.forEach(function(f) {
-                    html += '<div style="background:#fff; border-radius:12px; padding:12px 16px; border:1px solid #f1f5f9; display:flex; flex-direction:column; gap:2px;">' +
-                        '<span style="font-size:.65rem; font-weight:800; color:#64748b; text-transform:uppercase; letter-spacing:0.06em;">' + f.key + '</span>' +
-                        '<span style="font-size:.9rem; font-weight:700; color:#0f172a; word-break:break-all;">' + (f.value || '—') + '</span>' +
+                    var val = f.value || '—';
+                    var escaped = val.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+                    html += '<div style="background:#fff; border-radius:14px; padding:14px 18px; border:1px solid #e2e8f0; box-shadow:0 2px 6px rgba(0,0,0,0.03); display:flex; flex-direction:column; gap:4px; transition:all .2s;" onmouseover="this.style.borderColor=\'#93c5fd\';this.style.boxShadow=\'0 4px 12px rgba(59,130,246,0.1)\'" onmouseout="this.style.borderColor=\'#e2e8f0\';this.style.boxShadow=\'0 2px 6px rgba(0,0,0,0.03)\'">' +
+                        '<span style="font-size:.6rem; font-weight:800; color:#64748b; text-transform:uppercase; letter-spacing:0.08em; line-height:1.3;">' + f.key.replace(/_/g, ' ') + '</span>' +
+                        '<span style="font-size:.88rem; font-weight:700; color:#0f172a; word-break:break-all;">' + escaped + '</span>' +
                         '</div>';
                 });
                 html += '</div>';
-                document.getElementById('pdfDetayModalBody').innerHTML = html;
+                if (data.fields.length === 0) {
+                    html = '<div class="text-center py-5 text-muted fw-bold">Bu kayıt için hamveri bulunamadı.</div>';
+                }
+                body.innerHTML = html;
             })
             .catch(function() {
-                document.getElementById('pdfDetayModalBody').innerHTML = '<div class="text-center py-5 text-danger font-weight-bold">Bir hata oluştu.</div>';
+                body.innerHTML = '<div class="text-center py-5 text-danger fw-bold">Bir hata oluştu. Lütfen tekrar deneyin.</div>';
             });
+    }
+
+    function pdfFaturaDetayKapat() {
+        document.getElementById('pdfFaturaDetayOverlay').classList.remove('fdo-active');
     }
 
     function showPdfDetayliSonuc(eslesenList, eslesmeyenPdf, sistemdeOlan) {
         document.getElementById('detayOzetEslesen').textContent = eslesenList.length;
-        document.getElementById('detayOzetPdfYok').textContent = sistemdeOlan.length; // sistemde olan faturanın pdf'i yok
-        document.getElementById('detayOzetSistemYok').textContent = eslesmeyenPdf.length; // pdf var sistemde yok
+        document.getElementById('detayOzetPdfYok').textContent = sistemdeOlan.length;
+        document.getElementById('detayOzetSistemYok').textContent = eslesmeyenPdf.length;
 
-        var tbody = document.getElementById('detayliAnalizTableBody');
-        var html = '';
+        var tblSistem = document.getElementById('detayliAnalizTableSistemVar');
+        var tblPdf    = document.getElementById('detayliAnalizTablePdfVar');
+        document.getElementById('detaySayacPdfYok').textContent   = sistemdeOlan.length + ' kayıt';
+        document.getElementById('detaySayacSistemYok').textContent = eslesmeyenPdf.length + ' dosya';
 
-        // Eşleşenler tablodan kaldırıldı (sadece uyumsuzlukları listeliyoruz)
-        /* 
-        eslesenList.forEach(function(item) { ... }); 
-        */
+        var htmlSistem = '';
+        if (sistemdeOlan.length === 0) {
+            htmlSistem = '<tr><td colspan="3" class="text-center py-4"><span style="color:#16a34a;font-weight:700;"><i class="fas fa-check-circle"></i> Eksik kayıt yok</span></td></tr>';
+        } else {
+            sistemdeOlan.forEach(function(inv) {
+                var idEscaped = inv.id.replace(/'/g, "\\'");
+                htmlSistem += '<tr style="border-bottom:1px solid #f1f5f9; transition:background .15s;" onmouseover="this.style.background=\'#fef2f2\'" onmouseout="this.style.background=\'\'">' +
+                    '<td style="padding:14px 18px; font-weight:800; color:#334155; font-size:.8rem;">' + inv.id + '</td>' +
+                    '<td style="padding:14px 18px; font-weight:700; color:#0f172a; font-size:.85rem;">' + (inv.tutar || '-') + '</td>' +
+                    '<td style="padding:14px 18px;"><button class="btn" style="padding:4px 10px; border-radius:8px; background:linear-gradient(135deg,#2563eb,#4f46e5); color:#fff; font-weight:700; font-size:.72rem; border:none; cursor:pointer;" onclick="pdfFaturaDetay(\'' + idEscaped + '\')"><i class="fas fa-eye mr-1"></i> Detay</button></td>' +
+                    '</tr>';
+            });
+        }
+        tblSistem.innerHTML = htmlSistem;
 
-        // Sistemde olup PDF'i olmayanlar
-        sistemdeOlan.forEach(function(inv) {
-            html += '<tr style="background:#fffafb; border-bottom:1px solid #fce7f3; transition: background 0.3s;" onmouseover="this.style.background=\'#fef2f2\'" onmouseout="this.style.background=\'#fffafb\'">' +
-                '<td style="padding:18px 25px;"><span class="badge" style="background:rgba(239,68,68,0.15); color:#dc2626; padding:8px 14px; border-radius:10px; font-weight:800; font-size:0.8rem; letter-spacing:0.5px;"><i class="fas fa-file-excel mr-2"></i>Sistemde Var, PDF Yok</span></td>' +
-                '<td style="padding:18px 25px; color:#ef4444; font-style:italic; font-weight:500;">- Bulunamadı -</td>' +
-                '<td style="padding:18px 25px; font-weight:800; color:#334155;">' + inv.id + '</td>' +
-                '<td style="padding:18px 25px; font-weight:800; color:#0f172a; font-size:1.05rem;">' + (inv.tutar || '-') + '</td>' +
-                '<td style="padding:18px 25px;"><button class="btn" style="padding:6px 14px; border-radius:10px; background:linear-gradient(135deg,#2563eb,#4f46e5); color:#fff; font-weight:700; font-size:.8rem; border:none; cursor:pointer; transition: all .2s;" onmouseover="this.style.transform=\'scale(1.05)\'" onmouseout="this.style.transform=\'scale(1)\'" onclick="pdfFaturaDetay(\'' + inv.id + '\')"><i class="fas fa-eye mr-1"></i> Detay</button></td>' +
-                '</tr>';
-        });
-
-        // PDF olup Sistemde olmayanlar
-        eslesmeyenPdf.forEach(function(pdfName) {
-            html += '<tr style="background:#fdfdf7; border-bottom:1px solid #fef3c7; transition: background 0.3s;" onmouseover="this.style.background=\'#fffbeb\'" onmouseout="this.style.background=\'#fdfdf7\'">' +
-                '<td style="padding:18px 25px;"><span class="badge" style="background:rgba(245,158,11,0.15); color:#d97706; padding:8px 14px; border-radius:10px; font-weight:800; font-size:0.8rem; letter-spacing:0.5px;"><i class="fas fa-file-pdf mr-2"></i>PDF Var, Sistemde Yok</span></td>' +
-                '<td style="padding:18px 25px; font-family:\'Fira Code\', monospace; color:#ea580c; font-weight:700;">' + pdfName + '</td>' +
-                '<td style="padding:18px 25px; color:#cbd5e1; font-weight:500;">-</td>' +
-                '<td style="padding:18px 25px; color:#cbd5e1; font-weight:500;">-</td>' +
-                '<td style="padding:18px 25px;"></td>' +
-                '</tr>';
-        });
+        var htmlPdf = '';
+        if (eslesmeyenPdf.length === 0) {
+            htmlPdf = '<tr><td colspan="2" class="text-center py-4"><span style="color:#16a34a;font-weight:700;"><i class="fas fa-check-circle"></i> Eksik dosya yok</span></td></tr>';
+        } else {
+            eslesmeyenPdf.forEach(function(pdfName) {
+                var nameEscaped = pdfName.replace(/'/g, "\\'");
+                htmlPdf += '<tr style="border-bottom:1px solid #f1f5f9; transition:background .15s;" onmouseover="this.style.background=\'#fffbeb\'" onmouseout="this.style.background=\'\'">' +
+                    '<td style="padding:14px 18px; font-family:monospace; font-size:.8rem; font-weight:700; color:#ea580c; word-break:break-all;">' + nameEscaped + '</td>' +
+                    '<td style="padding:14px 18px;"><span style="background:rgba(245,158,11,0.12); color:#d97706; padding:4px 10px; border-radius:8px; font-weight:700; font-size:.72rem; white-space:nowrap;"><i class="fas fa-times-circle mr-1"></i> Eşleşmedi</span></td>' +
+                    '</tr>';
+            });
+        }
+        tblPdf.innerHTML = htmlPdf;
 
         if (!eslesmeyenPdf.length && !sistemdeOlan.length) {
-            html += '<tr><td colspan="5" class="text-center" style="padding: 60px 20px;"><div style="display:inline-block; padding:30px 40px; background:linear-gradient(135deg, rgba(16,185,129,0.1), rgba(5,150,105,0.05)); border-radius:24px; border:1px solid rgba(16,185,129,0.2);"><i class="fas fa-check-circle" style="font-size:3.5rem; color:#10b981; margin-bottom:15px; filter:drop-shadow(0 10px 15px rgba(16,185,129,0.3));"></i><h4 style="color:#059669; font-weight:800; margin:0; font-size:1.4rem;">Kusursuz Eşleşme!</h4><p style="color:#047857; margin-top:8px; font-weight:500; opacity:0.8;">Tüm klasördeki PDF dosyaları sistemdeki faturalarla eksiksiz olarak eşleşti. Herhangi bir uyumsuzluk bulunmamaktadır.</p></div></td></tr>';
-        } else if (!html) {
-            html = '<tr><td colspan="5" class="text-center py-5 text-muted font-weight-bold">Gösterilecek uyumsuzluk bulunamadı.</td></tr>';
+            document.querySelector('#pdfDetayliSonucModal .modal-body .row').innerHTML =
+                '<div class="col-12 text-center" style="padding:60px 20px;">' +
+                '<div style="display:inline-block; padding:30px 40px; background:linear-gradient(135deg,rgba(16,185,129,0.1),rgba(5,150,105,0.05)); border-radius:24px; border:1px solid rgba(16,185,129,0.2);">' +
+                '<i class="fas fa-check-circle" style="font-size:3.5rem; color:#10b981; margin-bottom:15px; filter:drop-shadow(0 10px 15px rgba(16,185,129,0.3));"></i>' +
+                '<h4 style="color:#059669; font-weight:800; margin:0; font-size:1.4rem;">Kusursuz Eşleşme!</h4>' +
+                '<p style="color:#047857; margin-top:8px; font-weight:500; opacity:0.8;">Tüm klasördeki PDF dosyaları sistemdeki faturalarla eksiksiz eşleşti.</p></div></div>';
         }
 
-        tbody.innerHTML = html;
-        
-        // Modal aç
         $('#pdfAnalizModal').modal('hide');
         setTimeout(function(){
             $('#pdfDetayliSonucModal').modal('show');
@@ -2471,31 +2488,59 @@ $(document).ready(function() {
 }
 </style>
 
-{{-- ═══ Fatura Detay Modal ═══ --}}
-<div class="modal fade" id="pdfFaturaDetayModal" tabindex="-1" role="dialog" aria-hidden="true" style="backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); background: rgba(15, 23, 42, 0.5);">
-    <div class="modal-dialog modal-dialog-centered modal-lg" role="document" style="max-width: 800px;">
-        <div class="modal-content" style="border-radius:28px; border:1px solid rgba(255,255,255,0.2); overflow:hidden; box-shadow:0 40px 100px rgba(0,0,0,0.25); background: #f8fafc;">
-            <div class="modal-header" style="background:linear-gradient(135deg, #0f172a, #1e3a5f); border:none; padding:24px 32px;">
+{{-- ═══ Fatura Detay Overlay ═══ --}}
+<div id="pdfFaturaDetayOverlay">
+    <div class="fdo-card">
+        <div class="fdo-header">
+            <div class="fdo-header-left">
+                <div class="fdo-icon"><i class="fas fa-file-invoice"></i></div>
                 <div>
-                    <h5 class="modal-title" style="color:#fff; font-weight:800; font-size:1.2rem; display:flex; align-items:center; gap:12px;">
-                        <div style="width:36px; height:36px; border-radius:10px; background:rgba(59,130,246,0.2); display:flex; align-items:center; justify-content:center; color:#60a5fa;"><i class="fas fa-file-invoice"></i></div>
-                        Fatura Detayı
-                    </h5>
-                    <p style="color:#94a3b8; font-size:.8rem; margin:6px 0 0 48px; font-weight:500;">Hamveri içindeki tüm alanlar</p>
+                    <div class="fdo-eyebrow">Fatura Detayı</div>
+                    <div class="fdo-title" id="fdoTitle">EFKS ID: —</div>
                 </div>
-                <button type="button" class="close" data-dismiss="modal" style="color:#fff; opacity:0.8; font-size:1.5rem; background:rgba(255,255,255,0.08); border:none; width:36px; height:36px; border-radius:50%; display:flex; align-items:center; justify-content:center;">
-                    <span aria-hidden="true">&times;</span>
-                </button>
             </div>
-            <div class="modal-body" id="pdfDetayModalBody" style="padding:28px; max-height:70vh; overflow-y:auto; background:#f8fafc;">
-                <div class="text-center py-5 text-muted font-weight-bold">Yükleniyor...</div>
-            </div>
-            <div class="modal-footer" style="border-top:1px solid #e2e8f0; padding:16px 32px; background:#fff;">
-                <button type="button" class="btn" data-dismiss="modal" style="border-radius:12px; font-weight:700; padding:8px 24px; background:#fff; color:#475569; border:1px solid #e2e8f0;">Kapat</button>
-            </div>
+            <button onclick="pdfFaturaDetayKapat()" class="fdo-close"><i class="fas fa-times"></i></button>
+        </div>
+        <div class="fdo-body" id="fdoBody">
+            <div class="fdo-loading"><i class="fas fa-spinner fa-spin"></i><p>Yükleniyor...</p></div>
         </div>
     </div>
 </div>
+<style>
+#pdfFaturaDetayOverlay {
+    display:none; position:fixed; inset:0; z-index:99999;
+    background:rgba(15,23,42,0.75); backdrop-filter:blur(6px); -webkit-backdrop-filter:blur(6px);
+    align-items:center; justify-content:center; padding:30px;
+}
+#pdfFaturaDetayOverlay.fdo-active { display:flex; }
+.fdo-card {
+    background:#fff; border-radius:28px; width:100%; max-width:920px; max-height:85vh;
+    display:flex; flex-direction:column; overflow:hidden;
+    box-shadow:0 40px 80px rgba(0,0,0,0.3); animation:fadeScaleIn .3s ease;
+}
+.fdo-header {
+    background:linear-gradient(135deg,#0f172a,#1e3a5f);
+    padding:20px 28px; display:flex; align-items:center; justify-content:space-between; flex-shrink:0;
+}
+.fdo-header-left { display:flex; align-items:center; gap:14px; }
+.fdo-icon {
+    width:42px; height:42px; border-radius:12px;
+    background:rgba(96,165,250,0.15); border:1px solid rgba(96,165,250,0.3);
+    display:flex; align-items:center; justify-content:center; color:#60a5fa; font-size:1.1rem;
+}
+.fdo-eyebrow { font-size:.65rem; font-weight:800; color:#60a5fa; text-transform:uppercase; letter-spacing:.12em; margin-bottom:3px; }
+.fdo-title { font-size:1rem; font-weight:800; color:#fff; letter-spacing:-.02em; }
+.fdo-close {
+    width:36px; height:36px; border-radius:10px; border:1px solid rgba(255,255,255,0.15);
+    background:rgba(255,255,255,0.06); color:rgba(255,255,255,0.6);
+    display:flex; align-items:center; justify-content:center; cursor:pointer; font-size:.9rem;
+}
+.fdo-close:hover { background:rgba(239,68,68,0.2); border-color:rgba(239,68,68,0.4); color:#f87171; }
+.fdo-body { flex:1; overflow-y:auto; padding:24px 28px; background:#f8fafc; }
+.fdo-loading { text-align:center; padding:60px 0; }
+.fdo-loading i { font-size:2.2rem; color:#3b82f6; }
+.fdo-loading p { margin-top:12px; font-weight:700; color:#64748b; }
+</style>
 
 {{-- ═══ Pdf-Fatura Analiz Modal HTML ═══ --}}
 <div class="modal fade" id="pdfAnalizModal" tabindex="-1" role="dialog" aria-hidden="true" style="backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); background: rgba(15, 23, 42, 0.4);">
@@ -2658,27 +2703,49 @@ $(document).ready(function() {
                     </div>
                 </div>
 
-                <div style="background:#fff; border-radius: 28px; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.08); border:1px solid #e2e8f0; overflow:hidden; position:relative;">
-                    <div style="padding: 20px 30px; border-bottom:1px solid #e2e8f0; background:#f8fafc; display:flex; align-items:center;">
-                        <div style="width:12px; height:12px; border-radius:50%; background:#ef4444; margin-right:8px; box-shadow:0 0 10px rgba(239,68,68,0.5);"></div>
-                        <div style="width:12px; height:12px; border-radius:50%; background:#f59e0b; margin-right:12px; box-shadow:0 0 10px rgba(245,158,11,0.5);"></div>
-                        <h6 style="margin:0; font-weight:800; color:#334155; letter-spacing:-0.01em; font-size:1.1rem;">Uyumsuzluk Listesi</h6>
-                        <span style="margin-left:auto; font-size:0.8rem; color:#94a3b8; font-weight:600;"><i class="fas fa-info-circle mr-1"></i>Sadece hatalı veya eksik kayıtlar listelenir</span>
+                <div class="row">
+                    {{-- Sol Tablo: Sistemde Var, PDF Yok --}}
+                    <div class="col-md-6">
+                        <div style="background:#fff; border-radius:24px; box-shadow:0 20px 40px -12px rgba(0,0,0,0.06); border:1px solid #fce7f3; overflow:hidden; height:100%;">
+                            <div style="padding:16px 20px; border-bottom:2px solid #fce7f3; background:#fffafb; display:flex; align-items:center; gap:10px;">
+                                <div style="width:10px; height:10px; border-radius:50%; background:#ef4444; box-shadow:0 0 8px rgba(239,68,68,0.4);"></div>
+                                <h6 style="margin:0; font-weight:800; color:#dc2626; font-size:.85rem; letter-spacing:-.01em;">Sistemde Var, PDF Yok</h6>
+                                <span style="margin-left:auto; font-size:.7rem; font-weight:700; color:#94a3b8;" id="detaySayacPdfYok">0 kayıt</span>
+                            </div>
+                            <div class="table-responsive">
+                                <table style="width:100%; border-collapse:collapse; font-size:.85rem;">
+                                    <thead>
+                                        <tr style="background:#fef2f2;">
+                                            <th style="padding:12px 18px; color:#991b1b; font-weight:800; font-size:.7rem; text-transform:uppercase; letter-spacing:0.3px;">EFKS ID</th>
+                                            <th style="padding:12px 18px; color:#991b1b; font-weight:800; font-size:.7rem; text-transform:uppercase; letter-spacing:0.3px;">Tutar</th>
+                                            <th style="padding:12px 18px; color:#991b1b; font-weight:800; font-size:.7rem; text-transform:uppercase; letter-spacing:0.3px;">İşlem</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="detayliAnalizTableSistemVar"></tbody>
+                                </table>
+                            </div>
+                        </div>
                     </div>
-                    <div class="table-responsive">
-                        <table style="width:100%; border-collapse: collapse;">
-                            <thead>
-                                <tr style="background:#fff; border-bottom:2px solid #e2e8f0;">
-                                    <th style="padding:20px 25px; color:#64748b; font-weight:800; font-size:0.85rem; text-transform:uppercase; letter-spacing:0.5px;">Durum</th>
-                                    <th style="padding:20px 25px; color:#64748b; font-weight:800; font-size:0.85rem; text-transform:uppercase; letter-spacing:0.5px;">PDF Dosya Adı</th>
-                                    <th style="padding:20px 25px; color:#64748b; font-weight:800; font-size:0.85rem; text-transform:uppercase; letter-spacing:0.5px;">EFKS ID</th>
-                                    <th style="padding:20px 25px; color:#64748b; font-weight:800; font-size:0.85rem; text-transform:uppercase; letter-spacing:0.5px;">Tutar</th>
-                                    <th style="padding:20px 25px; color:#64748b; font-weight:800; font-size:0.85rem; text-transform:uppercase; letter-spacing:0.5px;">İşlem</th>
-                                </tr>
-                            </thead>
-                            <tbody id="detayliAnalizTableBody">
-                            </tbody>
-                        </table>
+                    {{-- Sağ Tablo: PDF Var, Sistemde Yok --}}
+                    <div class="col-md-6">
+                        <div style="background:#fff; border-radius:24px; box-shadow:0 20px 40px -12px rgba(0,0,0,0.06); border:1px solid #fef3c7; overflow:hidden; height:100%;">
+                            <div style="padding:16px 20px; border-bottom:2px solid #fef3c7; background:#fefce8; display:flex; align-items:center; gap:10px;">
+                                <div style="width:10px; height:10px; border-radius:50%; background:#f59e0b; box-shadow:0 0 8px rgba(245,158,11,0.4);"></div>
+                                <h6 style="margin:0; font-weight:800; color:#d97706; font-size:.85rem; letter-spacing:-.01em;">PDF Var, Sistemde Yok</h6>
+                                <span style="margin-left:auto; font-size:.7rem; font-weight:700; color:#94a3b8;" id="detaySayacSistemYok">0 dosya</span>
+                            </div>
+                            <div class="table-responsive">
+                                <table style="width:100%; border-collapse:collapse; font-size:.85rem;">
+                                    <thead>
+                                        <tr style="background:#fffbeb;">
+                                            <th style="padding:12px 18px; color:#92400e; font-weight:800; font-size:.7rem; text-transform:uppercase; letter-spacing:0.3px;">PDF Dosya Adı</th>
+                                            <th style="padding:12px 18px; color:#92400e; font-weight:800; font-size:.7rem; text-transform:uppercase; letter-spacing:0.3px;">Durum</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="detayliAnalizTablePdfVar"></tbody>
+                                </table>
+                            </div>
+                        </div>
                     </div>
                 </div>
 

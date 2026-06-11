@@ -1070,33 +1070,34 @@ class ReportController extends Controller
 
     public function pdfKarsilastirFaturaDetay($efksId)
     {
-        $importLogIds = \App\Models\ImportLog::pluck('id');
-        $row = \App\Models\Hamveri::whereIn('import_log_id', $importLogIds)
-            ->whereNotNull('payload')
-            ->get(['payload'])
-            ->first(function ($r) use ($efksId) {
-                $payload = $r->payload;
-                if (! is_array($payload)) {
-                    return false;
-                }
-                foreach ($payload as $key => $val) {
-                    if (strtoupper(trim($key)) === 'EFKS_FATURA_ID' && trim((string) $val) === $efksId) {
-                        return true;
-                    }
-                }
+        $rows = \App\Models\Hamveri::whereNotNull('payload')
+            ->orderBy('id', 'desc')
+            ->limit(5000)
+            ->get(['payload']);
 
-                return false;
-            });
+        $found = null;
+        foreach ($rows as $r) {
+            $payload = $r->payload;
+            if (! is_array($payload)) {
+                continue;
+            }
+            foreach ($payload as $key => $val) {
+                if (strtoupper(trim($key)) === 'EFKS_FATURA_ID' && trim((string) $val) === $efksId) {
+                    $found = $payload;
+                    break 2;
+                }
+            }
+        }
 
-        if (! $row) {
+        if (! $found) {
             return response()->json(['success' => false, 'message' => 'Kayıt bulunamadı.']);
         }
 
         $fields = [];
-        foreach ($row->payload as $key => $val) {
+        foreach ($found as $key => $val) {
             $fields[] = [
                 'key' => $key,
-                'value' => $val,
+                'value' => is_string($val) ? $val : (string) ($val ?? ''),
             ];
         }
 
