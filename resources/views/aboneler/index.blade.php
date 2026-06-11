@@ -523,51 +523,7 @@
                         </a>
                     </div>
                 </div>
-                {{-- Güncellemeler Dropdown --}}
-                @if(($hasIsNew ?? false) || ($hasIsUpdated ?? false))
-                    @php
-                        $guncellemelerAktif = in_array(request('tab'), ['new', 'sayac_guncelleme', 'bilgi_guncelleme']);
-                        $guncellemelerToplamCount = ($newCount ?? 0) + ($sayacGuncellemeSayisi ?? 0) + ($bilgiGuncellemeSayisi ?? 0);
-                    @endphp
-                    <div class="tab-dropdown-wrap" id="guncellemelerDropdown">
-                        <button type="button" onclick="toggleDropdown()"
-                            class="tab-item-pro {{ $guncellemelerAktif ? 'active' : '' }}"
-                            style="cursor:pointer; border:none; {{ $guncellemelerAktif ? 'background: var(--primary-gradient);' : '' }}">
-                            <i class="fas fa-bell"></i>
-                            Güncellemeler
-                            @if($guncellemelerToplamCount > 0)
-                                <span class="tab-count-pro">{{ $guncellemelerToplamCount }}</span>
-                            @endif
-                            <i class="fas fa-chevron-down" style="font-size:0.7rem; margin-left:2px;"></i>
-                        </button>
-                        <div class="tab-dropdown-menu">
-                            @if($hasIsNew ?? false)
-                                <a href="{{ route('aboneler.index', ['tab' => 'new'] + request()->except('tab', 'page')) }}"
-                                    class="tab-dropdown-item {{ request('tab') == 'new' ? 'active' : '' }}">
-                                    <i class="fas fa-star" style="color:{{ request('tab') == 'new' ? '#fff' : '#f59e0b' }};"></i>
-                                    Yeni Kayıtlar
-                                    <span class="tab-count-pro" style="margin-left:auto;">{{ $newCount ?? 0 }}</span>
-                                </a>
-                            @endif
-                            @if($hasIsUpdated ?? false)
-                                <a href="{{ route('aboneler.index', ['tab' => 'sayac_guncelleme'] + request()->except('tab', 'page')) }}"
-                                    class="tab-dropdown-item {{ request('tab') == 'sayac_guncelleme' ? 'active' : '' }}">
-                                    <i class="fas fa-tachometer-alt"
-                                        style="color:{{ request('tab') == 'sayac_guncelleme' ? '#fff' : '#dc2626' }};"></i>
-                                    Sayaç Değişimi
-                                    <span class="tab-count-pro" style="margin-left:auto;">{{ $sayacGuncellemeSayisi ?? 0 }}</span>
-                                </a>
-                                <a href="{{ route('aboneler.index', ['tab' => 'bilgi_guncelleme'] + request()->except('tab', 'page')) }}"
-                                    class="tab-dropdown-item {{ request('tab') == 'bilgi_guncelleme' ? 'active' : '' }}">
-                                    <i class="fas fa-sync-alt"
-                                        style="color:{{ request('tab') == 'bilgi_guncelleme' ? '#fff' : '#0ea5e9' }};"></i>
-                                    Bilgi Güncelleme
-                                    <span class="tab-count-pro" style="margin-left:auto;">{{ $bilgiGuncellemeSayisi ?? 0 }}</span>
-                                </a>
-                            @endif
-                        </div>
-                    </div>
-                @endif
+
 
                 {{-- Yerleşim Türü Dropdown --}}
                 <div class="tab-dropdown-wrap" id="yerlesimDropdown">
@@ -645,26 +601,11 @@
                         <i class="fas fa-table"></i>
                         @if(request('tab') == 'new') Yeni Eklenen Aboneler
                         @elseif(request('tab') == 'passive') Pasif Aboneler
-                        @elseif(request('tab') == 'sayac_guncelleme') Sayaç Değişikliği Tespit Edilenler
-                        @elseif(request('tab') == 'bilgi_guncelleme') Bilgileri Güncellenenler
+
                         @elseif(request('tab') == 'koy') <i class="fas fa-tree" style="color:#16a34a;"></i> Köy Aboneleri
                         @elseif(request('tab') == 'merkez') <i class="fas fa-city" style="color:#0284c7;"></i> Merkez Aboneleri
                         @else Abone Kayıtları @endif
                     </h5>
-
-                    @if(in_array(request('tab'), ['new', 'sayac_guncelleme', 'bilgi_guncelleme']))
-                        <div class="d-flex gap-2">
-                            <div id="bulkActions" style="display:none;">
-                                <button type="button" onclick="bulkApprove()" class="btn-pro btn-primary-pro"
-                                    style="background: #16a34a;">
-                                    <i class="fas fa-check-double"></i> Seçilenleri Onayla (<span id="selectedCount">0</span>)
-                                </button>
-                            </div>
-                            <button type="button" onclick="markAllOld()" class="btn-pro btn-outline-pro">
-                                <i class="fas fa-check-circle"></i> Tümünü Onayla
-                            </button>
-                        </div>
-                    @endif
 
                     @if(request('tab') == 'passive')
                         <a href="{{ route('aboneler.sync-passive') }}" class="btn-pro btn-primary-pro"
@@ -673,23 +614,6 @@
                         </a>
                     @endif
                 </div>
-
-                {{-- Bulk Banners --}}
-                @if(in_array(request('tab'), ['new', 'sayac_guncelleme', 'bilgi_guncelleme']))
-                    <div id="selectAllBanner"
-                        style="display:none; background:#eff6ff; border:1px dashed #3b82f6; border-radius:12px; padding:12px 20px; margin-bottom:20px; text-align:center; font-size:0.9rem; color:#1e40af; font-weight:600;">
-                        Bu sayfadaki <span class="page-count">0</span> abone seçildi.
-                        <a href="javascript:void(0)" onclick="selectAllInTab()"
-                            style="color:#2563eb; text-decoration:underline; margin-left:8px;">Sekmedeki TÜM (<span
-                                class="tab-total-count">{{ $newCount ?? $sayacGuncellemeSayisi ?? $bilgiGuncellemeSayisi ?? 0 }}</span>)
-                            aboneleri seç</a>
-                    </div>
-                    <div id="allSelectedBanner"
-                        style="display:none; background:#f0fdf4; border:1px solid #16a34a; border-radius:12px; padding:12px 20px; margin-bottom:20px; text-align:center; font-size:0.9rem; color:#166534; font-weight:700;">
-                        Tüm sekme kayıtları seçildi. <a href="javascript:void(0)" onclick="clearSelection()"
-                            style="margin-left:10px; color:#15803d; text-decoration:underline;">Seçimi Temizle</a>
-                    </div>
-                @endif
 
                 <div class="table-responsive">
                     <table class="table-pro">

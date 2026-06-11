@@ -2,46 +2,33 @@
 
 namespace App\Http\Controllers;
 
-use Illuminate\Http\Request;
 use App\Models\ActivityLog;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Schema;
 
 class AbonelerController extends Controller
 {
     public function index(Request $request)
     {
-        $hasIsNew     = Schema::hasColumn('aboneler', 'is_new');
-        $hasIsUpdated = Schema::hasColumn('aboneler', 'is_updated');
+        $hasIsNew = Schema::hasColumn('aboneler', 'is_new');
         $hasBolgeKodu = Schema::hasColumn('aboneler', 'BOLGE_KODU');
-        $hasIsActive  = Schema::hasColumn('aboneler', 'is_active');
+        $hasIsActive = Schema::hasColumn('aboneler', 'is_active');
 
         $query = \App\Models\Aboneler::query();
-        $tab      = $request->get('tab', 'all'); // 'all', 'passive', 'new', 'sayac_guncelleme', 'bilgi_guncelleme'
-        $yerlesim = $request->get('yerlesim', 'all'); // 'all', 'koy', 'merkez', 'aritma'
+        $tab = $request->get('tab', 'all');
+        $yerlesim = $request->get('yerlesim', 'all');
 
-        // 1. Status Filter (Tab)
         if ($tab === 'passive' && $hasIsActive) {
             $query->where('is_active', false);
         } elseif ($tab === 'new' && $hasIsNew) {
             $query->where('is_new', true);
-            if ($hasIsActive) $query->where('is_active', true);
-        } elseif ($tab === 'sayac_guncelleme' && $hasIsUpdated) {
-            $query->where('is_updated', true)
-                  ->whereNotNull('prev_sayac_seri_no')
-                  ->whereRaw('prev_sayac_seri_no != SAYAC_SERI_NO');
-            if ($hasIsActive) $query->where('is_active', true);
-        } elseif ($tab === 'bilgi_guncelleme' && $hasIsUpdated) {
-            $query->where('is_updated', true)
-                  ->where(function($q) {
-                      $q->whereNotNull('prev_adres')
-                        ->orWhereNotNull('prev_hesap_adi')
-                        ->orWhereNotNull('prev_abone_grubu')
-                        ->orWhereNotNull('prev_baglanti_grubu')
-                        ->orWhereNotNull('prev_tarife');
-                  });
-            if ($hasIsActive) $query->where('is_active', true);
+            if ($hasIsActive) {
+                $query->where('is_active', true);
+            }
         } elseif ($tab === 'all') {
-            if ($hasIsActive) $query->where('is_active', true);
+            if ($hasIsActive) {
+                $query->where('is_active', true);
+            }
         }
         // If tab is 'total_all' (hypothetical), we don't apply is_active filter.
 
@@ -54,65 +41,41 @@ class AbonelerController extends Controller
 
         if ($request->filled('search')) {
             $search = $request->search;
-            $query->where(function($q) use ($search) {
+            $query->where(function ($q) use ($search) {
                 $q->where('ABONE_TESIS_NO', 'like', "%{$search}%")
-                  ->orWhere('SAYAC_SERI_NO', 'like', "%{$search}%")
-                  ->orWhere('UNVAN', 'like', "%{$search}%")
-                  ->orWhere('hesap_adi', 'like', "%{$search}%")
-                  ->orWhere('abone_grubu', 'like', "%{$search}%")
-                  ->orWhere('tarife', 'like', "%{$search}%")
-                  ->orWhere('ADRES', 'like', "%{$search}%");
+                    ->orWhere('SAYAC_SERI_NO', 'like', "%{$search}%")
+                    ->orWhere('UNVAN', 'like', "%{$search}%")
+                    ->orWhere('hesap_adi', 'like', "%{$search}%")
+                    ->orWhere('abone_grubu', 'like', "%{$search}%")
+                    ->orWhere('tarife', 'like', "%{$search}%")
+                    ->orWhere('ADRES', 'like', "%{$search}%");
             });
         }
 
-        $aboneler    = $query->with('bolge')->latest()->paginate(20)->withQueryString();
+        $aboneler = $query->with('bolge')->latest()->paginate(20)->withQueryString();
 
-        $baseActive  = $hasIsActive ? \App\Models\Aboneler::where('is_active', true) : \App\Models\Aboneler::query();
+        $baseActive = $hasIsActive ? \App\Models\Aboneler::where('is_active', true) : \App\Models\Aboneler::query();
         $basePassive = $hasIsActive ? \App\Models\Aboneler::where('is_active', false) : null;
 
-        $totalCount   = $hasIsActive ? (clone $baseActive)->count() : \App\Models\Aboneler::count();
+        $totalCount = $hasIsActive ? (clone $baseActive)->count() : \App\Models\Aboneler::count();
         $passiveCount = $hasIsActive ? (clone $basePassive)->count() : 0;
-        $newCount     = $hasIsNew ? (clone $baseActive)->where('is_new', true)->count() : 0;
+        $newCount = $hasIsNew ? (clone $baseActive)->where('is_new', true)->count() : 0;
 
-        // Sayac guncelleme sayisi: prev_sayac_seri_no dolu ve mevcut sayactan farkli
-        $sayacGuncellemeSayisi = $hasIsUpdated ? (clone $baseActive)
-            ->where('is_updated', true)
-            ->whereNotNull('prev_sayac_seri_no')
-            ->whereRaw('prev_sayac_seri_no != SAYAC_SERI_NO')
-            ->count() : 0;
-
-        // Bilgi guncelleme sayisi: diger prev_ alanlari
-        $bilgiGuncellemeSayisi = $hasIsUpdated ? (clone $baseActive)
-            ->where('is_updated', true)
-            ->where(function($q) {
-                $q->whereNotNull('prev_adres')
-                  ->orWhereNotNull('prev_hesap_adi')
-                  ->orWhereNotNull('prev_abone_grubu')
-                  ->orWhereNotNull('prev_baglanti_grubu')
-                  ->orWhereNotNull('prev_tarife');
-            })
-            ->count() : 0;
-
-        $hasIsUpdated_tab = $hasIsUpdated && ($sayacGuncellemeSayisi > 0 || $bilgiGuncellemeSayisi > 0);
-
-        // Köy / Merkez sayımları
-        $koyCount    = (clone $baseActive)->where('yerlesim_turu', 'KÖY')->count();
+        $koyCount = (clone $baseActive)->where('yerlesim_turu', 'KÖY')->count();
         $merkezCount = (clone $baseActive)->where('yerlesim_turu', 'MERKEZ')->count();
         $bolgeler = \App\Models\Bolgeler::orderBy('bolge_adi')->get();
 
         return view('aboneler.index', compact(
             'aboneler', 'totalCount', 'newCount',
-            'sayacGuncellemeSayisi', 'bilgiGuncellemeSayisi', 'hasIsUpdated_tab',
-            'passiveCount', 'hasIsNew', 'hasIsUpdated', 'hasBolgeKodu', 'hasIsActive',
+            'passiveCount', 'hasIsNew', 'hasBolgeKodu', 'hasIsActive',
             'koyCount', 'merkezCount', 'bolgeler'
         ));
     }
 
-
     public function show($id)
     {
         $abone = \App\Models\Aboneler::findOrFail($id);
-        
+
         $havuzSayaclar = \App\Models\BeklemeKontrolHavuzu::with('importLog:id,donem')
             ->where('tesisat_no', $abone->ABONE_TESIS_NO)
             ->whereNotNull('sayac_seri_no')
@@ -120,29 +83,29 @@ class AbonelerController extends Controller
             ->select('tesisat_no', 'sayac_seri_no', 'import_log_id', 'id')
             ->orderBy('id', 'desc')
             ->get();
-            
+
         $metersWithDates = [];
 
         foreach ($havuzSayaclar as $row) {
             $sNo = $row->sayac_seri_no;
-            if (!isset($metersWithDates[$sNo])) {
+            if (! isset($metersWithDates[$sNo])) {
                 $donem = $row->importLog->donem ?? 'Bilinmiyor';
                 $metersWithDates[$sNo] = $donem;
             }
         }
 
         // Eğer mevcut (aktif) sayaç havuzdan gelmediyse (manuel eklendiyse) en başa koy
-        if ($abone->SAYAC_SERI_NO && !isset($metersWithDates[$abone->SAYAC_SERI_NO])) {
+        if ($abone->SAYAC_SERI_NO && ! isset($metersWithDates[$abone->SAYAC_SERI_NO])) {
             $metersWithDates = [$abone->SAYAC_SERI_NO => 'Sistem Kaydı'] + $metersWithDates;
         }
 
-        if ($abone->prev_sayac_seri_no && !isset($metersWithDates[$abone->prev_sayac_seri_no])) {
+        if ($abone->prev_sayac_seri_no && ! isset($metersWithDates[$abone->prev_sayac_seri_no])) {
             $metersWithDates[$abone->prev_sayac_seri_no] = 'Eski Kayıt';
         }
 
         $farkliSayaclar = [];
         foreach ($metersWithDates as $sNo => $tarih) {
-            $farkliSayaclar[] = (object)[ 'no' => $sNo, 'tarih' => $tarih ];
+            $farkliSayaclar[] = (object) ['no' => $sNo, 'tarih' => $tarih];
         }
 
         return view('aboneler.show', compact('abone', 'farkliSayaclar'));
@@ -157,15 +120,15 @@ class AbonelerController extends Controller
     {
         $validated = $request->validate([
             'ABONE_TESIS_NO' => 'required|unique:aboneler,ABONE_TESIS_NO',
-            'UNVAN'          => 'nullable|string|max:255',
-            'BOLGE_ADI'      => 'nullable|string|max:255',
-            'ADRES'          => 'nullable|string',
-            'SAYAC_SERI_NO'  => 'nullable|string|max:255',
-            'hesap_adi'      => 'nullable|string|max:255',
-            'abone_grubu'    => 'nullable|string|max:255',
+            'UNVAN' => 'nullable|string|max:255',
+            'BOLGE_ADI' => 'nullable|string|max:255',
+            'ADRES' => 'nullable|string',
+            'SAYAC_SERI_NO' => 'nullable|string|max:255',
+            'hesap_adi' => 'nullable|string|max:255',
+            'abone_grubu' => 'nullable|string|max:255',
             'baglanti_grubu' => 'nullable|string|max:50',
-            'tarife'         => 'nullable|string|max:100',
-            'notlar'         => 'nullable|string',
+            'tarife' => 'nullable|string|max:100',
+            'notlar' => 'nullable|string',
         ]);
 
         try {
@@ -173,14 +136,14 @@ class AbonelerController extends Controller
                 $abone = \App\Models\Aboneler::create($validated);
 
                 ActivityLog::create([
-                    'user_id'     => auth()->id(),
-                    'action'      => 'abone_eklendi',
-                    'model'       => 'Aboneler',
-                    'model_id'    => $abone->id,
+                    'user_id' => auth()->id(),
+                    'action' => 'abone_eklendi',
+                    'model' => 'Aboneler',
+                    'model_id' => $abone->id,
                     'description' => "Sisteme yeni abone (Tesisat No: {$abone->ABONE_TESIS_NO}) eklendi.",
-                    'new_data'    => $validated,
-                    'ip'          => request()->ip(),
-                    'user_agent'  => request()->userAgent()
+                    'new_data' => $validated,
+                    'ip' => request()->ip(),
+                    'user_agent' => request()->userAgent(),
                 ]);
             });
 
@@ -201,15 +164,15 @@ class AbonelerController extends Controller
         $old_data = $abone->toArray();
 
         $validated = $request->validate([
-            'BOLGE_ADI'      => 'nullable|string|max:255',
-            'ADRES'          => 'nullable|string',
-            'SAYAC_SERI_NO'  => 'nullable|string|max:255',
-            'hesap_adi'      => 'nullable|string|max:255',
+            'BOLGE_ADI' => 'nullable|string|max:255',
+            'ADRES' => 'nullable|string',
+            'SAYAC_SERI_NO' => 'nullable|string|max:255',
+            'hesap_adi' => 'nullable|string|max:255',
             'baglanti_grubu' => 'nullable|string|max:50',
-            'abone_grubu'    => 'nullable|string|max:255',
-            'tarife'         => 'nullable|string|max:100',
-            'notlar'         => 'nullable|string',
-            'yerlesim_turu'  => 'nullable|in:KÖY,MERKEZ',
+            'abone_grubu' => 'nullable|string|max:255',
+            'tarife' => 'nullable|string|max:100',
+            'notlar' => 'nullable|string',
+            'yerlesim_turu' => 'nullable|in:KÖY,MERKEZ',
         ]);
 
         try {
@@ -231,19 +194,16 @@ class AbonelerController extends Controller
                     $abone->update(['yerlesim_turu' => $validated['yerlesim_turu']]);
                 }
 
-                // is_updated = false (manuel düzenleme = kullanıcı inceledi)
-                $abone->update(['is_updated' => false]);
-
                 ActivityLog::create([
-                    'user_id'     => auth()->id(),
-                    'action'      => 'abone_guncellendi',
-                    'model'       => 'Aboneler',
-                    'model_id'    => $abone->id,
-                    'description' => "Abone (Tesisat No: {$abone->ABONE_TESIS_NO}) profil bilgileri güncellendi. " . (empty($degisiklikler) ? 'Değişiklik yok.' : count($degisiklikler) . ' alan değişti.'),
-                    'old_data'    => $old_data,
-                    'new_data'    => $validated,
-                    'ip'          => request()->ip(),
-                    'user_agent'  => request()->userAgent()
+                    'user_id' => auth()->id(),
+                    'action' => 'abone_guncellendi',
+                    'model' => 'Aboneler',
+                    'model_id' => $abone->id,
+                    'description' => "Abone (Tesisat No: {$abone->ABONE_TESIS_NO}) profil bilgileri güncellendi. ".(empty($degisiklikler) ? 'Değişiklik yok.' : count($degisiklikler).' alan değişti.'),
+                    'old_data' => $old_data,
+                    'new_data' => $validated,
+                    'ip' => request()->ip(),
+                    'user_agent' => request()->userAgent(),
                 ]);
             });
 
@@ -253,24 +213,23 @@ class AbonelerController extends Controller
         }
     }
 
-
     public function destroy($id)
     {
         $abone = \App\Models\Aboneler::findOrFail($id);
         $old_data = $abone->toArray();
-        
+
         \Illuminate\Support\Facades\DB::transaction(function () use ($abone, $old_data, $id) {
             $abone->delete();
 
             ActivityLog::create([
-                'user_id'     => auth()->id(),
-                'action'      => 'abone_silindi',
-                'model'       => 'Aboneler',
-                'model_id'    => $id,
+                'user_id' => auth()->id(),
+                'action' => 'abone_silindi',
+                'model' => 'Aboneler',
+                'model_id' => $id,
                 'description' => "Abone (Tesisat No: {$old_data['ABONE_TESIS_NO']}) sistemden silindi.",
-                'old_data'    => $old_data,
-                'ip'          => request()->ip(),
-                'user_agent'  => request()->userAgent()
+                'old_data' => $old_data,
+                'ip' => request()->ip(),
+                'user_agent' => request()->userAgent(),
             ]);
         });
 
@@ -278,159 +237,17 @@ class AbonelerController extends Controller
     }
 
     /**
-     * Aboneyi onayla: is_new/is_updated bayraklarini ve prev_ snapshot alanlarini temizle.
-     * guncelleme_detay JSON gecmisi korunur (detay sayfasinda goruntulenir).
-     */
-    public function markOld($id)
-    {
-        if (!Schema::hasColumn('aboneler', 'is_new')) {
-            return response()->json(['success' => false, 'message' => 'Migration henuz uygulanmamis.']);
-        }
-
-        $abone = \App\Models\Aboneler::findOrFail($id);
-
-        $abone->update([
-            'is_new'              => false,
-            'is_updated'          => false,
-            // Snapshot prev_ alanlarini temizle — kayit normal sekmeye dusuyor.
-            // Tarihce guncelleme_detay JSON icinde sakli kalmaya devam eder.
-            'prev_adres'          => null,
-            'prev_sayac_seri_no'  => null,
-            'prev_hesap_adi'      => null,
-            'prev_abone_grubu'    => null,
-            'prev_baglanti_grubu' => null,
-            'prev_tarife'         => null,
-        ]);
-
-        ActivityLog::create([
-            'user_id'     => auth()->id(),
-            'action'      => 'abone_onaylandi',
-            'model'       => 'Aboneler',
-            'model_id'    => $abone->id,
-            'description' => "Abone (Tesisat No: {$abone->ABONE_TESIS_NO}) incelendi ve onaylandi. Guncelleme bayraklari temizlendi.",
-            'ip'          => request()->ip(),
-            'user_agent'  => request()->userAgent()
-        ]);
-
-        return response()->json(['success' => true]);
-    }
-
-    /**
-     * Tum guncelleme bayraklarini tek seferde temizle (Tumunu Onayla).
-     * is_new + is_updated bayraklari ve tum prev_ snapshot alanlari null yapilir.
-     * guncelleme_detay JSON gecmisi korunur.
-     */
-    public function markAllOld(Request $request)
-    {
-        $hasIsNew     = Schema::hasColumn('aboneler', 'is_new');
-        $hasIsUpdated = Schema::hasColumn('aboneler', 'is_updated');
-
-        $query = \App\Models\Aboneler::query();
-        $tab   = $request->get('tab', 'all');
-
-        if ($tab === 'new' && $hasIsNew) {
-            $query->where('is_new', true);
-        } elseif ($tab === 'sayac_guncelleme' && $hasIsUpdated) {
-            $query->where('is_updated', true)
-                  ->whereNotNull('prev_sayac_seri_no')
-                  ->whereRaw('prev_sayac_seri_no != SAYAC_SERI_NO');
-        } elseif ($tab === 'bilgi_guncelleme' && $hasIsUpdated) {
-            $query->where('is_updated', true)
-                  ->where(function($q) {
-                      $q->whereNotNull('prev_adres')
-                        ->orWhereNotNull('prev_hesap_adi')
-                        ->orWhereNotNull('prev_abone_grubu')
-                        ->orWhereNotNull('prev_baglanti_grubu')
-                        ->orWhereNotNull('prev_tarife');
-                  });
-        } else {
-            // "all" veya diger durumlar: her iki bayragi da kapsar
-            $query->where(function($q) {
-                $q->where('is_new', true)->orWhere('is_updated', true);
-            });
-        }
-
-        $updatePayload = [
-            'is_new'              => false,
-            'is_updated'          => false,
-            'prev_adres'          => null,
-            'prev_sayac_seri_no'  => null,
-            'prev_hesap_adi'      => null,
-            'prev_abone_grubu'    => null,
-            'prev_baglanti_grubu' => null,
-            'prev_tarife'         => null,
-        ];
-
-        $count = (clone $query)->count();
-        $query->update($updatePayload);
-
-        ActivityLog::create([
-            'user_id'     => auth()->id(),
-            'action'      => 'tumunu_onayla',
-            'model'       => 'Aboneler',
-            'description' => "{$count} abone kaydinin guncelleme bayraklari temizlendi (Tab: {$tab}).",
-            'ip'          => request()->ip(),
-            'user_agent'  => request()->userAgent()
-        ]);
-
-        return response()->json([
-            'success' => true,
-            'count'   => $count,
-            'message' => "{$count} abone onaylandi ve aktif sekmeye tasindi.",
-        ]);
-    }
-
-    /**
-     * Secilen aboneleri onayla (is_new/is_updated temizle).
-     */
-    public function markSelectedOld(Request $request)
-    {
-        $ids = $request->input('ids', []);
-        if (empty($ids)) {
-            return response()->json(['success' => false, 'message' => 'Lutfen en az bir abone secin.']);
-        }
-
-        $updatePayload = [
-            'is_new'              => false,
-            'is_updated'          => false,
-            'prev_adres'          => null,
-            'prev_sayac_seri_no'  => null,
-            'prev_hesap_adi'      => null,
-            'prev_abone_grubu'    => null,
-            'prev_baglanti_grubu' => null,
-            'prev_tarife'         => null,
-        ];
-
-        $count = \App\Models\Aboneler::whereIn('id', $ids)->update($updatePayload);
-
-        ActivityLog::create([
-            'user_id'     => auth()->id(),
-            'action'      => 'secilenleri_onayla',
-            'model'       => 'Aboneler',
-            'description' => "{$count} secilen abone kaydinin guncelleme bayraklari temizlendi.",
-            'ip'          => request()->ip(),
-            'user_agent'  => request()->userAgent()
-        ]);
-
-        return response()->json([
-            'success' => true,
-            'count'   => $count,
-            'message' => "{$count} abone onaylandi ve aktif sekmeye tasindi.",
-        ]);
-    }
-
-    /**
      * Abonenin aktif/pasif durumunu değiştir
      */
     public function toggleActive($id)
     {
-        if (!Schema::hasColumn('aboneler', 'is_active')) {
+        if (! Schema::hasColumn('aboneler', 'is_active')) {
             return response()->json(['success' => false, 'message' => 'Migration henüz uygulanmamış.']);
         }
 
         $abone = \App\Models\Aboneler::findOrFail($id);
-        $newStatus = !$abone->is_active;
-        
+        $newStatus = ! $abone->is_active;
+
         $updateData = ['is_active' => $newStatus];
         if ($newStatus) {
             $updateData['passive_reason'] = null;
@@ -441,19 +258,19 @@ class AbonelerController extends Controller
         $durum = $newStatus ? 'Aktif' : 'Pasif';
 
         ActivityLog::create([
-            'user_id'     => auth()->id(),
-            'action'      => $newStatus ? 'abone_aktif_edildi' : 'abone_pasif_edildi',
-            'model'       => 'Aboneler',
-            'model_id'    => $abone->id,
+            'user_id' => auth()->id(),
+            'action' => $newStatus ? 'abone_aktif_edildi' : 'abone_pasif_edildi',
+            'model' => 'Aboneler',
+            'model_id' => $abone->id,
             'description' => "Abone (Tesisat No: {$abone->ABONE_TESIS_NO}) durumu {$durum} olarak değiştirildi.",
-            'ip'          => request()->ip(),
-            'user_agent'  => request()->userAgent()
+            'ip' => request()->ip(),
+            'user_agent' => request()->userAgent(),
         ]);
 
         return response()->json([
-            'success'    => true,
-            'is_active'  => $newStatus,
-            'message'    => "Abone {$durum} olarak işaretlendi."
+            'success' => true,
+            'is_active' => $newStatus,
+            'message' => "Abone {$durum} olarak işaretlendi.",
         ]);
     }
 
@@ -464,7 +281,9 @@ class AbonelerController extends Controller
     public function syncPassiveStatus()
     {
         $hasIsActive = Schema::hasColumn('aboneler', 'is_active');
-        if (!$hasIsActive) return redirect()->back()->with('error', 'Pasiflik özelliği henüz aktif değil.');
+        if (! $hasIsActive) {
+            return redirect()->back()->with('error', 'Pasiflik özelliği henüz aktif değil.');
+        }
 
         $thresholdDays = 120; // 4 Ay
         $today = now();
@@ -488,14 +307,14 @@ class AbonelerController extends Controller
                 $gunFarki = intval($today->diffInDays($sonFatura->son_okuma));
                 if ($gunFarki > $thresholdDays) {
                     $shouldBePassive = true;
-                    $reason = "Son okumadan bu yana " . $gunFarki . " gün geçti. (Son Okuma: " . $sonFatura->son_okuma->format('d.m.Y') . ")";
+                    $reason = 'Son okumadan bu yana '.$gunFarki.' gün geçti. (Son Okuma: '.$sonFatura->son_okuma->format('d.m.Y').')';
                 }
             } else {
                 // Hiç faturası yoksa ve eklenme tarihi 4 ayı geçmişse
                 $eklenmeFarki = intval($today->diffInDays($abone->created_at));
                 if ($eklenmeFarki > $thresholdDays) {
                     $shouldBePassive = true;
-                    $reason = "Sisteme eklendiğinden beri " . $eklenmeFarki . " gündür hiç fatura girişi yapılmadı.";
+                    $reason = 'Sisteme eklendiğinden beri '.$eklenmeFarki.' gündür hiç fatura girişi yapılmadı.';
                 }
             }
 
@@ -504,36 +323,41 @@ class AbonelerController extends Controller
                 $abone->update([
                     'is_active' => false,
                     'passive_reason' => $reason,
-                    'last_invoice_date' => $sonFatura ? $sonFatura->son_okuma : null
+                    'last_invoice_date' => $sonFatura ? $sonFatura->son_okuma : null,
                 ]);
                 $passiveCount++;
-            } elseif (!$shouldBePassive && !$abone->is_active && $abone->passive_reason) {
+            } elseif (! $shouldBePassive && ! $abone->is_active && $abone->passive_reason) {
                 // Eğer daha önce "Hatalı Gelecek Tarih" yüzünden pasife çekilmişse (2030 vakası)
                 // Ama şimdi shouldBePassive = false ise (çünkü 2030'u filtreledik), geri aktif edelim
                 $abone->update([
                     'is_active' => true,
-                    'passive_reason' => null
+                    'passive_reason' => null,
                 ]);
                 $reactivatedCount++;
             }
         }
 
-        $message = "Analiz tamamlandı.";
-        if ($passiveCount > 0) $message .= " {$passiveCount} yeni pasif abone tespit edildi.";
-        if ($reactivatedCount > 0) $message .= " {$reactivatedCount} hatalı pasif kayıt düzeltildi.";
-        
+        $message = 'Analiz tamamlandı.';
+        if ($passiveCount > 0) {
+            $message .= " {$passiveCount} yeni pasif abone tespit edildi.";
+        }
+        if ($reactivatedCount > 0) {
+            $message .= " {$reactivatedCount} hatalı pasif kayıt düzeltildi.";
+        }
+
         if ($passiveCount > 0 || $reactivatedCount > 0) {
             ActivityLog::create([
-                'user_id'     => auth()->id(),
-                'action'      => 'pasif_senkronizasyon',
-                'model'       => 'Aboneler',
+                'user_id' => auth()->id(),
+                'action' => 'pasif_senkronizasyon',
+                'model' => 'Aboneler',
                 'description' => "Analiz sonucu: {$passiveCount} pasif, {$reactivatedCount} düzeltme yapıldı.",
-                'ip'          => request()->ip(),
-                'user_agent'  => request()->userAgent()
+                'ip' => request()->ip(),
+                'user_agent' => request()->userAgent(),
             ]);
+
             return redirect()->route('aboneler.index', ['tab' => 'passive'])->with('success', $message);
         }
 
-        return redirect()->route('aboneler.index', ['tab' => 'passive'])->with('info', "Analiz tamamlandı. Durum değişikliği gerekmedi.");
+        return redirect()->route('aboneler.index', ['tab' => 'passive'])->with('info', 'Analiz tamamlandı. Durum değişikliği gerekmedi.');
     }
 }

@@ -182,7 +182,6 @@ document.addEventListener("DOMContentLoaded", function() {
         { title: "Geçmiş Yükleme Logları", link: "{{ route('import.logs') }}", icon: "fas fa-history", keywords: "yükleme geçmiş import log liste" },
         { title: "Aboneler Tablosu", link: "{{ route('aboneler.index') }}", icon: "fas fa-users", keywords: "abone aboneler müşteri liste tesisat acomp" },
         { title: "Yeni Abone Kayıt", link: "{{ route('aboneler.create') }}", icon: "fas fa-user-plus", keywords: "yeni abone kayıt ekle oluştur müşteri" },
-        { title: "Bölgeler Listesi", link: "{{ route('bolgeler.index') }}", icon: "fas fa-map-marker-alt", keywords: "bölge mahalle sokak ilçe listesi" },
         { title: "Personeller (Kullanıcılar)", link: "{{ route('users.index') }}", icon: "fas fa-user-shield", keywords: "kullanıcılar personel ekibi admin roller" },
         { title: "Yeni Personel Ekle", link: "{{ route('users.create') }}", icon: "fas fa-user-plus", keywords: "yeni kullanıcı personel ekle yetki" },
         { title: "Sistem İzleme Logları", link: "{{ route('activity-logs.index') }}", icon: "fas fa-list-alt", keywords: "aktivite faaliyet loglar geçmiş izleme sistem" },

@@ -127,23 +127,18 @@
 					</li>
 
 					<li
-						class="nav-item {{ request()->is('aboneler*') || request()->routeIs('bolgeler.*') ? 'active' : '' }}">
+						class="nav-item {{ request()->is('aboneler*') ? 'active' : '' }}">
 						<a data-toggle="collapse" href="#abone">
 							<i class="fas fa-users"></i>
 							<p>Abone İşlemleri</p>
 							<span class="caret"></span>
 						</a>
-						<div class="collapse {{ request()->is('aboneler*') || request()->routeIs('bolgeler.*') ? 'show' : '' }}"
+						<div class="collapse {{ request()->is('aboneler*') ? 'show' : '' }}"
 							id="abone">
 							<ul class="nav nav-collapse">
 								<li class="{{ request()->routeIs('aboneler.index') ? 'active' : '' }}">
 									<a href="{{ route('aboneler.index') }}">
 										<span class="sub-item">Aboneler</span>
-									</a>
-								</li>
-								<li class="{{ request()->routeIs('bolgeler.*') ? 'active' : '' }}">
-									<a href="{{ route('bolgeler.index') }}">
-										<span class="sub-item">Bölgeler</span>
 									</a>
 								</li>
 							</ul>

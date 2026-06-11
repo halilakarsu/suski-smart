@@ -25,14 +25,12 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::get('/aboneler/sync-passive', [\App\Http\Controllers\AbonelerController::class, 'syncPassiveStatus'])->name('aboneler.sync-passive');
         Route::get('/aboneler/create', [\App\Http\Controllers\AbonelerController::class, 'create'])->name('aboneler.create');
         Route::post('/aboneler', [\App\Http\Controllers\AbonelerController::class, 'store'])->name('aboneler.store');
-        Route::post('/aboneler/mark-selected-old', [\App\Http\Controllers\AbonelerController::class, 'markSelectedOld'])->name('aboneler.mark-selected-old');
-        Route::post('/aboneler/mark-all-old', [\App\Http\Controllers\AbonelerController::class, 'markAllOld'])->name('aboneler.mark-all-old');
         Route::get('/aboneler/{id}', [\App\Http\Controllers\AbonelerController::class, 'show'])->name('aboneler.show');
         Route::get('/aboneler/{id}/edit', [\App\Http\Controllers\AbonelerController::class, 'edit'])->name('aboneler.edit');
         Route::put('/aboneler/{id}', [\App\Http\Controllers\AbonelerController::class, 'update'])->name('aboneler.update');
         Route::delete('/aboneler/{id}', [\App\Http\Controllers\AbonelerController::class, 'destroy'])->name('aboneler.destroy');
         Route::post('/aboneler/{id}/meter', [\App\Http\Controllers\AbonelerController::class, 'addMeter'])->name('aboneler.addMeter');
-        Route::post('/aboneler/{id}/mark-old', [\App\Http\Controllers\AbonelerController::class, 'markOld'])->name('aboneler.mark-old');
+
         Route::post('/aboneler/{id}/toggle-active', [\App\Http\Controllers\AbonelerController::class, 'toggleActive'])->name('aboneler.toggle-active');
     });
 
@@ -113,10 +111,6 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
         Route::get('/logs', [\App\Http\Controllers\ActivityLogController::class, 'index'])->name('activity-logs.index');
 
-        // Bölge Yönetimi
-        Route::get('/bolgeler', [\App\Http\Controllers\BolgelerController::class, 'index'])->name('bolgeler.index');
-        Route::post('/bolgeler', [\App\Http\Controllers\BolgelerController::class, 'store'])->name('bolgeler.store');
-        Route::put('/bolgeler/{id}', [\App\Http\Controllers\BolgelerController::class, 'update'])->name('bolgeler.update');
     });
 
     // ── Raporlama (Birleştirilmiş) ───────────────────────────────────────
