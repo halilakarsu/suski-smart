@@ -619,10 +619,6 @@
                     <table class="table-pro">
                         <thead>
                             <tr>
-                                @if(in_array(request('tab'), ['new', 'sayac_guncelleme', 'bilgi_guncelleme']))
-                                    <th style="width: 40px;"><input type="checkbox" id="selectAll"
-                                            style="width:18px; height:18px;"></th>
-                                @endif
                                 <th style="width: 60px;">#</th>
                                 <th>Bölge Koordinasyonu</th>
                                 @if($hasBolgeKodu ?? false)
@@ -643,10 +639,6 @@
                                     $isPassive = ($hasIsActive ?? false) && !$abone->is_active;
                                 @endphp
                                 <tr id="row-{{ $abone->id }}" style="{{ $isPassive ? 'opacity: 0.6;' : '' }}">
-                                    @if(in_array(request('tab'), ['new', 'sayac_guncelleme', 'bilgi_guncelleme']))
-                                        <td><input type="checkbox" class="sub-checkbox" value="{{ $abone->id }}"
-                                                style="width:18px; height:18px;"></td>
-                                    @endif
                                     <td style="font-weight: 700; color: #94a3b8;">{{ str_pad($iter, 2, '0', STR_PAD_LEFT) }}
                                     </td>
                                     <td><span class="badge-pro badge-blue"><i class="fas fa-map-marker-alt mr-2"></i>
@@ -699,11 +691,6 @@
                                             <button type="button" class="action-btn-pro ab-orange" title="Düzenle"
                                                 onclick="openEditModal({{ $abone->toJson() }})"><i
                                                     class="fas fa-pen"></i></button>
-
-                                            @if((($hasIsNew ?? false) && $abone->is_new) || (($hasIsUpdated ?? false) && $abone->is_updated))
-                                                <button type="button" class="action-btn-pro ab-green" title="Onayla"
-                                                    onclick="markAsOld({{ $abone->id }})"><i class="fas fa-check"></i></button>
-                                            @endif
 
                                             @if($hasIsActive ?? false)
                                                 @can('manage_aboneler')
@@ -950,11 +937,6 @@
 
     @push('scripts')
         <script>
-            // Güncellemeler dropdown toggle
-            function toggleDropdown() {
-                const wrap = document.getElementById('guncellemelerDropdown');
-                wrap.classList.toggle('open');
-            }
             // Abone durumu dropdown toggle
             function toggleStatusDropdown() {
                 const wrap = document.getElementById('statusDropdown');
@@ -979,10 +961,6 @@
                     yerlesimWrap.classList.remove('open');
                 }
 
-                const guncellemeWrap = document.getElementById('guncellemelerDropdown');
-                if (guncellemeWrap && !guncellemeWrap.contains(e.target)) {
-                    guncellemeWrap.classList.remove('open');
-                }
             });
 
             function openEditModal(abone) {
@@ -1032,89 +1010,6 @@
             function closeCreateSidebar() {
                 $('#createOverlay').removeClass('open');
                 $('#createSidebar').removeClass('open');
-            }
-
-            function markAsOld(id) {
-                Swal.fire({
-                    title: 'Onayla',
-                    text: 'Bu aboneyi onaylı kayıt olarak işaretlemek istiyor musunuz?',
-                    icon: 'question',
-                    showCancelButton: true,
-                    confirmButtonColor: '#16a34a',
-                    confirmButtonText: 'Evet, Onayla'
-                }).then((result) => {
-                    if (result.isConfirmed) {
-                        fetch('/aboneler/' + id + '/mark-old', {
-                            method: 'POST',
-                            headers: { 'X-CSRF-TOKEN': '{{ csrf_token() }}', 'Accept': 'application/json' }
-                        }).then(r => r.json()).then(data => {
-                            if (data.success) {
-                                location.reload();
-                            }
-                        });
-                    }
-                });
-            }
-
-            // Bulk actions logic (simplified for premium)
-            $(document).ready(function () {
-                $('#selectAll').on('change', function () {
-                    $('.sub-checkbox').prop('checked', this.checked);
-                    updateBulkActions();
-                });
-                $('.sub-checkbox').on('change', function () {
-                    updateBulkActions();
-                });
-
-                function updateBulkActions() {
-                    const count = $('.sub-checkbox:checked').length;
-                    $('#bulkActions').toggle(count > 0);
-                    $('#selectedCount').text(count);
-                    $('#selectAllBanner').toggle(count > 0 && count < {{ $aboneler->count() }});
-                }
-            });
-
-            function bulkApprove() {
-                const ids = $('.sub-checkbox:checked').map(function () { return this.value; }).get();
-                Swal.fire({
-                    title: 'Toplu Onay',
-                    text: ids.length + ' adet kaydı onaylamak istiyor musunuz?',
-                    icon: 'question',
-                    showCancelButton: true,
-                    confirmButtonColor: '#16a34a',
-                    confirmButtonText: 'Evet, Onayla'
-                }).then((result) => {
-                    if (result.isConfirmed) {
-                        fetch('{{ route("aboneler.mark-selected-old") }}', {
-                            method: 'POST',
-                            headers: { 'X-CSRF-TOKEN': '{{ csrf_token() }}', 'Content-Type': 'application/json' },
-                            body: JSON.stringify({ ids: ids })
-                        }).then(r => r.json()).then(data => {
-                            if (data.success) location.reload();
-                        });
-                    }
-                });
-            }
-
-            function markAllOld() {
-                const tab = '{{ request("tab", "all") }}';
-                Swal.fire({
-                    title: 'Tümünü Onayla',
-                    text: 'Bu sekmedeki tüm kayıtları onaylamak istediğinizden emin misiniz?',
-                    icon: 'warning',
-                    showCancelButton: true,
-                    confirmButtonColor: '#16a34a',
-                    confirmButtonText: 'Evet, Tümü Onayla'
-                }).then((result) => {
-                    if (result.isConfirmed) {
-                        fetch('/aboneler/mark-all-old?tab=' + tab, {
-                            method: 'POST',
-                            headers: { 'X-CSRF-TOKEN': '{{ csrf_token() }}' }
-                        }).then(r => r.json()).then(data => {
-                            if (data.success) location.reload();
-                        });
-                    }
-                });
             }
 
             function toggleActive(id, makeActive) {

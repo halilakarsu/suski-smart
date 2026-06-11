@@ -180,23 +180,7 @@
                     </div>
                 </div>
 
-                <!-- UPDATE HISTORY -->
-                <div class="glass-card">
-                    <h5 class="card-title-pro"><i class="fas fa-history"></i> Güncelleme Tarihçesi</h5>
-                    <div class="info-list">
-                        @forelse($abone->getGuncellemeTarihceFormatted() as $kayit)
-                            <div class="p-3 mb-2" style="background: #fff; border: 1px solid #f1f5f9; border-radius: 16px;">
-                                <div class="d-flex justify-content-between align-items-center mb-2">
-                                    <span class="badge-status @if($kayit['durum'] === 'aktif') status-active @else badge-secondary @endif" style="font-size: 0.65rem;">{{ strtoupper($kayit['tip']) }}</span>
-                                    <span style="font-size: 0.75rem; font-weight: 700; color: #94a3b8;">{{ $kayit['tarih'] }}</span>
-                                </div>
-                                <p style="font-size: 0.85rem; color: #475569; margin: 0;">{{ $kayit['degisiklikler'] ?? 'Profil verileri kaydedildi.' }}</p>
-                            </div>
-                        @empty
-                            <p class="text-muted text-center py-4">Henüz bir güncelleme kaydı yok.</p>
-                        @endforelse
-                    </div>
-                </div>
+
             </div>
         </div>
     </div>
