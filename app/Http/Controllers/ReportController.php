@@ -495,9 +495,10 @@ class ReportController extends Controller
                 $periodTotals[$don] = ($periodTotals[$don] ?? 0) + $val;
             }
 
-            // Büyük tüketimden küçüğe sırala
-            uksort($matrix, function ($a, $b) use ($matrix) {
-                return array_sum($matrix[$b] ?? []) <=> (array_sum($matrix[$a] ?? []));
+            // Son döneme göre büyükten küçüğe sırala
+            $sonDonem = $pivotPeriods->last();
+            uksort($matrix, function ($a, $b) use ($matrix, $sonDonem) {
+                return ($matrix[$b][$sonDonem] ?? 0) <=> ($matrix[$a][$sonDonem] ?? 0);
             });
 
             $allPivot = collect($matrix);
