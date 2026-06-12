@@ -663,6 +663,7 @@ class ReportController extends Controller
             // Eğer normal sayfa yüklemesi ise (AJAX veya EXPORT değilse) analiz yapma, sayfayı boş yükle, JS tetiklesin
             if (! $request->ajax() && ! $request->filled('export')) {
                 $donemler = KesinlesenFatura::where('odeme_durumu', 'odendi')->distinct()->orderBy('donem', 'desc')->pluck('donem');
+                $importDonemler = \App\Models\ImportLog::whereNotNull('donem')->distinct()->orderBy('donem', 'desc')->pluck('donem');
                 $bolgeler = KesinlesenFatura::where('odeme_durumu', 'odendi')
                     ->whereNotNull('ilce')->where('ilce', '!=', '')->where('ilce', 'not like', '=%')->where('ilce', 'not like', '#%')
                     ->whereNotIn('ilce', ['ŞANLIURFA', 'ŞANLIURFA ÖZEL'])
@@ -675,7 +676,7 @@ class ReportController extends Controller
                     ->sortBy('abone_grubu')
                     ->values();
 
-                return view('reports.endeks', compact('results', 'donemler', 'bolgeler', 'tarifeler', 'totalKWH', 'totalAmount', 'tabCounts', 'activeTab'));
+                return view('reports.endeks', compact('results', 'donemler', 'importDonemler', 'bolgeler', 'tarifeler', 'totalKWH', 'totalAmount', 'tabCounts', 'activeTab'));
             }
 
             $query = KesinlesenFatura::where('odeme_durumu', 'odendi');
@@ -993,6 +994,7 @@ class ReportController extends Controller
         }
 
         $donemler = KesinlesenFatura::where('odeme_durumu', 'odendi')->distinct()->orderBy('donem', 'desc')->pluck('donem');
+        $importDonemler = \App\Models\ImportLog::whereNotNull('donem')->distinct()->orderBy('donem', 'desc')->pluck('donem');
         $bolgeler = KesinlesenFatura::where('odeme_durumu', 'odendi')
             ->whereNotNull('ilce')->where('ilce', '!=', '')->where('ilce', 'not like', '=%')->where('ilce', 'not like', '#%')
             ->whereNotIn('ilce', ['ŞANLIURFA', 'ŞANLIURFA ÖZEL'])
@@ -1005,7 +1007,7 @@ class ReportController extends Controller
             ->sortBy('abone_grubu')
             ->values();
 
-        return view('reports.endeks', compact('results', 'donemler', 'bolgeler', 'tarifeler', 'totalKWH', 'totalAmount', 'tabCounts', 'activeTab'));
+        return view('reports.endeks', compact('results', 'donemler', 'importDonemler', 'bolgeler', 'tarifeler', 'totalKWH', 'totalAmount', 'tabCounts', 'activeTab'));
     }
 
     public function pdfKarsilastirFaturalar($donem)
@@ -1073,9 +1075,10 @@ class ReportController extends Controller
         $rows = \App\Models\Hamveri::whereNotNull('payload')
             ->orderBy('id', 'desc')
             ->limit(5000)
-            ->get(['payload']);
+            ->get(['payload', 'import_log_id']);
 
-        $found = null;
+        $foundPayload = null;
+        $importLogId = null;
         foreach ($rows as $r) {
             $payload = $r->payload;
             if (! is_array($payload)) {
@@ -1083,28 +1086,88 @@ class ReportController extends Controller
             }
             foreach ($payload as $key => $val) {
                 if (strtoupper(trim($key)) === 'EFKS_FATURA_ID' && trim((string) $val) === $efksId) {
-                    $found = $payload;
+                    $foundPayload = $payload;
+                    $importLogId = $r->import_log_id;
                     break 2;
                 }
             }
         }
 
-        if (! $found) {
+        if (! $foundPayload) {
             return response()->json(['success' => false, 'message' => 'Kayıt bulunamadı.']);
         }
 
-        $fields = [];
-        foreach ($found as $key => $val) {
-            $fields[] = [
-                'key' => $key,
-                'value' => is_string($val) ? $val : (string) ($val ?? ''),
-            ];
+        $findField = function (array $payload, array $keys): ?string {
+            foreach ($payload as $k => $v) {
+                foreach ($keys as $key) {
+                    if (mb_strtolower(trim($k), 'UTF-8') === mb_strtolower($key, 'UTF-8')) {
+                        $val = $v !== null ? trim((string) $v) : null;
+
+                        return ($val !== '') ? $val : null;
+                    }
+                }
+            }
+
+            return null;
+        };
+
+        $tesisatNo = $findField($foundPayload, ['tesisat', 'tesisat no', 'tesisat_no', 'abone_tesis_no', 'tesisatno']);
+        $adres = $findField($foundPayload, ['adres', 'address', 'adresi', 'tesisat adresi']);
+        $bolge = $findField($foundPayload, ['dagitim', 'dağıtım', 'bolge', 'bölge', 'dagıtım']);
+
+        $faturaNo = $findField($foundPayload, ['fatura_no', 'fatura no', 'fatuno', 'belge_no']);
+        $hesapAdi = $findField($foundPayload, ['hesap_adi', 'hesap adı', 'musteri_adi', 'müşteri adı', 'unvan', 'abone', 'musteri']);
+
+        $donem = null;
+        if ($importLogId) {
+            $importLog = \App\Models\ImportLog::find($importLogId);
+            $donem = $importLog ? $importLog->donem : null;
         }
+        if (! $donem) {
+            $donem = $findField($foundPayload, ['donem', 'dönem', 'tahakkuk', 'donem_fatura', 'tahakkuk tarihi']);
+        }
+
+        $kesinlesen = null;
+        if ($tesisatNo && $donem) {
+            $kesinlesen = \App\Models\KesinlesenFatura::where('tesisat_no', $tesisatNo)
+                ->where('donem', $donem)
+                ->first();
+        }
+
+        $detail = [
+            'efks_id' => $efksId,
+            'tesisat_no' => $tesisatNo ?? '—',
+            'donem' => $donem ?? '—',
+            'fatura_no' => $faturaNo ?? '—',
+            'hesap_adi' => $hesapAdi ?? '—',
+            'adres' => $adres ?? '—',
+            'bolge' => $bolge ?? '—',
+            't1_tuketim' => '—',
+            't2_tuketim' => '—',
+            't3_tuketim' => '—',
+            't0_tuketim' => '—',
+            'ek_tuketim' => '—',
+            'tutar_toplam' => '—',
+            'kdv' => '—',
+        ];
+
+        if ($kesinlesen) {
+            $detail['adres'] = $kesinlesen->adres ?? $detail['adres'];
+            $detail['bolge'] = $kesinlesen->dagitim ?? $detail['bolge'];
+            $detail['t1_tuketim'] = $kesinlesen->t1_tuketim ?? '—';
+            $detail['t2_tuketim'] = $kesinlesen->t2_tuketim ?? '—';
+            $detail['t3_tuketim'] = $kesinlesen->t3_tuketim ?? '—';
+            $detail['t0_tuketim'] = $kesinlesen->fatura_edilecek_toplam_tuketim_kwh ?? '—';
+            $detail['ek_tuketim'] = $kesinlesen->ek_tuketim ?? '—';
+            $detail['tutar_toplam'] = $kesinlesen->tutar_toplam ?? '—';
+            $detail['kdv'] = $kesinlesen->kdv ?? '—';
+        }
+
+        $detail['kesinlesen_var'] = $kesinlesen !== null;
 
         return response()->json([
             'success' => true,
-            'efks_id' => $efksId,
-            'fields' => $fields,
+            'detail' => $detail,
         ]);
     }
 

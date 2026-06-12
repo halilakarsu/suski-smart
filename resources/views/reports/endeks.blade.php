@@ -1968,23 +1968,62 @@ $(document).ready(function() {
             .then(function(r) { return r.json(); })
             .then(function(data) {
                 if (!data.success) {
-                    body.innerHTML = '<div class="text-center py-5 text-danger fw-bold" style="font-size:1.1rem;">Kayıt bulunamadı.</div>';
+                    body.innerHTML = '<div class="text-center py-5 text-danger fw-bold" style="font-size:1.1rem;">' + (data.message || 'Kayıt bulunamadı.') + '</div>';
                     return;
                 }
 
-                var html = '<div style="display:grid; grid-template-columns:repeat(auto-fill, minmax(220px,1fr)); gap:12px;">';
-                data.fields.forEach(function(f) {
-                    var val = f.value || '—';
-                    var escaped = val.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
-                    html += '<div style="background:#fff; border-radius:14px; padding:14px 18px; border:1px solid #e2e8f0; box-shadow:0 2px 6px rgba(0,0,0,0.03); display:flex; flex-direction:column; gap:4px; transition:all .2s;" onmouseover="this.style.borderColor=\'#93c5fd\';this.style.boxShadow=\'0 4px 12px rgba(59,130,246,0.1)\'" onmouseout="this.style.borderColor=\'#e2e8f0\';this.style.boxShadow=\'0 2px 6px rgba(0,0,0,0.03)\'">' +
-                        '<span style="font-size:.6rem; font-weight:800; color:#64748b; text-transform:uppercase; letter-spacing:0.08em; line-height:1.3;">' + f.key.replace(/_/g, ' ') + '</span>' +
-                        '<span style="font-size:.88rem; font-weight:700; color:#0f172a; word-break:break-all;">' + escaped + '</span>' +
-                        '</div>';
-                });
-                html += '</div>';
-                if (data.fields.length === 0) {
-                    html = '<div class="text-center py-5 text-muted fw-bold">Bu kayıt için hamveri bulunamadı.</div>';
+                var d = data.detail;
+                var html = '';
+
+                function esc(s) {
+                    return (s + '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
                 }
+
+                function section(title, icon, items) {
+                    var rows = '';
+                    items.forEach(function(it) {
+                        var valClass = it.highlight ? 'fdo-val fdo-val-highlight' : 'fdo-val';
+                        rows += '<div class="fdo-item"><span class="fdo-label">' + esc(it.label) + '</span><span class="' + valClass + '">' + esc(it.value) + '</span></div>';
+                    });
+                    return '<div class="fdo-section"><div class="fdo-shead"><div class="fdo-sicon"><i class="fas fa-' + icon + '"></i></div><span>' + title + '</span></div><div class="fdo-sbody">' + rows + '</div></div>';
+                }
+
+                function fmtNum(v) {
+                    if (v === '—' || v === null || v === undefined || v === '') return '—';
+                    var n = parseFloat(String(v).replace(',', '.'));
+                    if (isNaN(n)) return v;
+                    return n.toLocaleString('tr-TR', {minimumFractionDigits: 2, maximumFractionDigits: 2});
+                }
+
+                html += section('Fatura Bilgileri', 'file-invoice', [
+                    {label:'Fatura No', value:d.fatura_no},
+                    {label:'Hesap Adı', value:d.hesap_adi},
+                    {label:'Tesisat No', value:d.tesisat_no, highlight:true},
+                    {label:'Dönem', value:d.donem, highlight:true},
+                ]);
+
+                html += section('Bölge & Adres', 'map-marker-alt', [
+                    {label:'Bölge', value:d.bolge},
+                    {label:'Adres', value:d.adres},
+                ]);
+
+                html += section('Tüketim Bilgileri', 'bolt', [
+                    {label:'T1 Tüketim', value:fmtNum(d.t1_tuketim)},
+                    {label:'T2 Tüketim', value:fmtNum(d.t2_tuketim)},
+                    {label:'T3 Tüketim', value:fmtNum(d.t3_tuketim)},
+                    {label:'Toplam Tüketim (T0)', value:fmtNum(d.t0_tuketim), highlight:true},
+                    {label:'Ek Tüketim', value:fmtNum(d.ek_tuketim)},
+                ]);
+
+                html += section('Finansal Bilgiler', 'lira-sign', [
+                    {label:'Tutar Toplam', value:fmtNum(d.tutar_toplam), highlight:true},
+                    {label:'KDV', value:fmtNum(d.kdv)},
+                ]);
+
+                if (!d.kesinlesen_var) {
+                    html += '<div class="fdo-warning"><i class="fas fa-exclamation-triangle"></i> Bu fatura için Kesinleşen Fatura kaydı bulunamadı. Veriler hamveri üzerinden görüntülenmektedir.</div>';
+                }
+
                 body.innerHTML = html;
             })
             .catch(function() {
@@ -1997,51 +2036,89 @@ $(document).ready(function() {
     };
 
     function showPdfDetayliSonuc(eslesenList, eslesmeyenPdf, sistemdeOlan) {
-        document.getElementById('detayOzetEslesen').textContent = eslesenList.length;
-        document.getElementById('detayOzetPdfYok').textContent = sistemdeOlan.length;
+        // --- Stat cards ---
+        document.getElementById('detayOzetEslesen').textContent   = eslesenList.length;
+        document.getElementById('detayOzetPdfYok').textContent    = sistemdeOlan.length;
         document.getElementById('detayOzetSistemYok').textContent = eslesmeyenPdf.length;
+        document.getElementById('detaySayacPdfYok').textContent   = sistemdeOlan.length.toLocaleString('tr-TR') + ' kayıt';
+        document.getElementById('detaySayacSistemYok').textContent = eslesmeyenPdf.length.toLocaleString('tr-TR') + ' dosya';
 
+        // --- Sol panel: Sistemde var, PDF yok ---
         var tblSistem = document.getElementById('detayliAnalizTableSistemVar');
-        var tblPdf    = document.getElementById('detayliAnalizTablePdfVar');
-        document.getElementById('detaySayacPdfYok').textContent   = sistemdeOlan.length + ' kayıt';
-        document.getElementById('detaySayacSistemYok').textContent = eslesmeyenPdf.length + ' dosya';
-
         var htmlSistem = '';
         if (sistemdeOlan.length === 0) {
-            htmlSistem = '<tr><td colspan="3" class="text-center py-4"><span style="color:#16a34a;font-weight:700;"><i class="fas fa-check-circle"></i> Eksik kayıt yok</span></td></tr>';
+            htmlSistem = '<tr><td colspan="4"><div style="text-align:center;padding:40px 20px;"><div style="display:inline-flex;flex-direction:column;align-items:center;gap:12px;padding:28px 40px;background:linear-gradient(135deg,rgba(16,185,129,0.08),rgba(5,150,105,0.04));border-radius:20px;border:1px solid rgba(16,185,129,0.2);"><i class="fas fa-check-circle" style="font-size:2.4rem;color:#10b981;"></i><span style="font-weight:800;color:#059669;font-size:1rem;">Tüm PDF dosyaları mevcut</span><span style="font-size:.8rem;color:#6ee7b7;font-weight:500;">Eksik kayıt bulunamadı.</span></div></div></td></tr>';
         } else {
-            sistemdeOlan.forEach(function(inv) {
+            sistemdeOlan.forEach(function(inv, idx) {
                 var idEscaped = inv.id.replace(/'/g, "\\'");
-                htmlSistem += '<tr style="border-bottom:1px solid #f1f5f9; transition:background .15s;" onmouseover="this.style.background=\'#fef2f2\'" onmouseout="this.style.background=\'\'">' +
-                    '<td style="padding:14px 18px; font-weight:800; color:#334155; font-size:.8rem;">' + inv.id + '</td>' +
-                    '<td style="padding:14px 18px; font-weight:700; color:#0f172a; font-size:.85rem;">' + (inv.tutar || '-') + '</td>' +
-                    '<td style="padding:14px 18px;"><button class="btn" style="padding:4px 10px; border-radius:8px; background:linear-gradient(135deg,#2563eb,#4f46e5); color:#fff; font-weight:700; font-size:.72rem; border:none; cursor:pointer;" onclick="pdfFaturaDetay(\'' + idEscaped + '\')"><i class="fas fa-eye mr-1"></i> Detay</button></td>' +
+                var rowBg = idx % 2 === 0 ? '#fff' : '#fdfcfc';
+                htmlSistem +=
+                    '<tr style="background:' + rowBg + '; border-bottom:1px solid rgba(254,226,226,0.8); transition:all .18s;" ' +
+                    'onmouseover="this.style.background=\'#fff1f2\';this.style.transform=\'translateX(3px)\'" ' +
+                    'onmouseout="this.style.background=\'' + rowBg + '\';this.style.transform=\'none\'">' +
+                    '<td style="padding:15px 20px;">' +
+                      '<span style="display:inline-flex;align-items:center;justify-content:center;width:28px;height:28px;background:rgba(239,68,68,0.1);border-radius:8px;color:#ef4444;font-size:.85rem;font-weight:800;">' + (idx+1) + '</span>' +
+                    '</td>' +
+                    '<td style="padding:15px 20px;">' +
+                      '<div style="font-weight:900;color:#0f172a;font-size:.82rem;letter-spacing:.3px;font-family:monospace;">' + inv.id + '</div>' +
+                      '<div style="font-size:.72rem;color:#94a3b8;font-weight:600;margin-top:2px;">' + (inv.fatura_no && inv.fatura_no !== '-' ? 'No: ' + inv.fatura_no : 'Fatura No yok') + '</div>' +
+                    '</td>' +
+                    '<td style="padding:15px 20px;">' +
+                      '<div style="font-weight:800;color:#0f172a;font-size:.88rem;">' + (inv.tutar && inv.tutar !== '-' ? inv.tutar + ' ₺' : '-') + '</div>' +
+                      '<div style="font-size:.7rem;color:#94a3b8;font-weight:500;margin-top:2px;">' + (inv.hesap_adi && inv.hesap_adi !== '-' ? inv.hesap_adi : '') + '</div>' +
+                    '</td>' +
+                    '<td style="padding:15px 20px;">' +
+                      '<button class="btn" style="padding:7px 14px;border-radius:10px;background:linear-gradient(135deg,#2563eb,#4f46e5);color:#fff;font-weight:800;font-size:.72rem;border:none;cursor:pointer;box-shadow:0 4px 12px -3px rgba(37,99,235,0.45);transition:all .2s;" ' +
+                      'onmouseover="this.style.transform=\'translateY(-2px)\';this.style.boxShadow=\'0 8px 20px -4px rgba(37,99,235,0.55)\'" ' +
+                      'onmouseout="this.style.transform=\'none\';this.style.boxShadow=\'0 4px 12px -3px rgba(37,99,235,0.45)\'" ' +
+                      'onclick="pdfFaturaDetay(\'' + idEscaped + '\')">' +
+                      '<i class="fas fa-search mr-1"></i>İncele</button>' +
+                    '</td>' +
                     '</tr>';
             });
         }
         tblSistem.innerHTML = htmlSistem;
 
+        // --- Sağ panel: PDF var, Sistemde yok ---
+        var tblPdf = document.getElementById('detayliAnalizTablePdfVar');
         var htmlPdf = '';
         if (eslesmeyenPdf.length === 0) {
-            htmlPdf = '<tr><td colspan="2" class="text-center py-4"><span style="color:#16a34a;font-weight:700;"><i class="fas fa-check-circle"></i> Eksik dosya yok</span></td></tr>';
+            htmlPdf = '<tr><td colspan="2"><div style="text-align:center;padding:40px 20px;"><div style="display:inline-flex;flex-direction:column;align-items:center;gap:12px;padding:28px 40px;background:linear-gradient(135deg,rgba(16,185,129,0.08),rgba(5,150,105,0.04));border-radius:20px;border:1px solid rgba(16,185,129,0.2);"><i class="fas fa-check-circle" style="font-size:2.4rem;color:#10b981;"></i><span style="font-weight:800;color:#059669;font-size:1rem;">Tüm PDF dosyaları eşleşti</span><span style="font-size:.8rem;color:#6ee7b7;font-weight:500;">Sistemde karşılığı olmayan PDF yok.</span></div></div></td></tr>';
         } else {
-            eslesmeyenPdf.forEach(function(pdfName) {
-                var nameEscaped = pdfName.replace(/'/g, "\\'");
-                htmlPdf += '<tr style="border-bottom:1px solid #f1f5f9; transition:background .15s;" onmouseover="this.style.background=\'#fffbeb\'" onmouseout="this.style.background=\'\'">' +
-                    '<td style="padding:14px 18px; font-family:monospace; font-size:.8rem; font-weight:700; color:#ea580c; word-break:break-all;">' + nameEscaped + '</td>' +
-                    '<td style="padding:14px 18px;"><span style="background:rgba(245,158,11,0.12); color:#d97706; padding:4px 10px; border-radius:8px; font-weight:700; font-size:.72rem; white-space:nowrap;"><i class="fas fa-times-circle mr-1"></i> Eşleşmedi</span></td>' +
+            eslesmeyenPdf.forEach(function(pdfName, idx) {
+                var rowBg = idx % 2 === 0 ? '#fff' : '#fffdf7';
+                var shortName = pdfName.length > 32 ? pdfName.substring(0, 30) + '…' : pdfName;
+                htmlPdf +=
+                    '<tr style="background:' + rowBg + '; border-bottom:1px solid rgba(254,243,199,0.8); transition:all .18s;" ' +
+                    'onmouseover="this.style.background=\'#fef9e7\';this.style.transform=\'translateX(3px)\'" ' +
+                    'onmouseout="this.style.background=\'' + rowBg + '\';this.style.transform=\'none\'">' +
+                    '<td style="padding:15px 20px;">' +
+                      '<span style="display:inline-flex;align-items:center;justify-content:center;width:28px;height:28px;background:rgba(245,158,11,0.12);border-radius:8px;color:#f59e0b;font-size:.85rem;font-weight:800;">' + (idx+1) + '</span>' +
+                    '</td>' +
+                    '<td style="padding:15px 20px;">' +
+                      '<div title="' + pdfName + '" style="display:flex;align-items:center;gap:10px;">' +
+                        '<div style="width:36px;height:36px;flex-shrink:0;border-radius:10px;background:rgba(234,88,12,0.1);display:flex;align-items:center;justify-content:center;color:#ea580c;font-size:1rem;"><i class="fas fa-file-pdf"></i></div>' +
+                        '<div>' +
+                          '<div style="font-weight:800;color:#92400e;font-size:.82rem;font-family:monospace;white-space:nowrap;">' + shortName + '</div>' +
+                          '<div style="font-size:.7rem;color:#b45309;font-weight:500;margin-top:2px;">Sistemde karşılık bulunamadı</div>' +
+                        '</div>' +
+                      '</div>' +
+                    '</td>' +
                     '</tr>';
             });
         }
         tblPdf.innerHTML = htmlPdf;
 
+        // Mükemmel eşleşme durumu
         if (!eslesmeyenPdf.length && !sistemdeOlan.length) {
-            document.querySelector('#pdfDetayliSonucModal .modal-body .row').innerHTML =
-                '<div class="col-12 text-center" style="padding:60px 20px;">' +
-                '<div style="display:inline-block; padding:30px 40px; background:linear-gradient(135deg,rgba(16,185,129,0.1),rgba(5,150,105,0.05)); border-radius:24px; border:1px solid rgba(16,185,129,0.2);">' +
-                '<i class="fas fa-check-circle" style="font-size:3.5rem; color:#10b981; margin-bottom:15px; filter:drop-shadow(0 10px 15px rgba(16,185,129,0.3));"></i>' +
-                '<h4 style="color:#059669; font-weight:800; margin:0; font-size:1.4rem;">Kusursuz Eşleşme!</h4>' +
-                '<p style="color:#047857; margin-top:8px; font-weight:500; opacity:0.8;">Tüm klasördeki PDF dosyaları sistemdeki faturalarla eksiksiz eşleşti.</p></div></div>';
+            document.getElementById('pdfSonucPanels').innerHTML =
+                '<div class="col-12"><div style="text-align:center;padding:70px 20px;">' +
+                '<div style="display:inline-flex;flex-direction:column;align-items:center;gap:16px;padding:50px 80px;background:linear-gradient(135deg,rgba(16,185,129,0.08),rgba(5,150,105,0.04));border-radius:32px;border:1px solid rgba(16,185,129,0.2);box-shadow:0 25px 50px -12px rgba(16,185,129,0.15);">' +
+                '<div style="width:80px;height:80px;background:linear-gradient(135deg,#10b981,#059669);border-radius:50%;display:flex;align-items:center;justify-content:center;box-shadow:0 20px 40px -10px rgba(16,185,129,0.5);">' +
+                '<i class="fas fa-check" style="font-size:2.4rem;color:#fff;"></i></div>' +
+                '<h3 style="color:#059669;font-weight:900;margin:0;font-size:1.6rem;letter-spacing:-.02em;">Kusursuz Eşleşme!</h3>' +
+                '<p style="color:#047857;margin:0;font-weight:600;font-size:.95rem;max-width:400px;line-height:1.7;">Seçili klasördeki tüm PDF dosyaları, <strong>' + eslesenList.length + '</strong> sistem faturasıyla eksiksiz biçimde eşleştirildi.</p>' +
+                '</div></div></div>';
         }
 
         $('#pdfAnalizModal').modal('hide');
@@ -2049,6 +2126,7 @@ $(document).ready(function() {
             $('#pdfDetayliSonucModal').modal('show');
         }, 400);
     }
+
 
     document.getElementById('pdfFolderInput').addEventListener('change', function(e) {
         var files = e.target.files;
@@ -2068,12 +2146,22 @@ $(document).ready(function() {
 
         pdfAnalizFiles = pdfs;
         pdfFolderSelected = true;
-        document.getElementById('pdfAnalizBaslaBtn').disabled = false;
+        
+        var btn = document.getElementById('pdfAnalizBaslaBtn');
+        btn.disabled = false;
+        btn.style.cursor = 'pointer';
+        btn.style.opacity = '1';
 
-        document.getElementById('pdfAnalizFolderInfo').style.display = 'block';
-        document.getElementById('pdfAnalizFileCount').textContent = pdfs.length;
-        document.getElementById('pdfDropZone').style.borderColor = '#3b82f6';
-        document.getElementById('pdfDropZone').style.background = '#eff6ff';
+        document.getElementById('pdfDropInitialState').style.opacity = '0';
+        setTimeout(function() {
+            document.getElementById('pdfDropInitialState').style.display = 'none';
+            document.getElementById('pdfDropSelectedState').style.display = 'flex';
+            document.getElementById('pdfAnalizFileCount').textContent = pdfs.length;
+        }, 200);
+
+        var dropZone = document.getElementById('pdfDropZone');
+        dropZone.style.borderColor = '#3b82f6';
+        dropZone.style.background = '#eff6ff';
     });
 
     document.getElementById('pdfAnalizBaslaBtn').addEventListener('click', function() {
@@ -2540,61 +2628,111 @@ $(document).ready(function() {
 .fdo-loading { text-align:center; padding:60px 0; }
 .fdo-loading i { font-size:2.2rem; color:#3b82f6; }
 .fdo-loading p { margin-top:12px; font-weight:700; color:#64748b; }
+
+.fdo-section { margin-bottom:20px; background:#fff; border-radius:18px; border:1px solid #e2e8f0; overflow:hidden; box-shadow:0 4px 12px rgba(0,0,0,0.03); }
+.fdo-shead { display:flex; align-items:center; gap:10px; padding:14px 20px; background:#f8fafc; border-bottom:1px solid #e2e8f0; font-weight:800; font-size:.85rem; color:#0f172a; letter-spacing:-.01em; }
+.fdo-sicon { width:32px; height:32px; border-radius:8px; background:linear-gradient(135deg,#eff6ff,#dbeafe); display:flex; align-items:center; justify-content:center; color:#2563eb; font-size:.85rem; flex-shrink:0; }
+.fdo-sbody { padding:6px 20px; }
+.fdo-item { display:flex; justify-content:space-between; align-items:center; padding:10px 0; border-bottom:1px solid #f1f5f9; }
+.fdo-item:last-child { border-bottom:none; }
+.fdo-label { font-size:.75rem; font-weight:700; color:#64748b; text-transform:uppercase; letter-spacing:.04em; }
+.fdo-val { font-size:.88rem; font-weight:700; color:#0f172a; text-align:right; word-break:break-word; max-width:60%; }
+.fdo-val-highlight { color:#2563eb; background:linear-gradient(135deg,rgba(37,99,235,0.06),rgba(59,130,246,0.04)); padding:3px 10px; border-radius:8px; font-size:.95rem; }
+.fdo-warning { display:flex; align-items:center; gap:10px; padding:12px 18px; background:#fffbeb; border:1px solid #fde68a; border-radius:12px; color:#92400e; font-size:.78rem; font-weight:700; margin-top:8px; }
+.fdo-warning i { color:#f59e0b; font-size:.9rem; }
 </style>
 
-{{-- ═══ Pdf-Fatura Analiz Modal HTML ═══ --}}
-<div class="modal fade" id="pdfAnalizModal" tabindex="-1" role="dialog" aria-hidden="true" style="backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); background: rgba(15, 23, 42, 0.4);">
-    <div class="modal-dialog modal-dialog-centered modal-xl" role="document">
-        <div class="modal-content" style="border-radius:28px; border:1px solid rgba(255,255,255,0.2); overflow:hidden; box-shadow:0 40px 100px rgba(0,0,0,0.25); background: rgba(255, 255, 255, 0.98);">
-            <div class="modal-header" style="background:linear-gradient(135deg, rgba(15, 23, 42, 0.95), rgba(30, 27, 75, 0.95)); border:none; padding:25px 35px; border-bottom: 1px solid rgba(255,255,255,0.1); position: relative;">
-                <div>
-                    <h5 class="modal-title" style="color:#fff; font-weight:800; font-size:1.35rem; margin:0; letter-spacing:-0.02em;">
-                        <div style="display:inline-flex;align-items:center;justify-content:center;width:38px;height:38px;background:rgba(239,68,68,0.2);border-radius:12px;margin-right:12px;color:#f87171;"><i class="fas fa-file-pdf"></i></div>
-                        Pdf-Fatura Analiz (Eşleştirme)
-                    </h5>
-                    <p style="color:#94a3b8; font-size:0.85rem; margin:8px 0 0 50px; font-weight:500;">Klasördeki PDF dosyalarını sistemdeki yüklenmiş hamverilerle tek tek eşleştirin.</p>
+{{-- ═══ Pdf-Fatura Analiz Modal HTML (Yenilenmiş Premium Tasarım) ═══ --}}
+<div class="modal fade" id="pdfAnalizModal" tabindex="-1" role="dialog" aria-hidden="true" style="backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); background: rgba(15, 23, 42, 0.75);">
+    <div class="modal-dialog modal-dialog-centered" role="document" style="max-width: 850px;">
+        <div class="modal-content" style="border-radius:32px; border:1px solid rgba(255,255,255,0.15); overflow:hidden; box-shadow:0 50px 100px -20px rgba(0,0,0,0.5); background: #ffffff;">
+            
+            {{-- Header --}}
+            <div class="modal-header" style="background:linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%); border-bottom: 1px solid rgba(0,0,0,0.05); padding:30px 40px; position: relative; overflow:hidden;">
+                <!-- Decorative BG elements -->
+                <div style="position:absolute; top:-50%; right:-10%; width:300px; height:300px; background:radial-gradient(circle, rgba(59,130,246,0.1) 0%, transparent 70%); pointer-events:none;"></div>
+                <div style="position:absolute; bottom:-50%; left:-10%; width:200px; height:200px; background:radial-gradient(circle, rgba(99,102,241,0.1) 0%, transparent 70%); pointer-events:none;"></div>
+
+                <div style="position:relative; z-index:1; display:flex; align-items:center; width:100%;">
+                    <div style="width:60px; height:60px; border-radius:20px; background:white; box-shadow:0 10px 25px -5px rgba(59,130,246,0.25); border:1px solid rgba(59,130,246,0.1); display:flex; align-items:center; justify-content:center; color:#3b82f6; font-size:1.8rem; margin-right:20px; flex-shrink:0;">
+                        <i class="fas fa-file-pdf"></i>
+                    </div>
+                    <div style="flex:1;">
+                        <h5 class="modal-title" style="color:#0f172a; font-weight:900; font-size:1.5rem; margin:0 0 4px 0; letter-spacing:-0.03em;">
+                            PDF-Fatura Analizi
+                        </h5>
+                        <p style="color:#64748b; font-size:0.9rem; margin:0; font-weight:500;">
+                            Klasördeki PDF dosyalarını sistemdeki hamverilerle hızlıca eşleştirin.
+                        </p>
+                    </div>
+                    <button type="button" class="close" data-dismiss="modal" style="color:#94a3b8; background:white; border:1px solid #e2e8f0; width:44px; height:44px; border-radius:50%; display:flex; align-items:center; justify-content:center; opacity:1; cursor:pointer; transition:all 0.2s; box-shadow:0 4px 6px -1px rgba(0,0,0,0.05);" onmouseover="this.style.background='#f1f5f9'; this.style.color='#0f172a'; this.style.transform='rotate(90deg)';" onmouseout="this.style.background='white'; this.style.color='#94a3b8'; this.style.transform='rotate(0deg)';">
+                        <span aria-hidden="true" style="font-size:1.6rem; margin-top:-2px;">&times;</span>
+                    </button>
                 </div>
-                <button type="button" class="close" data-dismiss="modal" style="color:#fff; opacity:0.8; font-size:1.6rem; background:rgba(255,255,255,0.1); border:none; cursor:pointer; width:40px; height:40px; border-radius:50%; display:flex; align-items:center; justify-content:center; transition:all 0.2s; margin-top:-10px;">
-                    <span aria-hidden="true" style="margin-top:-2px;">&times;</span>
-                </button>
             </div>
 
-            <div class="modal-body" style="padding:35px; max-height:75vh; overflow-y:auto; background:#f4f6f9;">
-                
-                <div class="row mb-4">
-                    <div class="col-md-5">
-                        <div class="form-group-pro">
-                            <label><i class="far fa-calendar-alt"></i> Karşılaştırma Dönemi</label>
-                            <select id="pdfAnalizDonem" class="form-control-pro" style="height:50px;font-size:1rem;border-radius:14px;">
-                                <option value="">Dönem Seçiniz</option>
-                                @foreach($donemler as $d)
-                                    <option value="{{ $d }}">{{ $d }}</option>
-                                @endforeach
-                            </select>
+            {{-- Body --}}
+            <div class="modal-body" style="padding:40px; background: #ffffff;">
+                <div class="row" style="margin: 0 -15px;">
+                    
+                    {{-- Sol Taraf: Ayarlar --}}
+                    <div class="col-md-5" style="padding: 0 15px; border-right: 1px solid #f1f5f9;">
+                        <div style="margin-bottom:25px;">
+                            <label style="display:block; font-size:0.8rem; font-weight:800; color:#64748b; text-transform:uppercase; letter-spacing:1px; margin-bottom:12px;">1. Dönem Seçimi</label>
+                            <div style="position:relative;">
+                                <div style="position:absolute; top:50%; left:16px; transform:translateY(-50%); color:#94a3b8; pointer-events:none;"><i class="far fa-calendar-alt"></i></div>
+                                <select id="pdfAnalizDonem" class="form-control" style="width:100%; height:54px; padding-left:45px; border-radius:16px; border:2px solid #e2e8f0; background:#f8fafc; font-size:1rem; font-weight:600; color:#334155; transition:all 0.2s; appearance:none; cursor:pointer;" onfocus="this.style.borderColor='#3b82f6'; this.style.boxShadow='0 0 0 4px rgba(59,130,246,0.1)';" onblur="this.style.borderColor='#e2e8f0'; this.style.boxShadow='none';">
+                                    <option value="">Dönem Seçiniz...</option>
+                                    @php $pdfDonemler = isset($importDonemler) && $importDonemler->count() ? $importDonemler : $donemler; @endphp
+                                    @foreach($pdfDonemler as $d)
+                                        <option value="{{ $d }}">{{ $d }}</option>
+                                    @endforeach
+                                </select>
+                                <div style="position:absolute; top:50%; right:16px; transform:translateY(-50%); color:#94a3b8; pointer-events:none;"><i class="fas fa-chevron-down"></i></div>
+                            </div>
                         </div>
-                        <div style="margin-top: 20px;">
-                            <button type="button" id="pdfAnalizBaslaBtn" class="btn-pro w-100 justify-content-center" style="background: linear-gradient(135deg, #2563eb, #4f46e5); color: #fff; height: 55px; border-radius: 16px; font-size: 1.05rem; box-shadow: 0 10px 25px -5px rgba(37,99,235,0.4);" disabled>
-                                <i class="fas fa-play-circle mr-2"></i> Analize Başla
+
+                        <div>
+                            <label style="display:block; font-size:0.8rem; font-weight:800; color:#64748b; text-transform:uppercase; letter-spacing:1px; margin-bottom:12px;">2. Analizi Başlat</label>
+                            <button type="button" id="pdfAnalizBaslaBtn" disabled style="width:100%; height:60px; border-radius:18px; background:linear-gradient(135deg, #2563eb, #4f46e5); color:white; font-size:1.1rem; font-weight:800; border:none; display:flex; align-items:center; justify-content:center; gap:12px; transition:all 0.3s; cursor:not-allowed; opacity:0.6; box-shadow:0 10px 25px -5px rgba(37,99,235,0.4);" onmouseover="if(!this.disabled){ this.style.transform='translateY(-2px)'; this.style.boxShadow='0 15px 30px -5px rgba(37,99,235,0.5)'; }" onmouseout="if(!this.disabled){ this.style.transform='translateY(0)'; this.style.boxShadow='0 10px 25px -5px rgba(37,99,235,0.4)'; }">
+                                <i class="fas fa-magic" style="font-size:1.2rem;"></i> Karşılaştırmayı Başlat
                             </button>
+                            <div style="font-size:0.75rem; color:#94a3b8; margin-top:12px; text-align:center; font-weight:500;">Önce klasör seçimi yapmalısınız.</div>
                         </div>
                     </div>
-                    <div class="col-md-7">
-                        <div class="drop-zone-premium" id="pdfDropZone" onclick="document.getElementById('pdfFolderInput').click()">
-                            <div class="upload-icon-box"><i class="fas fa-folder-open"></i></div>
-                            <h5 style="font-weight: 800; color: #1e293b; margin-bottom: 4px;">PDF Klasörünü Seçin</h5>
-                            <p style="color: #64748b; font-weight: 500; font-size: 0.85rem;">Tıklayarak içerisinde PDF'lerin bulunduğu klasörü seçin</p>
-                            <input type="file" id="pdfFolderInput" webkitdirectory multiple style="display:none;">
+
+                    {{-- Sağ Taraf: Klasör Seçimi --}}
+                    <div class="col-md-7" style="padding: 0 15px;">
+                        <label style="display:block; font-size:0.8rem; font-weight:800; color:#64748b; text-transform:uppercase; letter-spacing:1px; margin-bottom:12px;">PDF Klasörü Yükle</label>
+                        
+                        <div id="pdfDropZone" onclick="document.getElementById('pdfFolderInput').click()" style="height:210px; border:2px dashed #cbd5e1; border-radius:24px; background:#f8fafc; display:flex; flex-direction:column; align-items:center; justify-content:center; cursor:pointer; transition:all 0.2s; position:relative; overflow:hidden;" onmouseover="this.style.borderColor='#3b82f6'; this.style.background='#eff6ff';" onmouseout="if(!pdfFolderSelected) { this.style.borderColor='#cbd5e1'; this.style.background='#f8fafc'; }">
                             
-                            <div id="pdfAnalizFolderInfo" style="display:none; margin-top: 15px; padding: 10px 16px; background: white; border-radius: 12px; border: 1px solid #e2e8f0; font-weight: 700; color: #2563eb;">
-                                <i class="fas fa-file-pdf"></i> <span id="pdfAnalizFileCount">0</span> PDF seçildi
+                            <input type="file" id="pdfFolderInput" webkitdirectory multiple style="display:none;" onclick="event.stopPropagation()">
+                            
+                            {{-- Başlangıç Durumu --}}
+                            <div id="pdfDropInitialState" style="text-align:center; transition:opacity 0.2s;">
+                                <div style="width:64px; height:64px; background:white; border-radius:20px; display:inline-flex; align-items:center; justify-content:center; font-size:2rem; color:#94a3b8; margin-bottom:16px; box-shadow:0 10px 15px -3px rgba(0,0,0,0.05); border:1px solid #e2e8f0;">
+                                    <i class="fas fa-folder-open"></i>
+                                </div>
+                                <h4 style="font-size:1.1rem; font-weight:800; color:#334155; margin-bottom:6px;">Tıklayın ve Klasör Seçin</h4>
+                                <p style="font-size:0.85rem; color:#64748b; margin:0; font-weight:500;">Sadece içinde PDF olan bir klasör yükleyin</p>
+                            </div>
+
+                            {{-- Seçim Yapıldıktan Sonraki Durum --}}
+                            <div id="pdfDropSelectedState" style="display:none; text-align:center; position:absolute; inset:0; background:linear-gradient(135deg, rgba(239,246,255,0.95), rgba(219,234,254,0.95)); align-items:center; justify-content:center; flex-direction:column;">
+                                <div style="width:70px; height:70px; background:linear-gradient(135deg, #3b82f6, #2563eb); border-radius:22px; display:inline-flex; align-items:center; justify-content:center; font-size:2rem; color:white; margin-bottom:16px; box-shadow:0 15px 25px -5px rgba(37,99,235,0.4);">
+                                    <i class="fas fa-file-pdf"></i>
+                                </div>
+                                <h4 style="font-size:1.2rem; font-weight:900; color:#1e3a8a; margin-bottom:4px;">Klasör Hazır</h4>
+                                <p style="font-size:0.95rem; color:#2563eb; margin:0; font-weight:700;"><span id="pdfAnalizFileCount">0</span> adet PDF algılandı</p>
+                                <div style="margin-top:12px; font-size:0.75rem; font-weight:600; color:#60a5fa; text-decoration:underline;">Değiştirmek için tekrar tıklayın</div>
                             </div>
                         </div>
                     </div>
-                </div>
 
                 </div>
-
             </div>
+            
         </div>
     </div>
 </div>
