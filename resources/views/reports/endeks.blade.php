@@ -1707,7 +1707,7 @@ $(document).ready(function() {
         });
 
         $.ajax({
-            url: `{{ url('/raporlar/endeks/gecmis-6-ay') }}/${tesisat}`,
+            url: `{{ url('/raporlar/endeks/gecmis-1-yil') }}/${tesisat}`,
             type: 'GET',
             data: { donem: donem },
             success: function(res) {

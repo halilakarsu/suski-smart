@@ -107,14 +107,17 @@ class AbonelerController extends Controller
             $farkliSayaclar[] = (object) ['no' => $sNo, 'tarih' => $tarih];
         }
 
+        $sonDonem = \App\Models\KesinlesenFatura::where('tesisat_no', $abone->ABONE_TESIS_NO)
+            ->orderBy('donem', 'desc')
+            ->value('donem');
+
         $sonYilTuketimRecords = \App\Models\KesinlesenFatura::where('tesisat_no', $abone->ABONE_TESIS_NO)
             ->orderBy('donem', 'desc')
             ->limit(12)
-            ->get()
-            ->sortBy('donem')
-            ->values();
+            ->get();
 
-        $sonYilTuketim = $sonYilTuketimRecords->map(function ($row) {
+        $tuketimMap = [];
+        foreach ($sonYilTuketimRecords as $row) {
             $t1Ilk = (float) str_replace(',', '.', $row->t1_ilk_endeks ?? 0);
             $t2Ilk = (float) str_replace(',', '.', $row->t2_ilk_endeks ?? 0);
             $t3Ilk = (float) str_replace(',', '.', $row->t3_ilk_endeks ?? 0);
@@ -125,24 +128,39 @@ class AbonelerController extends Controller
             $t3Tuketim = (float) ($row->t3_tuketim ?? 0);
 
             $t0Tuketim = $hasTariff ? ($t1Tuketim + $t2Tuketim + $t3Tuketim) : (float) ($row->fatura_edilecek_toplam_tuketim_kwh ?? 0);
-
-            return (object) [
-                'donem' => $row->donem,
-                'fatura_edilecek_toplam_tuketim_kwh' => $t0Tuketim
+            
+            $tuketimMap[$row->donem] = [
+                'tuketim' => $t0Tuketim,
+                'tutar' => (float) ($row->tutar_toplam ?? 0)
             ];
-        });
+        }
 
-        $aylar = ['', 'Ocak', 'Şubat', 'Mart', 'Nisan', 'Mayıs', 'Haziran', 'Temmuz', 'Ağustos', 'Eylül', 'Ekim', 'Kasım', 'Aralık'];
-        $chartLabels = $sonYilTuketim->map(function ($item) use ($aylar) {
-            $parts = explode('-', $item->donem);
-            $ayNo = (int) ($parts[1] ?? 1);
+        $aylar = ['', 'Oca', 'Şub', 'Mar', 'Nis', 'May', 'Haz', 'Tem', 'Ağu', 'Eyl', 'Eki', 'Kas', 'Ara'];
+        $refDonem = $sonDonem ?: date('Y-m');
+        $parts = explode('-', $refDonem);
+        $yil = (int) $parts[0];
+        $ay = (int) $parts[1];
 
-            return $aylar[$ayNo].' '.($parts[0] ?? '');
-        });
+        $chartLabels = [];
+        $sonYilTuketim = collect();
 
-        $sonDonem = \App\Models\KesinlesenFatura::where('tesisat_no', $abone->ABONE_TESIS_NO)
-            ->orderBy('donem', 'desc')
-            ->value('donem');
+        for ($i = 11; $i >= 0; $i--) {
+            $curAy = $ay - $i;
+            $curYil = $yil;
+            while ($curAy <= 0) {
+                $curAy += 12;
+                $curYil--;
+            }
+
+            $donemKey = sprintf("%04d-%02d", $curYil, $curAy);
+            $chartLabels[] = $aylar[$curAy] . ' ' . $curYil;
+            
+            $sonYilTuketim->push((object)[
+                'donem' => $donemKey,
+                'fatura_edilecek_toplam_tuketim_kwh' => $tuketimMap[$donemKey]['tuketim'] ?? 0,
+                'tutar_toplam' => $tuketimMap[$donemKey]['tutar'] ?? 0
+            ]);
+        }
 
         return view('aboneler.show', compact('abone', 'farkliSayaclar', 'sonYilTuketim', 'chartLabels', 'sonDonem'));
     }

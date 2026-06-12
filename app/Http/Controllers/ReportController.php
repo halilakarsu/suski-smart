@@ -1382,7 +1382,7 @@ class ReportController extends Controller
         return view('reports.koy-merkez', compact('results', 'donemler', 'bolgeler', 'tarifeler', 'totalKoyTuketim', 'totalKoyTutar', 'totalMerkezTuketim', 'totalMerkezTutar'));
     }
 
-    public function gecmis6Ay($tesisat_no, Request $request)
+    public function gecmis1Yil($tesisat_no, Request $request)
     {
         $query = KesinlesenFatura::where('tesisat_no', $tesisat_no);
 
@@ -1391,7 +1391,7 @@ class ReportController extends Controller
         }
 
         $records = $query->orderBy('donem', 'desc')
-            ->limit(6)
+            ->limit(12)
             ->get();
 
         $formatted = $records->map(function ($row) {

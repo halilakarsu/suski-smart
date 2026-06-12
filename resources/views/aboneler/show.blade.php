@@ -84,6 +84,16 @@
         transform: scale(0.95) translateY(20px);
         opacity: 0;
         transition: all 0.3s ease;
+        max-width: 860px;
+        width: 100%;
+        max-height: 90vh;
+        margin: 0 15px;
+        background: #fff;
+        border-radius: 28px;
+        display: flex;
+        flex-direction: column;
+        overflow: hidden;
+        box-shadow: 0 40px 80px rgba(0,0,0,0.3);
     }
 
     .egm-main-table {
@@ -131,6 +141,43 @@
     .egm-badge-t3 { background:#f1f5f9; color:#475569; border:1px solid #e2e8f0; }
     .egm-badge-ri { background:#fef2f2; color:#dc2626; border:1px solid #fecaca; }
     .egm-badge-rc { background:#fff7ed; color:#c2410c; border:1px solid #fed7aa; }
+    
+    .action-btn {
+        flex: 1;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 12px;
+        padding: 16px 24px;
+        border-radius: 16px;
+        font-family: var(--font-primary);
+        font-weight: 700;
+        font-size: 1.05rem;
+        cursor: pointer;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        text-decoration: none !important;
+        border: none;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+    }
+    .action-btn:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+    }
+    .main-action-btn {
+        background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%);
+        color: white !important;
+    }
+    .main-action-btn:hover {
+        box-shadow: 0 10px 25px rgba(99, 102, 241, 0.4);
+    }
+    .action-btn i { font-size: 1.2rem; }
+    .map-action-btn {
+        background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+        color: white !important;
+    }
+    .map-action-btn:hover {
+        box-shadow: 0 10px 25px rgba(16, 185, 129, 0.4);
+    }
 </style>
 
 <div class="pg-premium p-0">
@@ -141,14 +188,6 @@
                 <p class="hero-subtitle">Abone profili, sayaç geçmişi ve güncelleme tarihçesi.</p>
             </div>
             <div style="display:flex; gap:10px; align-items:center;">
-                @if($sonDonem)
-                <button type="button" class="btn-pro" id="aboneHistoryBtn" data-tesisat="{{ $abone->ABONE_TESIS_NO }}" data-donem="{{ $sonDonem }}" style="background:rgba(167,139,250,0.15);border:1px solid rgba(167,139,250,0.3);color:#fff;padding:12px 20px;gap:8px;font-size:0.85rem;border-radius:14px;">
-                    <i class="fas fa-history"></i> Son 6 Aylık Veri
-                </button>
-                @endif
-                <a href="https://www.google.com/maps/search/?api=1&query={{ urlencode(($abone->ADRES ?? '') . ', ' . ($abone->BOLGE_ADI ?? '') . ', ' . ($abone->ilce ?? '')) }}" target="_blank" class="btn-pro" style="background:rgba(34,197,94,0.15);border:1px solid rgba(34,197,94,0.3);color:#fff;padding:12px 20px;gap:8px;font-size:0.85rem;border-radius:14px;text-decoration:none;">
-                    <i class="fas fa-map-marker-alt"></i> Haritada Görüntüle
-                </a>
                 <a href="{{ route('aboneler.index') }}" class="btn-pro btn-outline-pro">
                     <i class="fas fa-arrow-left"></i> Listeye Dön
                 </a>
@@ -157,6 +196,18 @@
     </div>
 
     <div class="main-container">
+        <!-- Prominent Action Buttons -->
+        <div style="display:flex; gap:20px; margin-bottom:30px; flex-wrap:wrap;">
+            @if($sonDonem)
+            <button type="button" id="aboneHistoryBtn" data-tesisat="{{ $abone->ABONE_TESIS_NO }}" data-donem="{{ $sonDonem }}" class="action-btn main-action-btn">
+                <i class="fas fa-history"></i> Son 1 Yıllık Veriyi Görüntüle
+            </button>
+            @endif
+            <a href="https://www.google.com/maps/search/?api=1&query={{ urlencode(($abone->ADRES ?? '') . ', ' . ($abone->BOLGE_ADI ?? '') . ', ' . ($abone->ilce ?? '')) }}" target="_blank" class="action-btn map-action-btn">
+                <i class="fas fa-map-marker-alt"></i> Haritada Görüntüle
+            </a>
+        </div>
+
         <div class="row">
             <div class="col-md-4">
                 <!-- PRIMARY INFO -->
@@ -264,12 +315,25 @@
             </div>
         </div>
 
+        {{-- ═══ Uydu Görüntüsü ═══ --}}
+        <div class="glass-card" style="margin-top:30px;">
+            <h5 class="card-title-pro"><i class="fas fa-satellite"></i> Uydu Görüntüsü</h5>
+            <div style="border-radius:16px; overflow:hidden; height:400px;">
+                <iframe
+                    width="100%" height="100%" style="border:0;"
+                    loading="lazy" referrerpolicy="no-referrer-when-downgrade"
+                    src="https://www.google.com/maps?q={{ urlencode(($abone->ADRES ?? '') . ', ' . ($abone->BOLGE_ADI ?? '')) }}&t=k&z=15&output=embed"
+                    allowfullscreen>
+                </iframe>
+            </div>
+        </div>
+
     </div>
 </div>
 
 {{-- ═══ Premium Endeks Geçmiş 6 Ay Modal ═══ --}}
 <div id="endeksGecmisModal">
-    <div class="emd-card" style="max-width:860px; background:#fff; border-radius:28px; display:flex; flex-direction:column; overflow:hidden; box-shadow:0 40px 80px rgba(0,0,0,0.3);">
+    <div class="emd-card">
         <div class="emd-header" style="background:linear-gradient(125deg,#0f172a 0%,#1e1b4b 100%); padding:20px 28px; display:flex; align-items:center; justify-content:space-between; flex-shrink:0;">
             <div class="emd-header-left" style="display:flex; align-items:center; gap:14px;">
                 <div class="emd-header-icon" style="width:42px; height:42px; border-radius:12px; background:rgba(167,139,250,0.15); border:1px solid rgba(167,139,250,0.3); display:flex; align-items:center; justify-content:center; color:#a78bfa;"><i class="fas fa-history"></i></div>
@@ -278,7 +342,7 @@
                     <div class="emd-title-row" style="display:flex; align-items:center; gap:10px;">
                         <span id="egm-header-tesisat" class="emd-fatura-badge" style="font-size:.9rem; font-weight:800; color:#fff;">Tesisat No: —</span>
                         <span class="emd-sep" style="color:rgba(255,255,255,0.2);">|</span>
-                        <span class="emd-donem-pill" style="background:rgba(139,92,246,0.15); border:1px solid rgba(139,92,246,0.3); color:#c084fc; padding:2px 12px; border-radius:20px; font-size:.72rem; font-weight:700;">Son 6 Ay Verisi</span>
+                        <span class="emd-donem-pill" style="background:rgba(139,92,246,0.15); border:1px solid rgba(139,92,246,0.3); color:#c084fc; padding:2px 12px; border-radius:20px; font-size:.72rem; font-weight:700;">Son 1 Yıl Verisi</span>
                     </div>
                 </div>
             </div>
@@ -385,12 +449,12 @@ $(document).ready(function() {
         var donem = $(this).data('donem');
         if (!tesisat) { console.warn('[Abone] tesisat_no bulunamadı'); return; }
 
-        console.debug('[Abone] Son 6 ay yükleniyor:', tesisat, donem);
+        console.debug('[Abone] Son 1 yıl yükleniyor:', tesisat, donem);
 
-        Swal.fire({ title: 'Yükleniyor...', text: 'Son 6 ayın endeks verileri getiriliyor.', allowOutsideClick: false, didOpen: function() { Swal.showLoading(); } });
+        Swal.fire({ title: 'Yükleniyor...', text: 'Son 1 yılın endeks verileri getiriliyor.', allowOutsideClick: false, didOpen: function() { Swal.showLoading(); } });
 
         $.ajax({
-            url: '/raporlar/endeks/gecmis-6-ay/' + encodeURIComponent(tesisat),
+            url: '/raporlar/endeks/gecmis-1-yil/' + encodeURIComponent(tesisat),
             type: 'GET',
             data: { donem: donem || '' },
             success: function(res) {
@@ -415,16 +479,41 @@ $(document).ready(function() {
 
     var labels = @json($chartLabels);
     var values = @json($sonYilTuketim->pluck('fatura_edilecek_toplam_tuketim_kwh'));
+    var tutarlar = @json($sonYilTuketim->pluck('tutar_toplam'));
 
     if (!values.length) {
         ctx.parentElement.innerHTML = '<div class="text-center py-5 text-muted fw-bold">Bu abone için tüketim verisi bulunamadı.</div>';
         return;
     }
 
+    const tutarLabelPlugin = {
+        id: 'tutarLabelPlugin',
+        afterDatasetsDraw: function(chart) {
+            var ctx = chart.ctx;
+            chart.data.datasets.forEach(function(dataset, i) {
+                var meta = chart.getDatasetMeta(i);
+                meta.data.forEach(function(bar, index) {
+                    var tutar = chart.data.tutarlar[index];
+                    if (tutar && tutar > 0) {
+                        var text = tutar.toLocaleString('tr-TR', {minimumFractionDigits:2, maximumFractionDigits:2}) + ' ₺';
+                        ctx.save();
+                        ctx.fillStyle = '#475569';
+                        ctx.font = 'bold 11px "Plus Jakarta Sans", sans-serif';
+                        ctx.textAlign = 'center';
+                        ctx.textBaseline = 'bottom';
+                        ctx.fillText(text, bar.x, bar.y - 6);
+                        ctx.restore();
+                    }
+                });
+            });
+        }
+    };
+
     new Chart(ctx, {
         type: 'bar',
         data: {
             labels: labels,
+            tutarlar: tutarlar,
             datasets: [{
                 label: 'Tüketim (kWh)',
                 data: values,
@@ -434,6 +523,7 @@ $(document).ready(function() {
             }]
         },
         options: {
+            layout: { padding: { top: 25 } },
             responsive: true,
             maintainAspectRatio: false,
             plugins: {
@@ -450,7 +540,12 @@ $(document).ready(function() {
                     cornerRadius: 4,
                     callbacks: {
                         label: function(ctx) {
-                            return ctx.parsed.y.toLocaleString('tr-TR', {minimumFractionDigits:2, maximumFractionDigits:2}) + ' kWh';
+                            var tuk = ctx.parsed.y.toLocaleString('tr-TR', {minimumFractionDigits:2, maximumFractionDigits:2}) + ' kWh';
+                            var ttr = ctx.chart.data.tutarlar[ctx.dataIndex];
+                            if (ttr > 0) {
+                                tuk += ' (Fatura: ' + ttr.toLocaleString('tr-TR', {minimumFractionDigits:2, maximumFractionDigits:2}) + ' ₺)';
+                            }
+                            return tuk;
                         }
                     }
                 },
@@ -476,7 +571,8 @@ $(document).ready(function() {
                 }
             },
             animation: { duration: 800, easing: 'easeOutQuart' }
-        }
+        },
+        plugins: [tutarLabelPlugin]
     });
 });
 </script>

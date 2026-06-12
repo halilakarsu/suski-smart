@@ -119,7 +119,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/raporlar/detayli', [\App\Http\Controllers\ReportController::class, 'detailed'])->name('reports.detailed');
     Route::get('/raporlar/tuketim', [\App\Http\Controllers\ReportController::class, 'tuketim'])->name('reports.tuketim');
     Route::get('/raporlar/endeks', [\App\Http\Controllers\ReportController::class, 'endeks'])->name('reports.endeks');
-    Route::get('/raporlar/endeks/gecmis-6-ay/{tesisat_no}', [\App\Http\Controllers\ReportController::class, 'gecmis6Ay'])->name('reports.endeks.gecmis6Ay');
+    Route::get('/raporlar/endeks/gecmis-1-yil/{tesisat_no}', [\App\Http\Controllers\ReportController::class, 'gecmis1Yil'])->name('reports.endeks.gecmis1Yil');
     Route::get('/raporlar/anormal-faturalar', [\App\Http\Controllers\AnormalFaturaController::class, 'index'])->name('reports.anormal-faturalar');
     Route::get('/raporlar/koy-merkez', [\App\Http\Controllers\ReportController::class, 'koyMerkez'])->name('reports.koy-merkez');
     Route::get('/raporlar/ek-tuketim', [\App\Http\Controllers\ReportController::class, 'ekTuketim'])->name('reports.ek-tuketim');
