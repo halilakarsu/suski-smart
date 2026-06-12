@@ -107,13 +107,30 @@ class AbonelerController extends Controller
             $farkliSayaclar[] = (object) ['no' => $sNo, 'tarih' => $tarih];
         }
 
-        $sonYilTuketim = \App\Models\KesinlesenFatura::where('tesisat_no', $abone->ABONE_TESIS_NO)
-            ->whereNotNull('fatura_edilecek_toplam_tuketim_kwh')
+        $sonYilTuketimRecords = \App\Models\KesinlesenFatura::where('tesisat_no', $abone->ABONE_TESIS_NO)
             ->orderBy('donem', 'desc')
             ->limit(12)
-            ->get(['donem', 'fatura_edilecek_toplam_tuketim_kwh'])
+            ->get()
             ->sortBy('donem')
             ->values();
+
+        $sonYilTuketim = $sonYilTuketimRecords->map(function ($row) {
+            $t1Ilk = (float) str_replace(',', '.', $row->t1_ilk_endeks ?? 0);
+            $t2Ilk = (float) str_replace(',', '.', $row->t2_ilk_endeks ?? 0);
+            $t3Ilk = (float) str_replace(',', '.', $row->t3_ilk_endeks ?? 0);
+            $hasTariff = ($t1Ilk + $t2Ilk + $t3Ilk) > 0;
+
+            $t1Tuketim = (float) ($row->t1_tuketim ?? 0);
+            $t2Tuketim = (float) ($row->t2_tuketim ?? 0);
+            $t3Tuketim = (float) ($row->t3_tuketim ?? 0);
+
+            $t0Tuketim = $hasTariff ? ($t1Tuketim + $t2Tuketim + $t3Tuketim) : (float) ($row->fatura_edilecek_toplam_tuketim_kwh ?? 0);
+
+            return (object) [
+                'donem' => $row->donem,
+                'fatura_edilecek_toplam_tuketim_kwh' => $t0Tuketim
+            ];
+        });
 
         $aylar = ['', 'Ocak', 'Şubat', 'Mart', 'Nisan', 'Mayıs', 'Haziran', 'Temmuz', 'Ağustos', 'Eylül', 'Ekim', 'Kasım', 'Aralık'];
         $chartLabels = $sonYilTuketim->map(function ($item) use ($aylar) {
@@ -124,7 +141,6 @@ class AbonelerController extends Controller
         });
 
         $sonDonem = \App\Models\KesinlesenFatura::where('tesisat_no', $abone->ABONE_TESIS_NO)
-            ->where('odeme_durumu', 'odendi')
             ->orderBy('donem', 'desc')
             ->value('donem');
 

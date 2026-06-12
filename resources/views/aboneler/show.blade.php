@@ -78,7 +78,13 @@
         opacity:0; transition:opacity 0.25s ease;
     }
     #endeksGecmisModal.active { opacity:1; }
-    #endeksGecmisModal.active .emd-card { transform:scale(1) translateY(0); opacity:1; }
+    #endeksGecmisModal.active .emd-card { transform:scale(1) translateY(0) !important; opacity:1 !important; }
+
+    .emd-card {
+        transform: scale(0.95) translateY(20px);
+        opacity: 0;
+        transition: all 0.3s ease;
+    }
 
     .egm-main-table {
         width:100%; border-collapse:collapse; font-size:0.82rem;
@@ -140,6 +146,9 @@
                     <i class="fas fa-history"></i> Son 6 Aylık Veri
                 </button>
                 @endif
+                <a href="https://www.google.com/maps/search/?api=1&query={{ urlencode(($abone->ADRES ?? '') . ', ' . ($abone->BOLGE_ADI ?? '') . ', ' . ($abone->ilce ?? '')) }}" target="_blank" class="btn-pro" style="background:rgba(34,197,94,0.15);border:1px solid rgba(34,197,94,0.3);color:#fff;padding:12px 20px;gap:8px;font-size:0.85rem;border-radius:14px;text-decoration:none;">
+                    <i class="fas fa-map-marker-alt"></i> Haritada Görüntüle
+                </a>
                 <a href="{{ route('aboneler.index') }}" class="btn-pro btn-outline-pro">
                     <i class="fas fa-arrow-left"></i> Listeye Dön
                 </a>
@@ -260,7 +269,7 @@
 
 {{-- ═══ Premium Endeks Geçmiş 6 Ay Modal ═══ --}}
 <div id="endeksGecmisModal">
-    <div class="emd-card" style="max-width:860px; background:#fff; border-radius:28px; display:flex; flex-direction:column; overflow:hidden; box-shadow:0 40px 80px rgba(0,0,0,0.3); animation:fadeScaleIn .3s ease; transform:scale(0.95) translateY(20px); opacity:0; transition:all 0.3s ease;">
+    <div class="emd-card" style="max-width:860px; background:#fff; border-radius:28px; display:flex; flex-direction:column; overflow:hidden; box-shadow:0 40px 80px rgba(0,0,0,0.3);">
         <div class="emd-header" style="background:linear-gradient(125deg,#0f172a 0%,#1e1b4b 100%); padding:20px 28px; display:flex; align-items:center; justify-content:space-between; flex-shrink:0;">
             <div class="emd-header-left" style="display:flex; align-items:center; gap:14px;">
                 <div class="emd-header-icon" style="width:42px; height:42px; border-radius:12px; background:rgba(167,139,250,0.15); border:1px solid rgba(167,139,250,0.3); display:flex; align-items:center; justify-content:center; color:#a78bfa;"><i class="fas fa-history"></i></div>
@@ -419,13 +428,9 @@ $(document).ready(function() {
             datasets: [{
                 label: 'Tüketim (kWh)',
                 data: values,
-                backgroundColor: values.map(function(v) {
-                    return v > 0 ? 'rgba(37, 99, 235, 0.75)' : 'rgba(239, 68, 68, 0.5)';
-                }),
-                borderColor: 'rgba(37, 99, 235, 1)',
-                borderWidth: 1,
-                borderRadius: 6,
-                barPercentage: 0.65,
+                backgroundColor: '#72b2dd', // Resimdeki gibi açık mavi tonu
+                borderWidth: 0,
+                barPercentage: 0.6,
             }]
         },
         options: {
@@ -434,11 +439,15 @@ $(document).ready(function() {
             plugins: {
                 legend: { display: false },
                 tooltip: {
-                    backgroundColor: '#0f172a',
+                    backgroundColor: '#ffffff',
+                    titleColor: '#333333',
+                    bodyColor: '#333333',
+                    borderColor: '#e5e7eb',
+                    borderWidth: 1,
                     titleFont: { weight: '700', size: 13 },
                     bodyFont: { weight: '600', size: 12 },
                     padding: 12,
-                    cornerRadius: 10,
+                    cornerRadius: 4,
                     callbacks: {
                         label: function(ctx) {
                             return ctx.parsed.y.toLocaleString('tr-TR', {minimumFractionDigits:2, maximumFractionDigits:2}) + ' kWh';
@@ -450,16 +459,20 @@ $(document).ready(function() {
             scales: {
                 y: {
                     beginAtZero: true,
-                    grid: { color: 'rgba(0,0,0,0.05)', drawBorder: false },
+                    grid: { color: '#e5e7eb', drawBorder: false },
                     ticks: {
-                        font: { weight: '700', size: 11 },
+                        color: '#6b7280',
+                        font: { size: 13 },
                         padding: 10,
-                        callback: function(v) { return v.toLocaleString('tr-TR') + ' kWh'; }
+                        callback: function(v) { return v.toLocaleString('tr-TR'); }
                     }
                 },
                 x: {
                     grid: { display: false },
-                    ticks: { font: { weight: '700', size: 11 } }
+                    ticks: { 
+                        color: '#6b7280',
+                        font: { size: 13 }
+                    }
                 }
             },
             animation: { duration: 800, easing: 'easeOutQuart' }

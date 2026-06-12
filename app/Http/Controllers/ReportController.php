@@ -1384,8 +1384,7 @@ class ReportController extends Controller
 
     public function gecmis6Ay($tesisat_no, Request $request)
     {
-        $query = KesinlesenFatura::where('tesisat_no', $tesisat_no)
-            ->where('odeme_durumu', 'odendi');
+        $query = KesinlesenFatura::where('tesisat_no', $tesisat_no);
 
         if ($request->filled('donem')) {
             $query->where('donem', '<=', $request->donem);
