@@ -680,20 +680,6 @@
                                                 onclick="openEditModal({{ $abone->toJson() }})"><i
                                                     class="fas fa-pen"></i></button>
 
-                                            @if($hasIsActive ?? false)
-                                                @can('manage_aboneler')
-                                                    @if($abone->is_active)
-                                                        <button type="button" class="action-btn-pro ab-red"
-                                                            style="background:#f1f5f9; color:#64748b;" title="Pasif Yap"
-                                                            onclick="toggleActive({{ $abone->id }}, false)"><i
-                                                                class="fas fa-user-slash"></i></button>
-                                                    @else
-                                                        <button type="button" class="action-btn-pro ab-green" title="Aktif Yap"
-                                                            onclick="toggleActive({{ $abone->id }}, true)"><i
-                                                                class="fas fa-user-check"></i></button>
-                                                    @endif
-                                                @endcan
-                                            @endif
                                             <button type="button" class="action-btn-pro ab-red" title="Sil"
                                                 onclick="confirmDelete('{{ $abone->id }}')"><i
                                                     class="fas fa-trash"></i></button>
@@ -998,15 +984,6 @@
             function closeCreateSidebar() {
                 $('#createOverlay').removeClass('open');
                 $('#createSidebar').removeClass('open');
-            }
-
-            function toggleActive(id, makeActive) {
-                fetch('/aboneler/' + id + '/toggle-active', {
-                    method: 'POST',
-                    headers: { 'X-CSRF-TOKEN': '{{ csrf_token() }}' }
-                }).then(r => r.json()).then(data => {
-                    if (data.success) location.reload();
-                });
             }
 
             // Auto Search Logic (Event Delegation)
