@@ -203,9 +203,6 @@
                 <i class="fas fa-history"></i> Son 1 Yıllık Veriyi Görüntüle
             </button>
             @endif
-            <a href="https://www.google.com/maps/search/?api=1&query={{ urlencode(($abone->ADRES ?? '') . ', ' . ($abone->BOLGE_ADI ?? '') . ', ' . ($abone->ilce ?? '')) }}" target="_blank" class="action-btn map-action-btn">
-                <i class="fas fa-map-marker-alt"></i> Haritada Görüntüle
-            </a>
         </div>
 
         <div class="row">
