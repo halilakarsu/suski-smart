@@ -69,6 +69,62 @@
     }
     .btn-outline-pro { background: rgba(255,255,255,0.1); color: white !important; border: 1px solid rgba(255,255,255,0.2); }
     .btn-outline-pro:hover { background: rgba(255,255,255,0.2); }
+
+    /* ═══ Geçmiş Modal Stilleri ═══ */
+    #endeksGecmisModal {
+        display:none; position:fixed; inset:0; z-index:99999;
+        background:rgba(15,23,42,0.7); backdrop-filter:blur(8px); -webkit-backdrop-filter:blur(8px);
+        align-items:center; justify-content:center; padding:20px;
+        opacity:0; transition:opacity 0.25s ease;
+    }
+    #endeksGecmisModal.active { opacity:1; }
+    #endeksGecmisModal.active .emd-card { transform:scale(1) translateY(0); opacity:1; }
+
+    .egm-main-table {
+        width:100%; border-collapse:collapse; font-size:0.82rem;
+    }
+    .egm-main-table thead tr { background:#f8fafc; position:sticky; top:0; z-index:10; }
+    .egm-main-table thead th {
+        padding:11px 14px; font-size:0.68rem; font-weight:800; color:#64748b;
+        text-transform:uppercase; letter-spacing:0.07em; border-bottom:2px solid #e2e8f0; white-space:nowrap;
+    }
+    .egm-period-header-row td {
+        padding:9px 16px !important;
+        background:linear-gradient(125deg,#0f172a 0%,#1e1b4b 100%); border-bottom:none;
+    }
+    .egm-period-label { font-size:0.88rem; font-weight:800; color:#fff; display:inline-flex; align-items:center; gap:7px; }
+    .egm-period-label i { opacity:0.8; }
+    .egm-period-meta {
+        font-size:0.75rem; color:#c4b5fd; background:rgba(255,255,255,0.1);
+        border:1px solid rgba(255,255,255,0.15); padding:3px 10px; border-radius:20px; margin-left:15px; vertical-align:middle;
+    }
+    .egm-period-meta strong { color:#ede9fe; }
+    .egm-period-tutar {
+        font-size:0.88rem; font-weight:800; color:#a7f3d0; display:inline-flex; align-items:center; gap:6px;
+        background:rgba(16,185,129,0.15); border:1px solid rgba(16,185,129,0.3);
+        padding:4px 14px; border-radius:20px;
+    }
+    .egm-data-row td { padding:7px 14px; border-bottom:1px solid #f1f5f9; vertical-align:middle; }
+    .egm-data-row:hover td { background:#fafbff; }
+    .egm-row-ana td { background:#f5f3ff; }
+    .egm-row-ana:hover td { background:#ede9fe; }
+    .egm-row-reaktif td { background:#fffbf5; }
+    .egm-row-reaktif:hover td { background:#fef3c7; }
+    .egm-row-sep td { border-bottom:3px solid #c4b5fd !important; }
+    .egm-indicator-cell { white-space:nowrap; }
+    .egm-indicator-sub { font-size:0.7rem; color:#94a3b8; font-weight:500; margin-left:6px; }
+    .egm-num-cell { text-align:right; font-family:'Courier New',monospace; font-size:0.8rem; color:#334155; font-weight:600; white-space:nowrap; }
+    .egm-tuketim-cell { color:#059669 !important; font-weight:700 !important; }
+    .egm-badge {
+        display:inline-flex; align-items:center; justify-content:center;
+        font-size:0.72rem; font-weight:900; padding:2px 8px; border-radius:6px; min-width:28px; text-align:center;
+    }
+    .egm-badge-t0 { background:#e0f2fe; color:#0369a1; border:1px solid #bae6fd; }
+    .egm-badge-t1 { background:#dbeafe; color:#1d4ed8; border:1px solid #bfdbfe; }
+    .egm-badge-t2 { background:#f3e8ff; color:#6d28d9; border:1px solid #ddd6fe; }
+    .egm-badge-t3 { background:#f1f5f9; color:#475569; border:1px solid #e2e8f0; }
+    .egm-badge-ri { background:#fef2f2; color:#dc2626; border:1px solid #fecaca; }
+    .egm-badge-rc { background:#fff7ed; color:#c2410c; border:1px solid #fed7aa; }
 </style>
 
 <div class="pg-premium p-0">
@@ -78,9 +134,16 @@
                 <h1 class="hero-title">Abone Detayı: {{ $abone->ABONE_TESIS_NO }}</h1>
                 <p class="hero-subtitle">Abone profili, sayaç geçmişi ve güncelleme tarihçesi.</p>
             </div>
-            <a href="{{ route('aboneler.index') }}" class="btn-pro btn-outline-pro">
-                <i class="fas fa-arrow-left"></i> Listeye Dön
-            </a>
+            <div style="display:flex; gap:10px; align-items:center;">
+                @if($sonDonem)
+                <button type="button" class="btn-pro" id="aboneHistoryBtn" data-tesisat="{{ $abone->ABONE_TESIS_NO }}" data-donem="{{ $sonDonem }}" style="background:rgba(167,139,250,0.15);border:1px solid rgba(167,139,250,0.3);color:#fff;padding:12px 20px;gap:8px;font-size:0.85rem;border-radius:14px;">
+                    <i class="fas fa-history"></i> Son 6 Aylık Veri
+                </button>
+                @endif
+                <a href="{{ route('aboneler.index') }}" class="btn-pro btn-outline-pro">
+                    <i class="fas fa-arrow-left"></i> Listeye Dön
+                </a>
+            </div>
         </div>
     </div>
 
@@ -195,14 +258,159 @@
     </div>
 </div>
 
+{{-- ═══ Premium Endeks Geçmiş 6 Ay Modal ═══ --}}
+<div id="endeksGecmisModal">
+    <div class="emd-card" style="max-width:860px; background:#fff; border-radius:28px; display:flex; flex-direction:column; overflow:hidden; box-shadow:0 40px 80px rgba(0,0,0,0.3); animation:fadeScaleIn .3s ease; transform:scale(0.95) translateY(20px); opacity:0; transition:all 0.3s ease;">
+        <div class="emd-header" style="background:linear-gradient(125deg,#0f172a 0%,#1e1b4b 100%); padding:20px 28px; display:flex; align-items:center; justify-content:space-between; flex-shrink:0;">
+            <div class="emd-header-left" style="display:flex; align-items:center; gap:14px;">
+                <div class="emd-header-icon" style="width:42px; height:42px; border-radius:12px; background:rgba(167,139,250,0.15); border:1px solid rgba(167,139,250,0.3); display:flex; align-items:center; justify-content:center; color:#a78bfa;"><i class="fas fa-history"></i></div>
+                <div>
+                    <div class="emd-eyebrow" style="font-size:.65rem; font-weight:800; color:#a78bfa; text-transform:uppercase; letter-spacing:.12em; margin-bottom:3px;">Endeks Geçmişi</div>
+                    <div class="emd-title-row" style="display:flex; align-items:center; gap:10px;">
+                        <span id="egm-header-tesisat" class="emd-fatura-badge" style="font-size:.9rem; font-weight:800; color:#fff;">Tesisat No: —</span>
+                        <span class="emd-sep" style="color:rgba(255,255,255,0.2);">|</span>
+                        <span class="emd-donem-pill" style="background:rgba(139,92,246,0.15); border:1px solid rgba(139,92,246,0.3); color:#c084fc; padding:2px 12px; border-radius:20px; font-size:.72rem; font-weight:700;">Son 6 Ay Verisi</span>
+                    </div>
+                </div>
+            </div>
+            <div class="emd-header-right">
+                <button onclick="closeEndeksGecmis()" class="emd-close-btn" style="width:36px; height:36px; border-radius:10px; border:1px solid rgba(255,255,255,0.15); background:rgba(255,255,255,0.06); color:rgba(255,255,255,0.6); display:flex; align-items:center; justify-content:center; cursor:pointer; font-size:.9rem;"><i class="fas fa-times"></i></button>
+            </div>
+        </div>
+        <div class="emd-body" style="flex:1; overflow-y:auto; background:#f8fafc; padding:0;">
+            <div style="overflow-x:auto;">
+                <table class="egm-main-table">
+                    <thead>
+                        <tr>
+                            <th style="width:180px;">Gösterge</th>
+                            <th style="text-align:right;">İlk Endeks</th>
+                            <th style="text-align:right;">Son Endeks</th>
+                            <th style="text-align:right;">Fark</th>
+                            <th style="text-align:right;">Tüketim (kWh)</th>
+                        </tr>
+                    </thead>
+                    <tbody id="egm-table-body"></tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
 @push('scripts')
 <script>
-document.addEventListener('DOMContentLoaded', function() {
+function emdFmt(n) {
+    var num = parseFloat(n) || 0;
+    return num.toLocaleString('tr-TR', {minimumFractionDigits:2, maximumFractionDigits:2});
+}
+
+function formatEgmDonem(donemStr) {
+    if (!donemStr) return donemStr;
+    var yil = '', ay = '';
+    if (donemStr.includes('-')) {
+        var parts = donemStr.split('-');
+        yil = parts[0];
+        ay = parts[1];
+    } else if (donemStr.length >= 6) {
+        yil = donemStr.substring(0, 4);
+        ay = donemStr.substring(4, 6);
+    } else {
+        return donemStr;
+    }
+    var aylar = {
+        '01': 'Ocak', '02': 'Şubat', '03': 'Mart', '04': 'Nisan',
+        '05': 'Mayıs', '06': 'Haziran', '07': 'Temmuz', '08': 'Ağustos',
+        '09': 'Eylül', '10': 'Ekim', '11': 'Kasım', '12': 'Aralık'
+    };
+    return (aylar[ay] || ay) + ' ' + yil;
+}
+
+function openEndeksGecmis(tesisat, records) {
+    document.getElementById('egm-header-tesisat').textContent = 'Tesisat No: ' + tesisat;
+    var tbody = document.getElementById('egm-table-body');
+    var html = '';
+    records.forEach(function(rec, recIdx) {
+        var isLast = recIdx === records.length - 1;
+        html += '<tr class="egm-period-header-row"><td colspan="2"><span class="egm-period-label"><i class="far fa-calendar-alt"></i> ' + formatEgmDonem(rec.donem) + '</span><span class="egm-period-meta">Çarpan: <strong>x' + rec.carpan + '</strong></span></td><td colspan="3" style="text-align:right;"><span class="egm-period-tutar"><i class="fas fa-lira-sign"></i> ' + emdFmt(rec.tutar) + ' Fatura Tutarı</span></td></tr>';
+        var items = [
+            { key: 'T1', label: 'T1', sublabel: 'Gündüz',       data: rec.t1, isAna: false, isReaktif: false },
+            { key: 'T2', label: 'T2', sublabel: 'Puant',         data: rec.t2, isAna: false, isReaktif: false },
+            { key: 'T3', label: 'T3', sublabel: 'Gece',          data: rec.t3, isAna: false, isReaktif: false },
+            { key: 'T0', label: 'T0', sublabel: 'Aktif Toplam', data: rec.t0, isAna: true,  isReaktif: false },
+            { key: 'RI', label: 'Rİ', sublabel: 'Endüktif',      data: rec.ri, isAna: false, isReaktif: true  },
+            { key: 'RC', label: 'RC', sublabel: 'Kapasitif',     data: rec.rc, isAna: false, isReaktif: true  }
+        ];
+        items.forEach(function(item, itemIdx) {
+            var isLastItem = itemIdx === items.length - 1;
+            var isNeg = item.data.fark < 0;
+            var lblClass = 'egm-badge';
+            if      (item.key === 'T0') lblClass += ' egm-badge-t0';
+            else if (item.key === 'T1') lblClass += ' egm-badge-t1';
+            else if (item.key === 'T2') lblClass += ' egm-badge-t2';
+            else if (item.key === 'T3') lblClass += ' egm-badge-t3';
+            else if (item.key === 'RI') lblClass += ' egm-badge-ri';
+            else if (item.key === 'RC') lblClass += ' egm-badge-rc';
+            var tuketimText = item.isReaktif ? '<span style="color:#94a3b8;">—</span>' : emdFmt(item.data.tuketim);
+            var farkColor   = isNeg ? '#dc2626' : '#2563eb';
+            var rowCls = item.isAna ? 'egm-row-ana' : (item.isReaktif ? 'egm-row-reaktif' : '');
+            var borderCls = (isLastItem && !isLast) ? 'egm-row-sep' : '';
+            html += '<tr class="egm-data-row ' + rowCls + ' ' + borderCls + '"><td class="egm-indicator-cell"><span class="' + lblClass + '">' + item.label + '</span> <span class="egm-indicator-sub">' + item.sublabel + '</span></td><td class="egm-num-cell">' + emdFmt(item.data.ilk) + '</td><td class="egm-num-cell">' + emdFmt(item.data.son) + '</td><td class="egm-num-cell" style="font-weight:800;color:' + farkColor + ';">' + emdFmt(item.data.fark) + '</td><td class="egm-num-cell egm-tuketim-cell">' + tuketimText + '</td></tr>';
+        });
+    });
+    tbody.innerHTML = html;
+    var modal = document.getElementById('endeksGecmisModal');
+    modal.style.display = 'flex';
+    document.body.style.overflow = 'hidden';
+    setTimeout(function() { modal.classList.add('active'); }, 10);
+}
+
+window.closeEndeksGecmis = function() {
+    var modal = document.getElementById('endeksGecmisModal');
+    modal.classList.remove('active');
+    document.body.style.overflow = '';
+    setTimeout(function() { modal.style.display = 'none'; }, 280);
+};
+
+$(document).ready(function() {
+    $('#aboneHistoryBtn').on('click', function() {
+        var tesisat = $(this).data('tesisat');
+        var donem = $(this).data('donem');
+        if (!tesisat) { console.warn('[Abone] tesisat_no bulunamadı'); return; }
+
+        console.debug('[Abone] Son 6 ay yükleniyor:', tesisat, donem);
+
+        Swal.fire({ title: 'Yükleniyor...', text: 'Son 6 ayın endeks verileri getiriliyor.', allowOutsideClick: false, didOpen: function() { Swal.showLoading(); } });
+
+        $.ajax({
+            url: '/raporlar/endeks/gecmis-6-ay/' + encodeURIComponent(tesisat),
+            type: 'GET',
+            data: { donem: donem || '' },
+            success: function(res) {
+                Swal.close();
+                console.debug('[Abone] API yanıtı:', res);
+                if (res.success && res.records && res.records.length > 0) {
+                    openEndeksGecmis(res.tesisat_no, res.records);
+                } else {
+                    Swal.fire({ icon: 'info', title: 'Kayıt Bulunamadı', text: 'Bu tesisat numarasına ait geçmiş dönem kaydı bulunamadı.', confirmButtonText: 'Tamam' });
+                }
+            },
+            error: function(xhr) {
+                Swal.close();
+                console.error('[Abone] API hatası:', xhr);
+                Swal.fire({ icon: 'error', title: 'Hata', text: 'Geçmiş veriler alınırken bir hata oluştu.', confirmButtonText: 'Tamam' });
+            }
+        });
+    });
+
     var ctx = document.getElementById('tuketimChart');
     if (!ctx) return;
 
-    var labels = @json($sonYilTuketim->pluck('donem'));
+    var labels = @json($chartLabels);
     var values = @json($sonYilTuketim->pluck('fatura_edilecek_toplam_tuketim_kwh'));
+
+    if (!values.length) {
+        ctx.parentElement.innerHTML = '<div class="text-center py-5 text-muted fw-bold">Bu abone için tüketim verisi bulunamadı.</div>';
+        return;
+    }
 
     new Chart(ctx, {
         type: 'bar',
@@ -211,11 +419,13 @@ document.addEventListener('DOMContentLoaded', function() {
             datasets: [{
                 label: 'Tüketim (kWh)',
                 data: values,
-                backgroundColor: 'rgba(37, 99, 235, 0.7)',
+                backgroundColor: values.map(function(v) {
+                    return v > 0 ? 'rgba(37, 99, 235, 0.75)' : 'rgba(239, 68, 68, 0.5)';
+                }),
                 borderColor: 'rgba(37, 99, 235, 1)',
-                borderWidth: 2,
+                borderWidth: 1,
                 borderRadius: 6,
-                barPercentage: 0.6,
+                barPercentage: 0.65,
             }]
         },
         options: {
@@ -234,22 +444,25 @@ document.addEventListener('DOMContentLoaded', function() {
                             return ctx.parsed.y.toLocaleString('tr-TR', {minimumFractionDigits:2, maximumFractionDigits:2}) + ' kWh';
                         }
                     }
-                }
+                },
+                datalabels: { display: false }
             },
             scales: {
                 y: {
                     beginAtZero: true,
-                    grid: { color: 'rgba(0,0,0,0.04)' },
+                    grid: { color: 'rgba(0,0,0,0.05)', drawBorder: false },
                     ticks: {
-                        font: { weight: '600', size: 11 },
+                        font: { weight: '700', size: 11 },
+                        padding: 10,
                         callback: function(v) { return v.toLocaleString('tr-TR') + ' kWh'; }
                     }
                 },
                 x: {
                     grid: { display: false },
-                    ticks: { font: { weight: '600', size: 10 } }
+                    ticks: { font: { weight: '700', size: 11 } }
                 }
-            }
+            },
+            animation: { duration: 800, easing: 'easeOutQuart' }
         }
     });
 });

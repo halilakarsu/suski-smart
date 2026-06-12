@@ -115,7 +115,20 @@ class AbonelerController extends Controller
             ->sortBy('donem')
             ->values();
 
-        return view('aboneler.show', compact('abone', 'farkliSayaclar', 'sonYilTuketim'));
+        $aylar = ['', 'Ocak', 'Şubat', 'Mart', 'Nisan', 'Mayıs', 'Haziran', 'Temmuz', 'Ağustos', 'Eylül', 'Ekim', 'Kasım', 'Aralık'];
+        $chartLabels = $sonYilTuketim->map(function ($item) use ($aylar) {
+            $parts = explode('-', $item->donem);
+            $ayNo = (int) ($parts[1] ?? 1);
+
+            return $aylar[$ayNo].' '.($parts[0] ?? '');
+        });
+
+        $sonDonem = \App\Models\KesinlesenFatura::where('tesisat_no', $abone->ABONE_TESIS_NO)
+            ->where('odeme_durumu', 'odendi')
+            ->orderBy('donem', 'desc')
+            ->value('donem');
+
+        return view('aboneler.show', compact('abone', 'farkliSayaclar', 'sonYilTuketim', 'chartLabels', 'sonDonem'));
     }
 
     public function create()
