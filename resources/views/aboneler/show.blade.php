@@ -499,17 +499,22 @@ $(document).ready(function() {
             chart.data.datasets.forEach(function(dataset, i) {
                 var meta = chart.getDatasetMeta(i);
                 meta.data.forEach(function(bar, index) {
-                    var tutar = chart.data.tutarlar[index];
-                    if (tutar && tutar > 0) {
-                        var text = tutar.toLocaleString('tr-TR', {minimumFractionDigits:2, maximumFractionDigits:2}) + ' ₺';
-                        ctx.save();
-                        ctx.fillStyle = '#475569';
-                        ctx.font = 'bold 11px "Plus Jakarta Sans", sans-serif';
-                        ctx.textAlign = 'center';
-                        ctx.textBaseline = 'bottom';
-                        ctx.fillText(text, bar.x, bar.y - 6);
-                        ctx.restore();
+                    var val = chart.data.tutarlar[index];
+                    if (!val || val <= 0) return;
+                    var text = val.toLocaleString('tr-TR', {minimumFractionDigits:0, maximumFractionDigits:0}) + ' ₺';
+                    ctx.save();
+                    ctx.fillStyle = '#fff';
+                    ctx.font = 'bold 10px "Plus Jakarta Sans", sans-serif';
+                    ctx.textAlign = 'center';
+                    ctx.textBaseline = 'middle';
+                    var bw = Math.abs(bar.x - bar.getCenterPoint ? bar.x : (bar.x));
+                    var barW = bar.width || 30;
+                    if (barW < 50) {
+                        ctx.fillText(text, bar.x, bar.y - 8);
+                    } else {
+                        ctx.fillText(text, bar.x, bar.y + bar.height / 2);
                     }
+                    ctx.restore();
                 });
             });
         }
@@ -529,7 +534,7 @@ $(document).ready(function() {
             }]
         },
         options: {
-            layout: { padding: { top: 25 } },
+            layout: { padding: { top: 5 } },
             responsive: true,
             maintainAspectRatio: false,
             plugins: {
