@@ -673,16 +673,24 @@
                                         </td>
                                     @endif
                                     <td>
-                                        <div class="d-flex justify-content-end gap-2">
-                                            <a href="{{ route('aboneler.show', $abone->id) }}" class="action-btn-pro ab-blue"
-                                                title="Görüntüle"><i class="fas fa-eye"></i></a>
-                                            <button type="button" class="action-btn-pro ab-orange" title="Düzenle"
-                                                onclick="openEditModal({{ $abone->toJson() }})"><i
-                                                    class="fas fa-pen"></i></button>
-
-                                            <button type="button" class="action-btn-pro ab-red" title="Sil"
-                                                onclick="confirmDelete('{{ $abone->id }}')"><i
-                                                    class="fas fa-trash"></i></button>
+                                        <div class="d-flex justify-content-end gap-2" style="position:relative;">
+                                            <a href="{{ route('aboneler.show', $abone->id) }}" class="action-btn-pro ab-blue" title="Detay">
+                                                <i class="fas fa-eye"></i> Detay
+                                            </a>
+                                            <div class="dropdown" style="display:inline-block;">
+                                                <button class="action-btn-pro" type="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" style="background:#f1f5f9; color:#475569; border:1px solid #e2e8f0; display:inline-flex; align-items:center; gap:6px; padding:8px 14px; border-radius:10px; font-weight:700; font-size:.8rem; cursor:pointer;">
+                                                    <i class="fas fa-ellipsis-h"></i> İşlem Yap <i class="fas fa-chevron-down" style="font-size:.6rem; opacity:0.6;"></i>
+                                                </button>
+                                                <div class="dropdown-menu dropdown-menu-right" style="border-radius:14px; border:1px solid #e2e8f0; box-shadow:0 20px 40px -10px rgba(0,0,0,0.12); padding:6px; min-width:160px;">
+                                                    <button class="dropdown-item" style="border-radius:10px; padding:8px 14px; font-weight:600; font-size:.85rem; color:#0f172a; display:flex; align-items:center; gap:10px;" onclick="openEditModal({{ $abone->toJson() }})">
+                                                        <i class="fas fa-pen" style="color:#f59e0b; width:16px; text-align:center;"></i> Güncelle
+                                                    </button>
+                                                    <div class="dropdown-divider" style="margin:4px 0;"></div>
+                                                    <button class="dropdown-item" style="border-radius:10px; padding:8px 14px; font-weight:600; font-size:.85rem; color:#dc2626; display:flex; align-items:center; gap:10px;" onclick="confirmDelete('{{ $abone->id }}')">
+                                                        <i class="fas fa-trash" style="color:#dc2626; width:16px; text-align:center;"></i> Sil
+                                                    </button>
+                                                </div>
+                                            </div>
                                         </div>
                                     </td>
                                 </tr>
