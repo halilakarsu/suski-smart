@@ -621,10 +621,7 @@
                             <tr>
                                 <th style="width: 60px;">#</th>
                                 <th>Bölge Koordinasyonu</th>
-                                @if($hasBolgeKodu ?? false)
-                                <th style="width: 120px;">Bölge Kodu</th> @endif
                                 <th style="width: 120px;">Tesisat No</th>
-                                <th>Abone Grubu / Tarife</th>
                                 <th>Adres / Detay</th>
                                 @if(request('tab') == 'passive')
                                     <th>Pasiflik Nedeni</th>
@@ -643,17 +640,8 @@
                                     </td>
                                     <td><span class="badge-pro badge-blue"><i class="fas fa-map-marker-alt mr-2"></i>
                                             {{ $abone->bolge->bolge_adi ?? ($abone->BOLGE_ADI ?? 'Tanımsız') }}</span></td>
-                                    @if($hasBolgeKodu ?? false)
-                                        <td><code
-                                                style="background: #f1f5f9; padding: 4px 8px; border-radius: 6px; color: #475569;">{{ $abone->BOLGE_KODU ?? '—' }}</code>
-                                        </td>
-                                    @endif
                                     <td><strong
                                             style="color: #2563eb; font-family: monospace; font-size: 1.1rem;">{{ $abone->ABONE_TESIS_NO }}</strong>
-                                    </td>
-                                    <td>
-                                        <div style="font-weight: 700; color: #1e293b; font-size: 0.85rem;">{{ $abone->abone_grubu ?? '—' }}</div>
-                                        <div style="font-size: 0.75rem; color: #64748b; font-weight: 600;">{{ $abone->tarife ?? '—' }}</div>
                                     </td>
                                     <td>
                                         <div style="max-width: 300px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-weight: 600; color: var(--text-slate-900);"

@@ -94,7 +94,6 @@ class AbonelerController extends Controller
             }
         }
 
-        // Eğer mevcut (aktif) sayaç havuzdan gelmediyse (manuel eklendiyse) en başa koy
         if ($abone->SAYAC_SERI_NO && ! isset($metersWithDates[$abone->SAYAC_SERI_NO])) {
             $metersWithDates = [$abone->SAYAC_SERI_NO => 'Sistem Kaydı'] + $metersWithDates;
         }
@@ -108,7 +107,15 @@ class AbonelerController extends Controller
             $farkliSayaclar[] = (object) ['no' => $sNo, 'tarih' => $tarih];
         }
 
-        return view('aboneler.show', compact('abone', 'farkliSayaclar'));
+        $sonYilTuketim = \App\Models\KesinlesenFatura::where('tesisat_no', $abone->ABONE_TESIS_NO)
+            ->whereNotNull('fatura_edilecek_toplam_tuketim_kwh')
+            ->orderBy('donem', 'desc')
+            ->limit(12)
+            ->get(['donem', 'fatura_edilecek_toplam_tuketim_kwh'])
+            ->sortBy('donem')
+            ->values();
+
+        return view('aboneler.show', compact('abone', 'farkliSayaclar', 'sonYilTuketim'));
     }
 
     public function create()

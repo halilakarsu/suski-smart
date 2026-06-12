@@ -183,6 +183,76 @@
 
             </div>
         </div>
+
+        {{-- ═══ Son 1 Yıl Tüketim Grafiği ═══ --}}
+        <div class="glass-card" style="margin-top:30px;">
+            <h5 class="card-title-pro"><i class="fas fa-chart-bar"></i> Son 1 Yıl Tüketim (kWh)</h5>
+            <div style="position:relative; height:280px;">
+                <canvas id="tuketimChart"></canvas>
+            </div>
+        </div>
+
     </div>
 </div>
+
+@push('scripts')
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    var ctx = document.getElementById('tuketimChart');
+    if (!ctx) return;
+
+    var labels = @json($sonYilTuketim->pluck('donem'));
+    var values = @json($sonYilTuketim->pluck('fatura_edilecek_toplam_tuketim_kwh'));
+
+    new Chart(ctx, {
+        type: 'bar',
+        data: {
+            labels: labels,
+            datasets: [{
+                label: 'Tüketim (kWh)',
+                data: values,
+                backgroundColor: 'rgba(37, 99, 235, 0.7)',
+                borderColor: 'rgba(37, 99, 235, 1)',
+                borderWidth: 2,
+                borderRadius: 6,
+                barPercentage: 0.6,
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: { display: false },
+                tooltip: {
+                    backgroundColor: '#0f172a',
+                    titleFont: { weight: '700', size: 13 },
+                    bodyFont: { weight: '600', size: 12 },
+                    padding: 12,
+                    cornerRadius: 10,
+                    callbacks: {
+                        label: function(ctx) {
+                            return ctx.parsed.y.toLocaleString('tr-TR', {minimumFractionDigits:2, maximumFractionDigits:2}) + ' kWh';
+                        }
+                    }
+                }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    grid: { color: 'rgba(0,0,0,0.04)' },
+                    ticks: {
+                        font: { weight: '600', size: 11 },
+                        callback: function(v) { return v.toLocaleString('tr-TR') + ' kWh'; }
+                    }
+                },
+                x: {
+                    grid: { display: false },
+                    ticks: { font: { weight: '600', size: 10 } }
+                }
+            }
+        }
+    });
+});
+</script>
+@endpush
 @endsection
