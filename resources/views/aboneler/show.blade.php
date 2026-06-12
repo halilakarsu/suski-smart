@@ -196,14 +196,6 @@
     </div>
 
     <div class="main-container">
-        <!-- Prominent Action Buttons -->
-        <div style="display:flex; gap:20px; margin-bottom:30px; flex-wrap:wrap;">
-            @if($sonDonem)
-            <button type="button" id="aboneHistoryBtn" data-tesisat="{{ $abone->ABONE_TESIS_NO }}" data-donem="{{ $sonDonem }}" class="action-btn main-action-btn">
-                <i class="fas fa-history"></i> Son 1 Yıllık Veriyi Görüntüle
-            </button>
-            @endif
-        </div>
 
         <div class="row">
             <div class="col-md-4">
@@ -303,6 +295,23 @@
 
             </div>
         </div>
+
+        {{-- ═══ Son 1 Yıl Butonu ═══ --}}
+        @if($sonDonem)
+        <div style="display:flex; justify-content:flex-end; margin-bottom:12px;">
+            <button type="button" id="aboneHistoryBtn" data-tesisat="{{ $abone->ABONE_TESIS_NO }}" data-donem="{{ $sonDonem }}"
+                style="display:inline-flex; align-items:center; gap:10px; padding:12px 24px; border-radius:14px;
+                       background:linear-gradient(135deg,rgba(167,139,250,0.12),rgba(139,92,246,0.08));
+                       border:1px solid rgba(167,139,250,0.25); color:#7c3aed; font-weight:700; font-size:.88rem;
+                       cursor:pointer; transition:all .25s ease; font-family:inherit;"
+                onmouseover="this.style.borderColor='rgba(167,139,250,0.5)';this.style.background='linear-gradient(135deg,rgba(167,139,250,0.2),rgba(139,92,246,0.12))';this.style.transform='translateY(-1px)';this.style.boxShadow='0 8px 20px rgba(139,92,246,0.15)';"
+                onmouseout="this.style.borderColor='rgba(167,139,250,0.25)';this.style.background='linear-gradient(135deg,rgba(167,139,250,0.12),rgba(139,92,246,0.08))';this.style.transform='translateY(0)';this.style.boxShadow='none';">
+                <i class="fas fa-history" style="font-size:.95rem;"></i>
+                <span>Son 1 Yıllık Veriyi Görüntüle</span>
+                <i class="fas fa-chevron-right" style="font-size:.7rem; opacity:0.6;"></i>
+            </button>
+        </div>
+        @endif
 
         {{-- ═══ Son 1 Yıl Tüketim Grafiği ═══ --}}
         <div class="glass-card" style="margin-top:30px;">
