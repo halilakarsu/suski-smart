@@ -303,6 +303,21 @@
             text-decoration: none !important;
         }
 
+        .action-btn-text {
+            height: 38px;
+            border-radius: 12px;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 0 16px;
+            font-weight: 700;
+            font-size: .8rem;
+            transition: all 0.2s;
+            border: none;
+            cursor: pointer;
+            text-decoration: none !important;
+        }
+
         .ab-blue {
             background: #eff6ff;
             color: #2563eb;
@@ -346,6 +361,38 @@
             color: #fff;
             transform: translateY(-2px);
         }
+
+        .ab-gray {
+            background: #f1f5f9;
+            color: #475569;
+        }
+        .ab-gray:hover {
+            background: #475569;
+            color: #fff;
+            transform: translateY(-2px);
+        }
+
+        .dropdown-actions {
+            position:relative; display:inline-block;
+        }
+        .dropdown-actions-menu {
+            position:absolute; right:0; top:calc(100% + 6px);
+            background:#fff; border-radius:14px; border:1px solid #e2e8f0;
+            box-shadow:0 20px 50px -10px rgba(0,0,0,0.15), 0 0 0 1px rgba(0,0,0,0.02);
+            padding:6px; min-width:170px; z-index:100;
+            display:none; opacity:0; transform:translateY(6px); transition:all .2s ease;
+        }
+        .dropdown-actions.open .dropdown-actions-menu {
+            display:block; opacity:1; transform:translateY(0);
+        }
+        .dropdown-actions-item {
+            display:flex; align-items:center; gap:10px; width:100%;
+            padding:9px 14px; border-radius:10px; font-weight:600; font-size:.85rem;
+            border:none; background:none; cursor:pointer; transition:all .15s ease;
+        }
+        .dropdown-actions-item:hover { background:#f8fafc; }
+        .dropdown-actions-item.danger { color:#dc2626; }
+        .dropdown-actions-item.danger:hover { background:#fef2f2; }
 
         /* Main Buttons */
         .btn-pro {
@@ -673,21 +720,21 @@
                                         </td>
                                     @endif
                                     <td>
-                                        <div class="d-flex justify-content-end gap-2" style="position:relative;">
-                                            <a href="{{ route('aboneler.show', $abone->id) }}" class="action-btn-pro ab-blue" title="Detay">
+                                        <div class="d-flex justify-content-end" style="gap:8px;">
+                                            <a href="{{ route('aboneler.show', $abone->id) }}" class="action-btn-text ab-blue">
                                                 <i class="fas fa-eye"></i> Detay
                                             </a>
-                                            <div class="dropdown" style="display:inline-block;">
-                                                <button class="action-btn-pro" type="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" style="background:#f1f5f9; color:#475569; border:1px solid #e2e8f0; display:inline-flex; align-items:center; gap:6px; padding:8px 14px; border-radius:10px; font-weight:700; font-size:.8rem; cursor:pointer;">
-                                                    <i class="fas fa-ellipsis-h"></i> İşlem Yap <i class="fas fa-chevron-down" style="font-size:.6rem; opacity:0.6;"></i>
+                                            <div class="dropdown-actions" onclick="toggleDropdown(this)">
+                                                <button type="button" class="action-btn-text ab-gray" style="gap:6px; padding:0 12px; font-size:.78rem;">
+                                                    <i class="fas fa-ellipsis-h"></i> İşlem <i class="fas fa-chevron-down" style="font-size:.55rem; opacity:0.5;"></i>
                                                 </button>
-                                                <div class="dropdown-menu dropdown-menu-right" style="border-radius:14px; border:1px solid #e2e8f0; box-shadow:0 20px 40px -10px rgba(0,0,0,0.12); padding:6px; min-width:160px;">
-                                                    <button class="dropdown-item" style="border-radius:10px; padding:8px 14px; font-weight:600; font-size:.85rem; color:#0f172a; display:flex; align-items:center; gap:10px;" onclick="openEditModal({{ $abone->toJson() }})">
-                                                        <i class="fas fa-pen" style="color:#f59e0b; width:16px; text-align:center;"></i> Güncelle
+                                                <div class="dropdown-actions-menu">
+                                                    <button class="dropdown-actions-item" onclick="event.stopPropagation(); openEditModal({{ $abone->toJson() }})">
+                                                        <i class="fas fa-pen" style="color:#f59e0b; width:16px;"></i> Güncelle
                                                     </button>
-                                                    <div class="dropdown-divider" style="margin:4px 0;"></div>
-                                                    <button class="dropdown-item" style="border-radius:10px; padding:8px 14px; font-weight:600; font-size:.85rem; color:#dc2626; display:flex; align-items:center; gap:10px;" onclick="confirmDelete('{{ $abone->id }}')">
-                                                        <i class="fas fa-trash" style="color:#dc2626; width:16px; text-align:center;"></i> Sil
+                                                    <div style="margin:3px 0; border-top:1px solid #f1f5f9;"></div>
+                                                    <button class="dropdown-actions-item danger" onclick="event.stopPropagation(); confirmDelete('{{ $abone->id }}')">
+                                                        <i class="fas fa-trash" style="width:16px;"></i> Sil
                                                     </button>
                                                 </div>
                                             </div>
@@ -1055,6 +1102,18 @@
                     if (loader) loader.style.display = 'none';
                 });
             }
+
+            /** Dropdown toggle */
+            function toggleDropdown(el) {
+                var isOpen = el.classList.contains('open');
+                document.querySelectorAll('.dropdown-actions.open').forEach(function(d) { d.classList.remove('open'); });
+                if (!isOpen) el.classList.add('open');
+            }
+            document.addEventListener('click', function(e) {
+                if (!e.target.closest('.dropdown-actions')) {
+                    document.querySelectorAll('.dropdown-actions.open').forEach(function(d) { d.classList.remove('open'); });
+                }
+            });
         </script>
     @endpush
 @endsection
