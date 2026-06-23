@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Controllers\Concerns\NormalizesIlce;
 use App\Models\AnormalFatura;
 use App\Models\KesinlesenFatura;
 use Illuminate\Http\Request;
@@ -10,6 +11,7 @@ use Illuminate\Support\Facades\Schema;
 
 class AnomaliController extends Controller
 {
+    use NormalizesIlce;
     private function hasAnormalFaturalarTable(): bool
     {
         return Schema::hasTable('anormal_faturalar');
@@ -76,11 +78,18 @@ class AnomaliController extends Controller
             if ($request->filled('bolge_kodu')) {
                 $bolgeKodlari = (array) $request->bolge_kodu;
                 $bolgeAdlari = \App\Models\Bolgeler::whereIn('bolge_kodu', $bolgeKodlari)->pluck('bolge_adi')->toArray();
-                
+
                 if (!empty($bolgeAdlari)) {
-                    $query->where(function($q) use ($bolgeAdlari, $bolgeKodlari) {
+                    $query->where(function ($q) use ($bolgeAdlari, $bolgeKodlari) {
+                        // Normal ilce eşleşmesi
                         $q->whereIn('ilce', $bolgeAdlari)
-                          ->orWhereHas('abone', function($sq) use ($bolgeKodlari) {
+                          // ŞANLIURFA / ŞANLIURFA ÖZEL: ilce_kodu üzerinden eşleştir
+                          ->orWhere(function ($q2) use ($bolgeKodlari) {
+                              $q2->whereIn('ilce', ['ŞANLIURFA', 'ŞANLIURFA ÖZEL'])
+                                 ->whereIn('ilce_kodu', $bolgeKodlari);
+                          })
+                          // Abone tablosu üzerinden de kontrol
+                          ->orWhereHas('abone', function ($sq) use ($bolgeKodlari) {
                               $sq->whereIn('BOLGE_KODU', $bolgeKodlari);
                           });
                     });
@@ -191,11 +200,18 @@ class AnomaliController extends Controller
         if ($request->filled('bolge_kodu')) {
             $bolgeKodlari = (array) $request->bolge_kodu;
             $bolgeAdlari = \App\Models\Bolgeler::whereIn('bolge_kodu', $bolgeKodlari)->pluck('bolge_adi')->toArray();
-            
+
             if (!empty($bolgeAdlari)) {
-                $query->where(function($q) use ($bolgeAdlari, $bolgeKodlari) {
+                $query->where(function ($q) use ($bolgeAdlari, $bolgeKodlari) {
+                    // Normal ilce eşleşmesi
                     $q->whereIn('ilce', $bolgeAdlari)
-                      ->orWhereHas('abone', function($sq) use ($bolgeKodlari) {
+                      // ŞANLIURFA / ŞANLIURFA ÖZEL: ilce_kodu üzerinden eşleştir
+                      ->orWhere(function ($q2) use ($bolgeKodlari) {
+                          $q2->whereIn('ilce', ['ŞANLIURFA', 'ŞANLIURFA ÖZEL'])
+                             ->whereIn('ilce_kodu', $bolgeKodlari);
+                      })
+                      // Abone tablosu üzerinden de kontrol
+                      ->orWhereHas('abone', function ($sq) use ($bolgeKodlari) {
                           $sq->whereIn('BOLGE_KODU', $bolgeKodlari);
                       });
                 });

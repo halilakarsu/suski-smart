@@ -15,6 +15,20 @@ class Aboneler extends Model
             // Normalize names for comparison
             $cleanName = $abone->BOLGE_ADI ? trim(mb_strtoupper($abone->BOLGE_ADI, 'UTF-8')) : null;
 
+            // Fallback resolution for Şanlıurfa / Şanlıurfa Özel (31 / 91)
+            if (in_array((string)$abone->BOLGE_KODU, ['31', '91']) || in_array($cleanName, ['ŞANLIURFA', 'ŞANLIURFA ÖZEL'])) {
+                $historicalFatura = \App\Models\KesinlesenFatura::where('tesisat_no', $abone->ABONE_TESIS_NO)
+                    ->whereNotNull('ilce_kodu')
+                    ->whereNotIn('ilce_kodu', ['31', '91'])
+                    ->orderBy('id', 'desc')
+                    ->first();
+                if ($historicalFatura) {
+                    $abone->BOLGE_KODU = $historicalFatura->ilce_kodu;
+                    $abone->BOLGE_ADI = $historicalFatura->ilce;
+                    $cleanName = trim(mb_strtoupper($abone->BOLGE_ADI, 'UTF-8'));
+                }
+            }
+
             // 1. Try to find code from name if code is missing
             if (empty($abone->BOLGE_KODU) && $cleanName) {
                 $bolge = \App\Models\Bolgeler::whereRaw('UPPER(bolge_adi) = ?', [$cleanName])->first();
@@ -29,14 +43,15 @@ class Aboneler extends Model
                 $bolge = \App\Models\Bolgeler::where('bolge_kodu', $abone->BOLGE_KODU)->first();
                 if ($bolge) {
                     $abone->BOLGE_ADI = $bolge->bolge_adi;
+                    $cleanName = trim(mb_strtoupper($abone->BOLGE_ADI, 'UTF-8'));
                 }
             }
 
-            // 3. Prevent saving if BOLGE_KODU is still missing
-            if (empty($abone->BOLGE_KODU)) {
+            // 3. Prevent saving if BOLGE_KODU is still missing or remains a dummy region
+            if (empty($abone->BOLGE_KODU) || in_array((string)$abone->BOLGE_KODU, ['31', '91']) || in_array($cleanName, ['ŞANLIURFA', 'ŞANLIURFA ÖZEL'])) {
                 // If we are in a web request, this will result in a 500 error unless handled.
                 // However, for data integrity, it's better to stop here.
-                throw new \Exception("Bölge (İlçe) kodu bulunamadı veya eşleştirilemedi. Lütfen geçerli bir bölge adı veya kodu giriniz.");
+                throw new \Exception("Bölge (İlçe) kodu bulunamadı veya eşleştirilemedi ya da geçersiz Şanlıurfa/Özel bölgesi girildi. Lütfen geçerli bir bölge seçiniz.");
             }
         });
     }

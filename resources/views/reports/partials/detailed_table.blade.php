@@ -74,7 +74,7 @@
                             <span style="font-size:.72rem;color:#94a3b8;">kWh</span>
                         </td>
                         <td style="text-align:right;font-weight:800;color:#059669;">
-                            ₺ {{ number_format($row->tutar_toplam, 2, ',', '.') }}
+                            ₺ {{ number_format($row->tutar_toplam ?? $row->fatura_tutari ?? 0, 2, ',', '.') }}
                         </td>
                     </tr>
                 @empty

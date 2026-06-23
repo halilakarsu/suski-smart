@@ -89,7 +89,7 @@
     foreach($results as $row) {
         $valK = $row->fatura_edilecek_toplam_tuketim_kwh ?: ($row->t1_tuketim + $row->t2_tuketim + $row->t3_tuketim + $row->ek_tuketim);
         $tK += (float)$valK;
-        $tT += (float)($row->tutar_toplam ?? ($row->toplam_tutar ?? 0));
+        $tT += (float)($row->tutar_toplam ?? $row->fatura_tutari ?? 0);
     }
 @endphp
 
@@ -167,7 +167,7 @@
                 <td class="text-right" style="font-weight: bold;">{{ number_format($row->t0_son_endeks, 0, ',', '.') }}</td>
                 <td class="text-right">{{ number_format($row->carpan, 2, ',', '.') }}</td>
                 <td class="text-right" style="font-weight: bold;">{{ number_format(($row->fatura_edilecek_toplam_tuketim_kwh ?: ($row->t1_tuketim + $row->t2_tuketim + $row->t3_tuketim + $row->ek_tuketim)), 2, ',', '.') }}</td>
-                <td class="text-right" style="font-weight: bold; color: #059669;">{{ number_format($row->tutar_toplam, 2, ',', '.') }} ₺</td>
+                <td class="text-right" style="font-weight: bold; color: #059669;">{{ number_format($row->tutar_toplam ?? $row->fatura_tutari ?? 0, 2, ',', '.') }} ₺</td>
             </tr>
             @empty
             <tr>

@@ -96,7 +96,7 @@
         'periodical' => 'DÖNEMSEL TÜKETİM RAPORU',
         'yearly'     => 'YILLIK TÜKETİM RAPORU',
         'detailed'   => 'DETAYLI FATURA RAPORU',
-        'koy_merkez' => 'KÖY / MERKEZ ÖZET PİVOT RAPORU',
+        'koy_merkez' => 'KÖY VE MERKEZLERE YÖNELİK ÖZET BİLGİLER',
         'endeks'     => 'TÜKETİM & ENDEKS ANALİZ RAPORU',
         default      => 'SİSTEM RAPORU'
     };
@@ -136,19 +136,26 @@
 @endphp
 
     <!-- Üst Header Alanı -->
-    <table style="width: 100%; border: none; margin-bottom: 2px;">
+    <table style="width: 100%; border: none; margin-bottom: 6px;">
         <tr>
             <!-- Logo Alanı -->
-            <td style="width: 30%; border: none; padding: 0; vertical-align: bottom;">
-                <img src="{{ public_path('images/logo.png') }}" style="width:140px; height: auto; max-width: 100%; object-fit: contain;" alt="Logo">
+            <td style="width: 25%; border: none; padding: 0; vertical-align: middle; text-align: left;">
+                <img src="{{ public_path('images/logo.png') }}" style="width:130px; height: auto; max-width: 100%; object-fit: contain;" alt="Logo">
             </td>
 
-            <!-- Başlık Alanı -->
-            <td style="width: 70%; border: none; padding: 0; vertical-align: bottom; text-align: right;">
-                <div style="font-size: 9pt; font-weight: bold; color: #1a73e8; margin-bottom: 1px; line-height: 1.0;">
+            <!-- Başlık Alanı (Ortalı) -->
+            <td style="width: 50%; border: none; padding: 0; vertical-align: middle; text-align: center;">
+                <div style="font-size: 10pt; font-weight: bold; color: #1a73e8; margin-bottom: 4px; line-height: 1.2;">
                     ŞUSKİ GENEL MÜDÜRLÜĞÜ<br>ELEKTRİK BİLGİ YÖNETİM SİSTEMİ
                 </div>
-                <div style="font-size: 7pt; color: #6c757d; margin-top: 2px;">{{ $reportTitle }}</div>
+                <div style="font-size: 12pt; font-weight: bold; color: #212529; text-transform: uppercase;">
+                    {{ $reportTitle }}
+                </div>
+            </td>
+
+            <!-- Sağ Taraf (Tarih) -->
+            <td style="width: 25%; border: none; padding: 0; vertical-align: bottom; text-align: right;">
+                <div style="font-size: 6pt; color: #6c757d;">Tarih: {{ now()->format('d.m.Y H:i') }}</div>
             </td>
         </tr>
     </table>

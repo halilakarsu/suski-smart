@@ -497,43 +497,12 @@ function showDetReady(type, blobUrl) {
     $('#detOverlayClose').show();
 }
 
-function buildFormData(extraPage) {
-    const params = new URLSearchParams();
-
-    // Bölge: modal öncelikli, yoksa hero
-    const modalBolge = $('.modal-det-bolge-cb:checked').map(function(){ return $(this).val(); }).get();
-    const heroBolge  = $('.det-hero-bolge-cb:checked').map(function(){ return $(this).val(); }).get();
-    const bolgeList  = modalBolge.length ? modalBolge : heroBolge;
-    bolgeList.forEach(function(v){ params.append('bolge[]', v); });
-
-    // Dönem: modal_start_period öncelikli, yoksa hero_start_period
-    const startPeriod = $('#modal_start_period').val() || $('#hero_start_period').val();
-    const endPeriod   = $('#modal_end_period').val();
-    if (startPeriod) params.set('start_period', startPeriod);
-    if (endPeriod)   params.set('end_period', endPeriod);
-
-    // Tarife
-    $('.det-tarife-cb:checked').each(function(){ params.append('tarife[]', $(this).val()); });
-
-    // Modal diğer filtreler
-    const tesisatNo   = $('#det_tesisat').val().trim();
-    const baglantiGrp = $('#det_baglanti').val();
-    const yerlesim    = $('#det_yerlesim').val();
-    if (tesisatNo)   params.set('tesisat_no', tesisatNo);
-    if (baglantiGrp) params.set('baglanti_grubu', baglantiGrp);
-    if (yerlesim)    params.set('yerlesim_tipi', yerlesim);
-
-    if (extraPage)   params.set('page', extraPage);
-
-    return params.toString();
-}
-
 async function handleExport(type) {
     showDetOverlay(type);
     const form = document.getElementById('detailedFilterForm');
     
-    // buildFormData() fonksiyonu ile tüm filtreleri topla
-    const params = buildFormData(null);
+    var formData = new FormData(form);
+    const params = new URLSearchParams(formData).toString();
     
     try {
         const response = await fetch(`${form.action}?${params}&export=${type}`);
@@ -629,70 +598,63 @@ $(document).ready(function() {
     $('#detOverlayClose').click(hideDetOverlay);
 
     $('#detClearBtn').click(function() {
-        $('.modal-det-bolge-cb').prop('checked', false).trigger('change');
+        $('.modal-det-bolge-cb, .det-hero-bolge-cb').prop('checked', false).trigger('change');
         $('.det-tarife-cb').prop('checked', false).trigger('change');
         $('#det_tesisat').val('');
-        $('#modal_start_period').val('');
+        $('#hero_start_period, #modal_start_period').val('');
         $('#modal_end_period').val('');
         $('#det_baglanti').val('');
         $('#det_yerlesim').val('');
     });
 
-    $('#detailedFilterForm').on('submit', function(e) {
-        e.preventDefault();
-        const $form = $(this);
-        const $container = $('#reportResultsContainer');
-        const formData = buildFormData(null);
+    function injectHidden(){
+        var p=new URLSearchParams(window.location.search),c=$('#detAdvHidden').empty();
+        p.getAll('tarife[]').forEach(function(v){c.append($('<input>').attr({type:'hidden',name:'tarife[]',value:v}));});
+        if(p.get('baglanti_grubu'))c.append($('<input>').attr({type:'hidden',name:'baglanti_grubu',value:p.get('baglanti_grubu')}));
+        if(p.get('yerlesim_tipi'))c.append($('<input>').attr({type:'hidden',name:'yerlesim_tipi',value:p.get('yerlesim_tipi')}));
+        if(p.get('tesisat_no'))c.append($('<input>').attr({type:'hidden',name:'tesisat_no',value:p.get('tesisat_no')}));
+        if(p.get('end_period'))c.append($('<input>').attr({type:'hidden',name:'end_period',value:p.get('end_period')}));
+    }
+    injectHidden();
 
-        let hasFilter = false;
-        const parsedParams = new URLSearchParams(formData);
-        for (let [key, value] of parsedParams.entries()) {
-            if (key !== 'page' && key !== 'export' && value.trim() !== '') {
-                hasFilter = true;
-                break;
-            }
-        }
-        if (!hasFilter) {
-            Swal.fire({icon: 'warning', title: 'Uyarı', text: 'Lütfen sonuçları getirmeden önce en az bir filtreleme seçeneği seçiniz.', confirmButtonText: 'Tamam'});
+    $('#detApplyBtn').click(() => { 
+        var modalHasBolge   = $('.modal-det-bolge-cb:checked').length > 0;
+        var modalHasTarife  = $('.det-tarife-cb:checked').length > 0;
+        var modalHasDonem   = !!$('#modal_start_period').val() || !!$('#modal_end_period').val();
+        var modalHasTesisat = !!$('#det_tesisat').val().trim();
+        var modalHasBaglanti= !!$('#det_baglanti').val();
+        var modalHasYerlesim= !!$('#det_yerlesim').val();
+        
+        if (!modalHasBolge && !modalHasTarife && !modalHasDonem && !modalHasTesisat && !modalHasBaglanti && !modalHasYerlesim) {
+            Swal.fire({icon: 'warning', title: 'Uyarı', text: 'Lütfen sonuçları getirmeden önce en az bir filtreleme seçiniz.', confirmButtonText: 'Tamam'});
             return;
         }
 
-        $container.css('opacity', '0.5');
-        $.ajax({
-            url: $form.attr('action'),
-            data: formData,
-            success: function(html) {
-                $container.html(html).css('opacity', '1');
-                $('html, body').animate({ scrollTop: $container.offset().top - 100 }, 500);
-                $('#detExportBtnContainer').fadeIn();
-            },
-            error: function() {
-                $container.css('opacity', '1');
-                alert('Rapor yüklenirken bir hata oluştu.');
-            }
-        });
+        var c=$('#detAdvHidden').empty();
+        $('.det-tarife-cb:checked').each(function(){c.append($('<input>').attr({type:'hidden',name:'tarife[]',value:$(this).val()}));});
+        $('.modal-det-bolge-cb:checked').each(function(){c.append($('<input>').attr({type:'hidden',name:'bolge[]',value:$(this).val()}));});
+        
+        var bg=$('#det_baglanti').val();if(bg)c.append($('<input>').attr({type:'hidden',name:'baglanti_grubu',value:bg}));
+        var yt=$('#det_yerlesim').val();if(yt)c.append($('<input>').attr({type:'hidden',name:'yerlesim_tipi',value:yt}));
+        var tn=$('#det_tesisat').val().trim();if(tn)c.append($('<input>').attr({type:'hidden',name:'tesisat_no',value:tn}));
+        
+        var ms=$('#modal_start_period').val();if(ms) $('#hero_start_period').val(ms);
+        var me=$('#modal_end_period').val();if(me)c.append($('<input>').attr({type:'hidden',name:'end_period',value:me}));
+        
+        $('.det-hero-bolge-cb').prop('checked', false);
+        
+        $('#detAdvModal').modal('hide'); 
+        $('#detailedFilterForm').submit(); 
     });
 
-    $('#detApplyBtn').click(() => { $('#detAdvModal').modal('hide'); $('#detailedFilterForm').submit(); });
-    
-    // AJAX Pagination support
-    $(document).on('click', '#reportResultsContainer .pagination a', function(e) {
-        e.preventDefault();
-        const url = new URL($(this).attr('href'));
-        const page = url.searchParams.get('page');
-        const $form = $('#detailedFilterForm');
-        const formData = buildFormData(page);
-
-        $('#reportResultsContainer').css('opacity', '0.5');
-        $.ajax({
-            url: $form.attr('action'),
-            data: formData,
-            success: function(html) {
-                $('#reportResultsContainer').html(html).css('opacity', '1');
-                $('html, body').animate({ scrollTop: $('#reportResultsContainer').offset().top - 100 }, 500);
-            }
-        });
+    $('#detailedFilterForm').on('submit', function(e) {
+         if ($('#detAdvHidden').children().length === 0 && !$('#hero_start_period').val() && $('.det-hero-bolge-cb:checked').length === 0) {
+            e.preventDefault();
+            Swal.fire({icon: 'warning', title: 'Uyarı', text: 'Lütfen sonuçları getirmeden önce en az bir filtreleme seçeneği seçiniz.', confirmButtonText: 'Tamam'});
+            return false;
+         }
     });
+
 });
 </script>
 @endpush

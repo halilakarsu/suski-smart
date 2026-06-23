@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Controllers\Concerns\NormalizesIlce;
 use App\Models\AnormalFatura;
 use App\Models\KesinlesenFatura;
 use Illuminate\Http\Request;
@@ -10,13 +11,12 @@ use Illuminate\Support\Facades\Schema;
 
 class AnormalFaturaController extends Controller
 {
+    use NormalizesIlce;
+
     public function index(Request $request)
     {
         $donemler = KesinlesenFatura::where('odeme_durumu', 'odendi')->distinct()->orderBy('donem', 'desc')->pluck('donem');
-        $bolgeler = KesinlesenFatura::where('odeme_durumu', 'odendi')
-            ->whereNotNull('ilce')->where('ilce', '!=', '')->where('ilce', 'not like', '=%')->where('ilce', 'not like', '#%')
-            ->whereNotIn('ilce', ['ŞANLIURFA', 'ŞANLIURFA ÖZEL'])
-            ->distinct()->orderBy('ilce', 'asc')->pluck('ilce');
+        $bolgeler = $this->getBolgelerList();
         $tarifeler = \App\Models\Aboneler::whereNotNull('tarife')->where('tarife', '!=', '')
             ->select('tarife', 'abone_grubu')
             ->distinct()
@@ -42,7 +42,7 @@ class AnormalFaturaController extends Controller
         $query = AnormalFatura::with(['fatura', 'user'])->where('durum', 'kaydedildi');
 
         if ($request->filled('bolge')) {
-            $query->whereIn('ilce', (array) $request->bolge);
+            $this->applyBolgeFilter($query, (array) $request->bolge);
         }
         if ($request->filled('start_period')) {
             if ($request->filled('end_period')) {

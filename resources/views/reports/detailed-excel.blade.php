@@ -46,13 +46,13 @@
         <td>{{ (float) $row->t0_son_endeks }}</td>
         <td>{{ (float) $row->carpan }}</td>
         <td>{{ (float) ($row->fatura_edilecek_toplam_tuketim_kwh ?: ($row->t1_tuketim + $row->t2_tuketim + $row->t3_tuketim + $row->ek_tuketim)) }}</td>
-        <td>{{ (float) $row->tutar_toplam }}</td>
+        <td>{{ number_format($row->tutar_toplam ?? $row->fatura_tutari ?? 0, 2, ',', '.') }}</td>
     </tr>
     @endforeach
     <tr>
         <td colspan="7">GENEL TOPLAM</td>
-        <td>{{ (float) $totalKWH }}</td>
-        <td>{{ (float) $totalAmount }}</td>
+        <td>{{ number_format($totalKWH, 2, ',', '.') }}</td>
+        <td>{{ number_format($totalAmount, 2, ',', '.') }}</td>
     </tr>
 </table>
 </body>

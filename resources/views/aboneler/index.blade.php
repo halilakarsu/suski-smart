@@ -317,7 +317,51 @@
             cursor: pointer;
             text-decoration: none !important;
         }
+        .btn-premium-detay {
+            background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+            color: white !important;
+            height: 38px;
+            border-radius: 10px;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 0 16px;
+            font-weight: 600;
+            font-size: 0.85rem;
+            transition: all 0.25s ease;
+            box-shadow: 0 4px 10px rgba(37, 99, 235, 0.2);
+            text-decoration: none !important;
+            border: none;
+            cursor: pointer;
+        }
+        .btn-premium-detay:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 15px rgba(37, 99, 235, 0.35);
+        }
 
+        .btn-premium-islem {
+            background: #ffffff;
+            color: #475569 !important;
+            border: 1px solid #e2e8f0;
+            height: 38px;
+            border-radius: 10px;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 0 14px;
+            font-weight: 600;
+            font-size: 0.85rem;
+            transition: all 0.25s ease;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.02);
+            cursor: pointer;
+        }
+        .btn-premium-islem:hover {
+            background: #f8fafc;
+            border-color: #cbd5e1;
+            color: #1e293b !important;
+            transform: translateY(-1px);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.04);
+        }
         .ab-blue {
             background: #eff6ff;
             color: #2563eb;

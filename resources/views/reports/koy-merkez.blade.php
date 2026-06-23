@@ -114,9 +114,40 @@
     /* ===== ADVANCED MODAL BUTTON ===== */
     .btn-advanced-pro { position:relative; padding:12px 18px; border-radius:14px; font-weight:700; font-size:.9rem; display:inline-flex; align-items:center; justify-content:center; gap:8px; transition:all .3s; border:1.5px solid #c7d2fe; cursor:pointer; background:linear-gradient(135deg,#eff6ff,#f5f3ff); color:#4f46e5; box-shadow:0 4px 12px rgba(79,70,229,.1); }
     .btn-advanced-pro:hover { transform:translateY(-2px); box-shadow:0 8px 20px rgba(79,70,229,.2); border-color:#818cf8; }
-    .adv-active-dot { width:8px; height:8px; border-radius:50%; background:#ef4444; display:inline-block; animation:pulse-dot 1.5s infinite; }
+    .adv-active-dot { width:10px; height:10px; border-radius:50%; background:#ef4444; display:inline-block; animation:pulse-dot 1.5s infinite; border: 2px solid #fff; position: absolute; top: -2px; right: -2px; }
     @keyframes pulse-dot { 0%,100%{transform:scale(1);opacity:1;} 50%{transform:scale(1.4);opacity:.7;} }
     .adv-badge { display:inline-flex; align-items:center; background:#eff6ff; color:#1d4ed8; border:1px solid #bfdbfe; border-radius:20px; font-size:.75rem; font-weight:700; padding:3px 10px; }
+
+    /* ===== PREMIUM ACTION BUTTONS ===== */
+    .premium-actions-grid {
+        display: flex; gap: 16px; align-items: center;
+    }
+    .btn-premium-action {
+        position: relative; display: inline-flex; align-items: center; justify-content: center; gap: 10px;
+        height: 52px; padding: 0 24px; border-radius: 14px; font-family: var(--font-primary); font-size: 1rem;
+        font-weight: 800; letter-spacing: 0.04em; text-transform: uppercase; border: none;
+        overflow: hidden; cursor: pointer; transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        z-index: 1; color: #fff !important; text-decoration: none !important;
+        box-shadow: 0 10px 25px -5px rgba(0,0,0,0.2);
+    }
+    .btn-premium-action i { font-size: 1.25rem; transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1); }
+    .btn-premium-action:hover { transform: translateY(-4px); }
+    .btn-premium-action:hover i { transform: scale(1.15) rotate(-5deg); }
+    .btn-premium-action::before {
+        content: ''; position: absolute; inset: 0; z-index: -1;
+        background: linear-gradient(to top, rgba(255,255,255,0.15), transparent);
+        opacity: 0; transition: opacity 0.4s;
+    }
+    .btn-premium-action:hover::before { opacity: 1; }
+
+    .btn-premium-filter { background: linear-gradient(135deg, #1e293b 0%, #334155 100%); border: 1px solid rgba(255,255,255,0.1); }
+    .btn-premium-filter:hover { box-shadow: 0 15px 30px -5px rgba(30, 41, 59, 0.8); }
+
+    .btn-premium-pdf { background: linear-gradient(135deg, #991b1b 0%, #dc2626 100%); border: 1px solid rgba(255,255,255,0.1); }
+    .btn-premium-pdf:hover { box-shadow: 0 15px 30px -5px rgba(220, 38, 38, 0.6); }
+
+    .btn-premium-excel { background: linear-gradient(135deg, #065f46 0%, #10b981 100%); border: 1px solid rgba(255,255,255,0.1); }
+    .btn-premium-excel:hover { box-shadow: 0 15px 30px -5px rgba(16, 185, 129, 0.6); }
 
     /* Stats & Table */
 
@@ -176,95 +207,51 @@
 </style>
 
 <div class="pg-premium p-0">
-    <div class="page-hero">
-        <div class="hero-container">
-            <div class="hero-title-group">
-                <h1 class="hero-title">Köy ve Merkez  Raporu</h1>
+    <div class="page-hero" style="padding-bottom: 7rem;">
+        <div class="hero-container" style="flex-wrap: wrap; gap: 20px;">
+            <div class="hero-title-group" style="flex-grow: 1;">
+                <h1 class="hero-title">Köy ve Merkez Raporu</h1>
                 <p class="hero-subtitle">Yerleşim türüne göre tüketim ve tutar karşılaştırmaları</p>
-            </div>
-            <div class="d-flex gap-2 align-items-center">
-                <button type="button" class="btn-advanced-pro" data-toggle="modal" data-target="#kmAdvModal" style="background: rgba(255,255,255,0.15); color: white; border-color: rgba(255,255,255,0.3); box-shadow: none;">
-                    <i class="fas fa-sliders-h"></i> Detaylı Filtre
-                    @if(request()->anyFilled(['tarife','baglanti_grubu','tesisat_no','end_period']))<span class="adv-active-dot" style="background:#fca5a5;"></span>@endif
-                </button>
-                <div class="dropdown" id="koyMerkezExportBtnContainer" style="display: {{ request()->anyFilled(['bolge','start_period','end_period','tesisat_no','tarife','baglanti_grubu']) ? 'block' : 'none' }};">
-                    <button type="button" class="btn-pro btn-outline-pro dropdown-toggle" data-toggle="dropdown" style="background: rgba(255,255,255,0.15); color: white; border-color: rgba(255,255,255,0.3); box-shadow: none;">
-                        <i class="fas fa-file-export"></i> Dışa Aktar
-                    </button>
-                    <div class="dropdown-menu dropdown-menu-pro dropdown-menu-right" style="border-radius:12px;">
-                        <button type="button" id="koy-merkez-export-pdf" class="dropdown-item dropdown-item-pro"><i class="fas fa-file-pdf text-danger"></i> PDF Raporu Al</button>
-                        <button type="button" id="koy-merkez-export-excel" class="dropdown-item dropdown-item-pro"><i class="fas fa-file-excel text-success"></i> Excel Raporu Al</button>
-                    </div>
+                
+                @php
+                    $hasAdvFilter = request()->anyFilled(['tarife','baglanti_grubu','end_period']);
+                    $activeBadges = [];
+                    if(request('tarife')) $activeBadges[] = 'Tarife: '.count(request('tarife')).' seçili';
+                    if(request('baglanti_grubu')) $activeBadges[] = request('baglanti_grubu');
+                    if(request('end_period')) $activeBadges[] = 'Bitiş: '.request('end_period');
+                @endphp
+                @if($hasAdvFilter)
+                <div style="margin-top:12px; padding:6px 14px; background:rgba(255,255,255,0.05); border:1px solid rgba(255,255,255,0.1); border-radius:12px; display:inline-flex; align-items:center; gap:8px; flex-wrap:wrap;">
+                    <i class="fas fa-sliders-h" style="color:#60a5fa; font-size:0.9rem;"></i>
+                    <span style="font-size:.8rem;font-weight:700;color:#e2e8f0;">Aktif Filtreler:</span>
+                    @foreach($activeBadges as $badge)
+                        <span class="adv-badge" style="background:rgba(59,130,246,0.15); color:#93c5fd; border:none; padding:2px 8px; font-size:0.7rem;">{{ $badge }}</span>
+                    @endforeach
                 </div>
+                @endif
+            </div>
+
+            <div id="koyMerkezFilterForm" data-action="{{ route('reports.koy-merkez') }}" class="premium-actions-grid">
+                <button type="button" class="btn-premium-action btn-premium-filter" data-toggle="modal" data-target="#kmAdvModal">
+                    <i class="fas fa-sliders-h"></i> FİLTRELE
+                    @if($hasAdvFilter)<span class="adv-active-dot"></span>@endif
+                </button>
+                
+                <button type="button" id="koy-merkez-export-pdf" class="btn-premium-action btn-premium-pdf">
+                    <i class="fas fa-file-pdf"></i> PDF İndir
+                </button>
+                
+                <button type="button" id="koy-merkez-export-excel" class="btn-premium-action btn-premium-excel">
+                    <i class="fas fa-file-excel"></i> Excel İndir
+                </button>
             </div>
         </div>
     </div>
 
-    <div class="main-container">
-        {{-- FİLTRE KARTI --}}
-        <div class="glass-card filter-card">
-            <h5 class="section-title"><i class="fas fa-filter"></i> Köy ve Merkeze Göre Raporlama </h5>
-
-            @if(request()->anyFilled(['tarife','baglanti_grubu','tesisat_no','end_period']))
-            <div style="margin-bottom:16px;padding:10px 16px;background:linear-gradient(135deg,rgba(37,99,235,.07),rgba(79,70,229,.07));border:1.5px solid rgba(37,99,235,.2);border-radius:12px;display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
-                <i class="fas fa-sliders-h" style="color:#2563eb;"></i>
-                <span style="font-size:.83rem;font-weight:700;color:#1d4ed8;">Aktif Filtreler:</span>
-                @if(request('tarife')) <span class="adv-badge">Tarife: {{ count(request('tarife')) }} seçili</span> @endif
-                @if(request('baglanti_grubu')) <span class="adv-badge">{{ request('baglanti_grubu') }}</span> @endif
-                @if(request('tesisat_no')) <span class="adv-badge">Tesisat: {{ request('tesisat_no') }}</span> @endif
-            </div>
-            @endif
-
-            <form action="{{ route('reports.koy-merkez') }}" method="GET" id="koyMerkezFilterForm">
-                <div id="kmAdvHidden"></div>
-                <div class="row align-items-end">
-                    <div class="col-md-4">
-                        <div class="form-group-pro" style="margin-bottom:0;">
-                            <label><i class="fas fa-map-marker-alt me-2"></i> Bölge Seçimi</label>
-                            <div class="dropdown custom-multi-select">
-                                <button class="dropdown-toggle" type="button" id="KmHeroBolgeDropdown" data-toggle="dropdown" style="height: 47px;">
-                                    <span id="KmHeroBolgeLabel">Bölge Seçin...</span>
-                                    <i class="fas fa-chevron-down" style="font-size:.75rem;color:#94a3b8;"></i>
-                                </button>
-                                <div class="dropdown-menu" onclick="event.stopPropagation();">
-                                    <div class="form-check select-all-wrap" id="selectAllKmHeroBolgeRow">
-                                        <input class="form-check-input" type="checkbox" id="selectAllKmHeroBolge">
-                                        <span class="cb-box"><svg viewBox="0 0 12 10"><polyline points="1,5 4,9 11,1"/></svg></span>
-                                        <label class="form-check-label fw-bold" for="selectAllKmHeroBolge">Tümünü Seç</label>
-                                    </div>
-                                    @foreach($bolgeler as $bolge)
-                                        <div class="form-check km-hero-bolge-row" onclick="toggleCheckbox(this)">
-                                            <input class="form-check-input km-hero-bolge-cb" type="checkbox" name="bolge[]" value="{{ $bolge }}" id="herobolge_{{ $loop->index }}"
-                                                {{ (!request()->has('bolge') || (is_array(request('bolge')) && in_array($bolge, request('bolge')))) ? 'checked' : '' }}>
-                                            <span class="cb-box"><svg viewBox="0 0 12 10"><polyline points="1,5 4,9 11,1"/></svg></span>
-                                            <label class="form-check-label" for="herobolge_{{ $loop->index }}">{{ $bolge }}</label>
-                                        </div>
-                                    @endforeach
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="col-md-4">
-                        <div class="form-group-pro" style="margin-bottom:0;">
-                            <label><i class="far fa-calendar-alt me-2"></i> Dönem Seçimi</label>
-                            <select name="start_period" id="hero_start_period" class="form-control-pro" style="height: 47px;">
-                                <option value="">Tümü</option>
-                                @foreach($donemler as $d)
-                                    <option value="{{ $d }}" {{ request('start_period') == $d ? 'selected' : '' }}>{{ $d }}</option>
-                                @endforeach
-                            </select>
-                        </div>
-                    </div>
-                    <div class="col-md-4">
-                        <button type="submit" class="btn-pro btn-primary-pro w-100 justify-content-center" style="height: 47px; background: linear-gradient(135deg, #2563eb, #4f46e5); font-weight: 800;"><i class="fas fa-search"></i> Sonuçları Getir</button>
-                    </div>
-                </div>
-            </form>
-        </div>
-
+    <div class="main-container" style="margin-top: -3.5rem;">
         {{-- SONUÇLAR KONTEYNERI --}}
         <div id="reportResultsContainer">
-            @if(request()->anyFilled(['bolge','start_period','end_period', 'baglanti_grubu','tarife']))
+            @if($results->count() > 0)
                 @include('reports.partials.koy_merkez_table', ['results' => $results])
             @else
                 <div class="glass-card" style="text-align:center;padding:60px 40px;">
@@ -294,9 +281,9 @@
                 </button>
             </div>
             <div class="modal-body" style="padding:40px 35px;">
-                <!-- ROW 1: Bölge & Tesisat No -->
+                <!-- ROW 1: Bölge -->
                 <div class="row">
-                    <div class="col-md-6" style="margin-bottom: 25px;">
+                    <div class="col-md-12" style="margin-bottom: 25px;">
                         <label style="display:block; font-size:0.82rem; font-weight:800; color:#475569; margin-bottom:10px; text-transform:uppercase; letter-spacing:0.04em;">
                             <i class="fas fa-map-marker-alt" style="color:#3b82f6; margin-right:6px; font-size:1rem; vertical-align:middle;"></i> Bölgeler
                         </label>
@@ -321,13 +308,6 @@
                                 @endforeach
                             </div>
                         </div>
-                    </div>
-                    
-                    <div class="col-md-6" style="margin-bottom: 25px;">
-                        <label style="display:block; font-size:0.82rem; font-weight:800; color:#475569; margin-bottom:10px; text-transform:uppercase; letter-spacing:0.04em;">
-                            <i class="fas fa-hashtag" style="color:#ea580c; margin-right:6px; font-size:1rem; vertical-align:middle;"></i> Abone / Tesisat No
-                        </label>
-                        <input type="text" id="km_tesisat" class="form-control-pro" value="{{ request('tesisat_no') }}" placeholder="Örn: 123456" style="padding: 12px 18px; border-radius: 12px; font-family: monospace; font-size: 1.05rem; height: 47px;">
                     </div>
                 </div>
 
@@ -448,25 +428,25 @@ function hideOverlay() {
 function buildFormData() {
     const params = new URLSearchParams();
 
-    // Bölge: modal öncelikli, yoksa hero
-    const modalBolge = $('.modal-km-bolge-cb:checked').map(function(){ return $(this).val(); }).get();
-    const heroBolge  = $('.km-hero-bolge-cb:checked').map(function(){ return $(this).val(); }).get();
-    const bolgeList  = modalBolge.length ? modalBolge : heroBolge;
-    bolgeList.forEach(function(v){ params.append('bolge[]', v); });
+    // Bölge: Eğer 'Tümünü Seç' işaretli değilse (yani spesifik bölgeler seçilmişse) parametre olarak ekle
+    if (!$('#selectAllModalKmBolge').is(':checked')) {
+        const modalBolge = $('.modal-km-bolge-cb:checked').map(function(){ return $(this).val(); }).get();
+        modalBolge.forEach(function(v){ params.append('bolge[]', v); });
+    }
 
-    // Dönem: modal öncelikli, yoksa hero
-    const startPeriod = $('#modal_start_period').val() || $('#hero_start_period').val();
+    // Dönem
+    const startPeriod = $('#modal_start_period').val();
     const endPeriod   = $('#modal_end_period').val();
     if (startPeriod) params.set('start_period', startPeriod);
     if (endPeriod)   params.set('end_period', endPeriod);
 
-    // Tarife
-    $('.km-tarife-cb:checked').each(function(){ params.append('tarife[]', $(this).val()); });
+    // Tarife: Eğer 'Tümünü Seç' işaretli değilse parametre olarak ekle
+    if (!$('#selectAllKmTarife').is(':checked')) {
+        $('.km-tarife-cb:checked').each(function(){ params.append('tarife[]', $(this).val()); });
+    }
 
-    // Modal diğer filtreler
-    const tesisatNo   = $('#km_tesisat').val().trim();
+    // Bağlantı Grubu
     const baglantiGrp = $('#km_baglanti').val();
-    if (tesisatNo)   params.set('tesisat_no', tesisatNo);
     if (baglantiGrp) params.set('baglanti_grubu', baglantiGrp);
 
     return params;
@@ -474,14 +454,23 @@ function buildFormData() {
 
 async function handleExport(type) {
     lastExportType = type;
-    showOverlay(type);
     const form = document.getElementById('koyMerkezFilterForm');
-    
     const params = buildFormData();
     params.append('export', type);
+    const actionUrl = form ? form.getAttribute('data-action') : "{{ route('reports.koy-merkez') }}";
+    const url = `${actionUrl}?${params.toString()}`;
 
+    // PDF: doğrudan yeni sekmede aç
+    if (type === 'pdf') {
+        window.open(url, '_blank');
+        return;
+    }
+
+    // Excel: fetch + blob ile indir
+    lastDownloadUrl = '';
+    showOverlay(type);
     try {
-        const response = await fetch(`${form.action}?${params.toString()}`);
+        const response = await fetch(url);
         if (!response.ok) throw new Error('Rapor oluşturulamadı');
         const blob = await response.blob();
         lastDownloadUrl = window.URL.createObjectURL(blob);
@@ -490,10 +479,8 @@ async function handleExport(type) {
         $('#yearlyProgressWrap').hide();
         $('#yearlySuccessIcon').css('display','flex');
         $('#yearlyLoaderTitle').text('İndirme Hazır!');
-        $('#yearlyLoaderSub').text('Dosyanız başarıyla oluşturuldu.');
-        
-        var label = type === 'pdf' ? '<i class="fas fa-file-pdf"></i> PDF Dosyasını Aç' : '<i class="fas fa-file-excel"></i> Excel Dosyasını Aç';
-        $('#yearlyOpenBtn').html(label).show();
+        $('#yearlyLoaderSub').text('Excel dosyanız başarıyla oluşturuldu.');
+        $('#yearlyOpenBtn').html('<i class="fas fa-file-excel"></i> Excel Dosyasını İndir').show();
         $('#yearlyOverlayClose').show();
     } catch (e) {
         $('#yearlyLoaderTitle').text('Hata Oluştu');
@@ -503,6 +490,7 @@ async function handleExport(type) {
         $('#yearlyOverlayClose').show();
     }
 }
+
 
 function toggleCheckbox(row) {
     if (window.event && (window.event.target.tagName === 'INPUT' || window.event.target.tagName === 'LABEL')) return;
@@ -529,39 +517,14 @@ $(document).ready(function() {
         upLbl();
     }
     let isSyncing = false;
-    initMS('selectAllKmHeroBolge','km-hero-bolge-cb','KmHeroBolgeLabel','Bölge Seçin...','Tüm Bölgeler Seçili','Bölge Seçili');
     initMS('selectAllModalKmBolge','modal-km-bolge-cb','ModalKmBolgeLabel','Bölge Seçin...','Tüm Bölgeler Seçili','Bölge Seçili');
     initMS('selectAllKmTarife','km-tarife-cb','KmTarifeLabel','Tarife Seçin...','Tüm Tarifeler Seçili','Tarife Seçili');
 
-    // Sync Bolge Selection
-    $('.km-hero-bolge-cb').on('change', function() {
-        if(isSyncing) return;
-        isSyncing = true;
-        const val = $(this).val();
-        const checked = $(this).is(':checked');
-        const $target = $(`.modal-km-bolge-cb[value="${val}"]`);
-        if ($target.is(':checked') !== checked) {
-            $target.prop('checked', checked).trigger('change');
-        }
-        isSyncing = false;
-    });
-    $('.modal-km-bolge-cb').on('change', function() {
-        if(isSyncing) return;
-        isSyncing = true;
-        const val = $(this).val();
-        const checked = $(this).is(':checked');
-        const $target = $(`.km-hero-bolge-cb[value="${val}"]`);
-        if ($target.is(':checked') !== checked) {
-            $target.prop('checked', checked).trigger('change');
-        }
-        isSyncing = false;
-    });
-
-    // Dönem Swap ve Sync
+    // Dönem Swap
     function autoSwapPeriods() {
         var start = $('#modal_start_period').val();
         var end   = $('#modal_end_period').val();
-        if (start && end && start > end) { // string comparison for YYYY-MM
+        if (start && end && start > end) {
             $('#modal_start_period').val(end);
             $('#modal_end_period').val(start);
             $('#modal_start_period, #modal_end_period').css({'border-color':'#f59e0b','transition':'border-color 0s'});
@@ -570,10 +533,6 @@ $(document).ready(function() {
     }
     $('#modal_start_period').on('change', autoSwapPeriods);
     $('#modal_end_period').on('change', autoSwapPeriods);
-
-    $('#hero_start_period').on('change', function() {
-        $('#modal_start_period').val($(this).val());
-    });
 
     $('#koy-merkez-export-pdf').click(() => handleExport('pdf'));
     $('#koy-merkez-export-excel').click(() => handleExport('excel'));
@@ -594,51 +553,29 @@ $(document).ready(function() {
     $('#yearlyOverlayClose').click(hideOverlay);
 
     $('#kmClearBtn').click(function() {
-        $('.km-hero-bolge-cb').prop('checked', false).trigger('change');
+        $('.modal-km-bolge-cb').prop('checked', false).trigger('change');
         $('.km-tarife-cb').prop('checked', false).trigger('change');
-        $('#km_tesisat').val('');
-        $('#hero_start_period').val('');
         $('#modal_start_period').val('');
         $('#modal_end_period').val('');
         $('#km_baglanti').val('');
     });
 
-    $('#koyMerkezFilterForm').on('submit', function(e) {
-        e.preventDefault();
-        const $form = $(this);
-        const $container = $('#reportResultsContainer');
+    // Modal "Sonuçları Getir" butonu URL oluşturup yönlendirir
+    $('#kmApplyBtn').on('click', function() {
+        var modalHasBolge    = $('.modal-km-bolge-cb:checked').length > 0;
+        var modalHasTarife   = $('.km-tarife-cb:checked').length > 0;
+        var modalHasDonem    = !!$('#modal_start_period').val() || !!$('#modal_end_period').val();
+        var modalHasBaglanti = !!$('#km_baglanti').val();
         
-        const params = buildFormData();
-
-        // ─── Filtre Validasyon ───────────────────────────────────────────────
-        const hasBolge   = $('.km-hero-bolge-cb:checked, .modal-km-bolge-cb:checked').length > 0;
-        const hasDonem   = !!$('#hero_start_period').val() || !!$('#modal_start_period').val() || !!$('#modal_end_period').val();
-        const hasTarife  = $('.km-tarife-cb:checked').length > 0;
-        const hasTesisat = !!$('#km_tesisat').val().trim();
-        const hasBaglanti= !!$('#km_baglanti').val();
-        if (!hasBolge && !hasDonem && !hasTarife && !hasTesisat && !hasBaglanti) {
-            Swal.fire({icon: 'warning', title: 'Uyarı', text: 'Lütfen sonuçları getirmeden önce en az bir filtreleme seçeneği seçiniz.', confirmButtonText: 'Tamam'});
+        if (!modalHasBolge && !modalHasTarife && !modalHasDonem && !modalHasBaglanti) {
+            Swal.fire({icon: 'warning', title: 'Uyarı', text: 'Lütfen en az bir filtreleme seçiniz.', confirmButtonText: 'Tamam'});
             return;
         }
-        // ─────────────────────────────────────────────────────────────────────
 
-        $container.css('opacity', '0.5');
-        $.ajax({
-            url: $form.attr('action'),
-            data: params.toString(),
-            success: function(html) {
-                $container.html(html).css('opacity', '1');
-                $('#koyMerkezExportBtnContainer').fadeIn();
-                $('html, body').animate({ scrollTop: $container.offset().top - 100 }, 500);
-            },
-            error: function() {
-                $container.css('opacity', '1');
-                alert('Rapor yüklenirken bir hata oluştu.');
-            }
-        });
+        const params = buildFormData();
+        const actionUrl = $('#koyMerkezFilterForm').attr('data-action') || "{{ route('reports.koy-merkez') }}";
+        window.location.href = actionUrl + "?" + params.toString();
     });
-
-    $('#kmApplyBtn').click(() => { $('#kmAdvModal').modal('hide'); $('#koyMerkezFilterForm').submit(); });
 });
 </script>
 @endpush

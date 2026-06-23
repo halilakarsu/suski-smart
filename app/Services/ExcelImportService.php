@@ -331,6 +331,18 @@ class ExcelImportService
                             $detectedBolge = $bolgeler[$bolgeAdiRaw] ?? null;
                         }
 
+                        // Eğer hala bulunamadıysa ve abone de yeni ise, geçmiş kesinleşen faturalardan tesisat_no ile bölgeyi bulmaya çalışalım (31/91 olmamak kaydıyla)
+                        if (! $detectedBolge && ! $mevcutAbone) {
+                            $historicalFatura = \App\Models\KesinlesenFatura::where('tesisat_no', $tesisat)
+                                ->whereNotNull('ilce_kodu')
+                                ->whereNotIn('ilce_kodu', ['31', '91'])
+                                ->orderBy('id', 'desc')
+                                ->first();
+                            if ($historicalFatura) {
+                                $detectedBolge = Bolgeler::where('bolge_kodu', $historicalFatura->ilce_kodu)->first();
+                            }
+                        }
+
                         // Eğer tespit edilemediyse ve abone zaten varsa, abonenin mevcut bölgesini koru
                         if (! $detectedBolge && $mevcutAbone) {
                             $yeniAboneData['BOLGE_KODU'] = $mevcutAbone->BOLGE_KODU;
@@ -425,20 +437,53 @@ class ExcelImportService
                     $rawIlceKodu = $yeniAboneData['BOLGE_KODU'] ?? $this->findField($payload, ['blg', 'f_bolge_kodu', 'ilce_kodu', 'ilce kodu', 'bld']);
                     $rawIlce = $yeniAboneData['BOLGE_ADI'] ?? $this->findField($payload, ['alt_isletme_adi', 'alt isletme adi', 'ilce', 'ilçe']);
                     $rawDagitim = $yeniAboneData['BOLGE_ADI'] ?? $this->findField($payload, ['bolge_adi', 'bolge adi', 'dagitim', 'dağıtım']);
-                    $dateReadings = $this->findDateReadingFields($payload);
 
-                    if ($rawIlce && str_starts_with(trim($rawIlce), '=')) {
-                        $resolvedBolge = \App\Models\Bolgeler::where('bolge_kodu', $rawIlceKodu)->first();
-                        if ($resolvedBolge) {
-                            $rawIlce = $resolvedBolge->bolge_adi;
+                    // Eğer ilce_kodu 31 veya 91 (Şanlıurfa / Şanlıurfa Özel dummy kodları) ise, tesisat_no ile abonedeki veya geçmiş faturalardaki gerçek bölgeyi bulmaya çalış
+                    if ($rawIlceKodu && in_array((string)$rawIlceKodu, ['31', '91'])) {
+                        if ($tesisat) {
+                            $matchedAbone = \App\Models\Aboneler::where('ABONE_TESIS_NO', $tesisat)->first();
+                            if ($matchedAbone && !in_array((string)$matchedAbone->BOLGE_KODU, ['31', '91'])) {
+                                $rawIlceKodu = $matchedAbone->BOLGE_KODU;
+                                $rawIlce = $matchedAbone->BOLGE_ADI;
+                                if ($rawDagitim) {
+                                    $rawDagitim = $matchedAbone->BOLGE_ADI;
+                                }
+                            } else {
+                                $historicalFatura = \App\Models\KesinlesenFatura::where('tesisat_no', $tesisat)
+                                    ->whereNotNull('ilce_kodu')
+                                    ->whereNotIn('ilce_kodu', ['31', '91'])
+                                    ->orderBy('id', 'desc')
+                                    ->first();
+                                if ($historicalFatura) {
+                                    $rawIlceKodu = $historicalFatura->ilce_kodu;
+                                    $rawIlce = $historicalFatura->ilce;
+                                    if ($rawDagitim) {
+                                        $rawDagitim = $historicalFatura->ilce;
+                                    }
+                                }
+                            }
                         }
                     }
-                    if ($rawDagitim && str_starts_with(trim($rawDagitim), '=')) {
-                        $resolvedBolge = \App\Models\Bolgeler::where('bolge_kodu', $rawIlceKodu)->first();
-                        if ($resolvedBolge) {
-                            $rawDagitim = $resolvedBolge->bolge_adi;
+
+                    // Eğer ilçe ismi ŞANLIURFA veya ŞANLIURFA ÖZEL ise ve elimizde geçerli bir ilçe kodu varsa ismi otomatik düzelt
+                    if ($rawIlce && (str_starts_with(trim($rawIlce), '=') || in_array(mb_strtoupper(trim($rawIlce), 'UTF-8'), ['ŞANLIURFA', 'ŞANLIURFA ÖZEL']))) {
+                        if ($rawIlceKodu && !in_array((string)$rawIlceKodu, ['31', '91'])) {
+                            $resolvedBolge = \App\Models\Bolgeler::where('bolge_kodu', $rawIlceKodu)->first();
+                            if ($resolvedBolge) {
+                                $rawIlce = $resolvedBolge->bolge_adi;
+                            }
                         }
                     }
+                    if ($rawDagitim && (str_starts_with(trim($rawDagitim), '=') || in_array(mb_strtoupper(trim($rawDagitim), 'UTF-8'), ['ŞANLIURFA', 'ŞANLIURFA ÖZEL']))) {
+                        if ($rawIlceKodu && !in_array((string)$rawIlceKodu, ['31', '91'])) {
+                            $resolvedBolge = \App\Models\Bolgeler::where('bolge_kodu', $rawIlceKodu)->first();
+                            if ($resolvedBolge) {
+                                $rawDagitim = $resolvedBolge->bolge_adi;
+                            }
+                        }
+                    }
+
+                    $dateReadings = $this->findDateReadingFields($payload);
 
                     // BeklemeKontrolHavuzu'na upsert — GERÇEK Excel sütun adlarıyla eşleştirildi
                     BeklemeKontrolHavuzu::updateOrCreate(

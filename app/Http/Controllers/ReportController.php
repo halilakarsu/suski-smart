@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Controllers\Concerns\NormalizesIlce;
 use App\Models\KesinlesenFatura;
 use Illuminate\Http\Request;
 use Illuminate\Pagination\LengthAwarePaginator;
@@ -9,6 +10,7 @@ use Illuminate\Pagination\Paginator;
 
 class ReportController extends Controller
 {
+    use NormalizesIlce;
     /**
      * Tüketim toplamı için akıllı SQL ifadesi.
      * Önce fatura_edilecek_toplam_tuketim_kwh'e bakar; 0 veya NULL ise t1+t2+t3+ek toplamını kullanır.
@@ -109,7 +111,7 @@ class ReportController extends Controller
             $query = KesinlesenFatura::where('odeme_durumu', 'odendi');
 
             if ($request->filled('bolge')) {
-                $query->whereIn('ilce', (array) $request->bolge);
+                $this->applyBolgeFilter($query, (array) $request->bolge);
             }
             if ($request->filled('tesisat_no')) {
                 $query->where('tesisat_no', 'like', '%'.$request->tesisat_no.'%');
@@ -141,17 +143,17 @@ class ReportController extends Controller
             }
 
             $tuketimExpr = $this->tuketimExpr();
+            $normalizedIlce = $this->normalizedIlceExpr();
+            $this->applyNormalizesIlceJoin($query);
 
-            $selectRaw = "ilce as bolge,
+            $selectRaw = "({$normalizedIlce}) as bolge,
                           SUBSTRING(donem, 1, 4) as yil,
                           COUNT(*) as fatura_sayisi,
                           SUM({$tuketimExpr}) as toplam_tuketim, 
                           SUM(COALESCE(tutar_toplam, fatura_tutari, 0)) as toplam_tutar";
 
-            $groupBy = ['ilce', 'yil'];
-
             $results = $query->selectRaw($selectRaw)
-                ->groupBy($groupBy)
+                ->groupByRaw("({$normalizedIlce}), SUBSTRING(donem, 1, 4)")
                 ->orderBy('yil', 'desc')
                 ->orderBy('bolge', 'asc')
                 ->get();
@@ -162,15 +164,7 @@ class ReportController extends Controller
         }
 
         $yillar = KesinlesenFatura::where('odeme_durumu', 'odendi')->selectRaw('SUBSTRING(donem, 1, 4) as yil')->distinct()->orderBy('yil', 'desc')->pluck('yil');
-        $bolgeler = KesinlesenFatura::where('odeme_durumu', 'odendi')
-            ->whereNotNull('ilce')
-            ->where('ilce', '!=', '')
-            ->where('ilce', 'not like', '=%')
-            ->where('ilce', 'not like', '#%')
-            ->whereNotIn('ilce', ['ŞANLIURFA', 'ŞANLIURFA ÖZEL'])
-            ->distinct()
-            ->orderBy('ilce', 'asc')
-            ->pluck('ilce');
+        $bolgeler = $this->getBolgelerList();
         $tarifeler = \App\Models\Aboneler::whereNotNull('tarife')->where('tarife', '!=', '')
             ->select('tarife', 'abone_grubu')
             ->distinct()
@@ -217,7 +211,7 @@ class ReportController extends Controller
             $query = KesinlesenFatura::where('odeme_durumu', 'odendi');
 
             if ($request->filled('bolge')) {
-                $query->whereIn('ilce', (array) $request->bolge);
+                $this->applyBolgeFilter($query, (array) $request->bolge);
             }
             if ($request->filled('tesisat_no')) {
                 $query->where('tesisat_no', 'like', '%'.$request->tesisat_no.'%');
@@ -253,6 +247,8 @@ class ReportController extends Controller
             }
 
             $tuketimExpr = $this->tuketimExpr();
+            $normalizedIlce = $this->normalizedIlceExpr();
+            $this->applyNormalizesIlceJoin($query);
 
             // Grand totals — tek sorguda hem kwh hem tutar
             $totals = (clone $query)->selectRaw(
@@ -261,21 +257,19 @@ class ReportController extends Controller
                  SUM(COALESCE(tutar_toplam, fatura_tutari, 0)) as total_tutar"
             )->first();
 
-            $selectRaw = "donem, ilce,
+            $selectRaw = "donem, ({$normalizedIlce}) as ilce,
                           COUNT(*) as fatura_sayisi,
                           SUM({$tuketimExpr}) as toplam_tuketim, 
                           SUM(COALESCE(tutar_toplam, fatura_tutari, 0)) as toplam_tutar";
-
-            $groupBy = ['donem', 'ilce'];
 
             // Exports: all rows at once
             if ($request->filled('export') && $totals && $totals->total_fatura > 0) {
                 set_time_limit(0);
                 ini_set('memory_limit', '-1');
                 $allResults = $query->selectRaw($selectRaw)
-                    ->groupBy($groupBy)
+                    ->groupByRaw("donem, ({$normalizedIlce})")
                     ->orderBy('donem', 'desc')
-                    ->orderBy('ilce', 'asc')
+                    ->orderByRaw("({$normalizedIlce}) ASC")
                     ->get();
 
                 if ($request->export === 'excel') {
@@ -295,9 +289,9 @@ class ReportController extends Controller
             }
 
             $results = $query->selectRaw($selectRaw)
-                ->groupBy($groupBy)
+                ->groupByRaw("donem, ({$normalizedIlce})")
                 ->orderBy('donem', 'desc')
-                ->orderBy('ilce', 'asc')
+                ->orderByRaw("({$normalizedIlce}) ASC")
                 ->paginate(20)
                 ->appends($request->all());
 
@@ -307,15 +301,7 @@ class ReportController extends Controller
         }
 
         $donemler = KesinlesenFatura::where('odeme_durumu', 'odendi')->distinct()->orderBy('donem', 'desc')->pluck('donem');
-        $bolgeler = KesinlesenFatura::where('odeme_durumu', 'odendi')
-            ->whereNotNull('ilce')
-            ->where('ilce', '!=', '')
-            ->where('ilce', 'not like', '=%')
-            ->where('ilce', 'not like', '#%')
-            ->whereNotIn('ilce', ['ŞANLIURFA', 'ŞANLIURFA ÖZEL'])
-            ->distinct()
-            ->orderBy('ilce', 'asc')
-            ->pluck('ilce');
+        $bolgeler = $this->getBolgelerList();
         $tarifeler = \App\Models\Aboneler::whereNotNull('tarife')->where('tarife', '!=', '')
             ->select('tarife', 'abone_grubu')
             ->distinct()
@@ -349,7 +335,7 @@ class ReportController extends Controller
                 $query->where('donem', '<=', $request->end_period);
             }
             if ($request->filled('bolge')) {
-                $query->whereIn('ilce', (array) $request->bolge);
+                $this->applyBolgeFilter($query, (array) $request->bolge);
             }
             if ($request->filled('tesisat_no')) {
                 $query->where('tesisat_no', 'like', '%'.$request->tesisat_no.'%');
@@ -379,7 +365,7 @@ class ReportController extends Controller
 
             // Tek sorguda hem kwh hem tutar toplama
             $aggregates = (clone $query)->selectRaw(
-                'SUM('.$this->tuketimExpr().') as total_kwh, SUM(COALESCE(tutar_toplam,0)) as total_amount'
+                'SUM('.$this->tuketimExpr().') as total_kwh, SUM(COALESCE(tutar_toplam, fatura_tutari, 0)) as total_amount'
             )->first();
             $totalKWH = (float) ($aggregates->total_kwh ?? 0);
             $totalAmount = (float) ($aggregates->total_amount ?? 0);
@@ -419,10 +405,7 @@ class ReportController extends Controller
         }
 
         $donemler = KesinlesenFatura::where('odeme_durumu', 'odendi')->distinct()->orderBy('donem', 'desc')->pluck('donem');
-        $bolgeler = KesinlesenFatura::where('odeme_durumu', 'odendi')
-            ->whereNotNull('ilce')->where('ilce', '!=', '')->where('ilce', 'not like', '=%')->where('ilce', 'not like', '#%')
-            ->whereNotIn('ilce', ['ŞANLIURFA', 'ŞANLIURFA ÖZEL'])
-            ->distinct()->orderBy('ilce', 'asc')->pluck('ilce');
+        $bolgeler = $this->getBolgelerList();
         $tarifeler = \App\Models\Aboneler::whereNotNull('tarife')->where('tarife', '!=', '')
             ->select('tarife', 'abone_grubu')
             ->distinct()
@@ -509,6 +492,33 @@ class ReportController extends Controller
                 $colTotals[$period] = $allPivot->sum(fn ($d) => $d[$period] ?? 0);
             }
 
+            if ($request->filled('export')) {
+                if ($request->export === 'pdf') {
+                    set_time_limit(0);
+                    ini_set('memory_limit', '-1');
+                    $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadView(
+                        'reports.tuketim-excel',
+                        [
+                            'pivotData' => $allPivot,
+                            'pivotPeriods' => $pivotPeriods,
+                            'totalKWH' => $totalKWH,
+                            'totalAmount' => $totalAmount,
+                            'veri' => $veri,
+                        ]
+                    )->setPaper('a4', 'landscape');
+
+                    return $pdf->download('Tuketim_Raporu_'.now()->format('Ymd_His').'.pdf');
+                } else {
+                    set_time_limit(600);
+                    ini_set('memory_limit', '-1');
+
+                    return \Maatwebsite\Excel\Facades\Excel::download(
+                        new \App\Exports\TuketimExport($allPivot, $pivotPeriods, $totalKWH, $veri),
+                        'Tuketim_Raporu_'.now()->format('Ymd_His').'.xlsx'
+                    );
+                }
+            }
+
             $perPage = 50;
             $page = $request->integer('page', 1);
             $offset = ($page - 1) * $perPage;
@@ -523,27 +533,6 @@ class ReportController extends Controller
 
             if ($request->ajax()) {
                 return view('reports.partials.tuketim_table', compact('pivotData', 'pivotPeriods', 'totalKWH', 'totalAmount', 'colTotals', 'veri'))->render();
-            }
-
-            if ($request->filled('export')) {
-                if ($request->export === 'pdf') {
-                    set_time_limit(0);
-                    ini_set('memory_limit', '-1');
-                    $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadView(
-                        'reports.tuketim-excel',
-                        compact('pivotData', 'pivotPeriods', 'totalKWH', 'totalAmount', 'veri')
-                    )->setPaper('a4', 'landscape');
-
-                    return $pdf->download('Tuketim_Raporu_'.now()->format('Ymd_His').'.pdf');
-                } else {
-                    set_time_limit(600);
-                    ini_set('memory_limit', '-1');
-
-                    return \Maatwebsite\Excel\Facades\Excel::download(
-                        new \App\Exports\TuketimExport($pivotData, $pivotPeriods, $totalKWH, $veri),
-                        'Tuketim_Raporu_'.now()->format('Ymd_His').'.xlsx'
-                    );
-                }
             }
         }
 
@@ -664,10 +653,7 @@ class ReportController extends Controller
             if (! $request->ajax() && ! $request->filled('export')) {
                 $donemler = KesinlesenFatura::where('odeme_durumu', 'odendi')->distinct()->orderBy('donem', 'desc')->pluck('donem');
                 $importDonemler = \App\Models\ImportLog::whereNotNull('donem')->distinct()->orderBy('donem', 'desc')->pluck('donem');
-                $bolgeler = KesinlesenFatura::where('odeme_durumu', 'odendi')
-                    ->whereNotNull('ilce')->where('ilce', '!=', '')->where('ilce', 'not like', '=%')->where('ilce', 'not like', '#%')
-                    ->whereNotIn('ilce', ['ŞANLIURFA', 'ŞANLIURFA ÖZEL'])
-                    ->distinct()->orderBy('ilce', 'asc')->pluck('ilce');
+                $bolgeler = $this->getBolgelerList();
                 $tarifeler = \App\Models\Aboneler::whereNotNull('tarife')->where('tarife', '!=', '')
                     ->select('tarife', 'abone_grubu')
                     ->distinct()
@@ -692,7 +678,7 @@ class ReportController extends Controller
                 $query->where('donem', '<=', $request->end_period);
             }
             if ($request->filled('bolge')) {
-                $query->whereIn('ilce', (array) $request->bolge);
+                $this->applyBolgeFilter($query, (array) $request->bolge);
             }
             if ($request->filled('yerlesim_tipi')) {
                 $typeMap = ['koy' => 'KÖY', 'merkez' => 'MERKEZ'];
@@ -995,10 +981,7 @@ class ReportController extends Controller
 
         $donemler = KesinlesenFatura::where('odeme_durumu', 'odendi')->distinct()->orderBy('donem', 'desc')->pluck('donem');
         $importDonemler = \App\Models\ImportLog::whereNotNull('donem')->distinct()->orderBy('donem', 'desc')->pluck('donem');
-        $bolgeler = KesinlesenFatura::where('odeme_durumu', 'odendi')
-            ->whereNotNull('ilce')->where('ilce', '!=', '')->where('ilce', 'not like', '=%')->where('ilce', 'not like', '#%')
-            ->whereNotIn('ilce', ['ŞANLIURFA', 'ŞANLIURFA ÖZEL'])
-            ->distinct()->orderBy('ilce', 'asc')->pluck('ilce');
+        $bolgeler = $this->getBolgelerList();
         $tarifeler = \App\Models\Aboneler::whereNotNull('tarife')->where('tarife', '!=', '')
             ->select('tarife', 'abone_grubu')
             ->distinct()
@@ -1272,9 +1255,23 @@ class ReportController extends Controller
         $totalMerkezTuketim = 0;
         $totalMerkezTutar = 0;
 
-        $hasFilter = $request->anyFilled(['bolge', 'start_period', 'end_period', 'baglanti_grubu', 'tarife']);
+        // Filtre yoksa son dönemi default olarak uygula
+        $hasFilter = $request->anyFilled(['bolge', 'start_period', 'end_period', 'baglanti_grubu', 'tarife'])
+            || !empty($request->input('bolge'))
+            || !empty($request->input('tarife'));
+
+        if (!$hasFilter) {
+            $defaultPeriod = KesinlesenFatura::where('odeme_durumu', 'odendi')
+                ->orderBy('donem', 'desc')
+                ->value('donem');
+            if ($defaultPeriod) {
+                $request->merge(['start_period' => $defaultPeriod]);
+                $hasFilter = true;
+            }
+        }
 
         if ($hasFilter) {
+
             $query = KesinlesenFatura::where('odeme_durumu', 'odendi');
 
             if ($request->filled('start_period')) {
@@ -1287,17 +1284,17 @@ class ReportController extends Controller
             } elseif ($request->filled('end_period')) {
                 $query->where('donem', '<=', $request->end_period);
             }
-            if ($request->filled('bolge')) {
-                $query->whereIn('ilce', (array) $request->bolge);
+            if (!empty($request->input('bolge'))) {
+                $this->applyBolgeFilter($query, (array) $request->input('bolge'));
             }
             if ($request->filled('baglanti_grubu')) {
                 $query->whereIn('tesisat_no', function ($q) use ($request) {
                     $q->select('ABONE_TESIS_NO')->from('aboneler')->where('baglanti_grubu', $request->baglanti_grubu);
                 });
             }
-            if ($request->filled('tarife')) {
+            if (!empty($request->input('tarife'))) {
                 $query->whereIn('tesisat_no', function ($q) use ($request) {
-                    $q->select('ABONE_TESIS_NO')->from('aboneler')->whereIn('tarife', (array) $request->tarife);
+                    $q->select('ABONE_TESIS_NO')->from('aboneler')->whereIn('tarife', (array) $request->input('tarife'));
                 });
             }
             if ($request->filled('tesisat_no')) {
@@ -1307,23 +1304,36 @@ class ReportController extends Controller
             $tuketimExpr = $this->tuketimExpr();
             $tutarExpr = 'COALESCE(tutar_toplam, fatura_tutari, 0)';
 
-            $isKoyCondition = "kesinlesen_faturalar.tesisat_no IN (
-                SELECT ABONE_TESIS_NO FROM aboneler WHERE yerlesim_turu = 'KÖY'
+            // NOT IN + NULL tuzağından kaçınmak için EXISTS / NOT EXISTS kullanılıyor.
+            // aboneler.ABONE_TESIS_NO NULL içerirse NOT IN tüm satırları false yapar.
+            $isKoyCondition = "EXISTS (
+                SELECT 1 FROM aboneler
+                WHERE aboneler.ABONE_TESIS_NO = kesinlesen_faturalar.tesisat_no
+                  AND aboneler.yerlesim_turu = 'KÖY'
             )";
+
+            $isMerkezCondition = "NOT EXISTS (
+                SELECT 1 FROM aboneler
+                WHERE aboneler.ABONE_TESIS_NO = kesinlesen_faturalar.tesisat_no
+                  AND aboneler.yerlesim_turu = 'KÖY'
+            )";
+
+            $normalizedIlce = $this->normalizedIlceExpr();
+            $this->applyNormalizesIlceJoin($query);
 
             $selectRaw = "
                 donem,
-                ilce as bolge,
+                ({$normalizedIlce}) as bolge,
                 SUM(CASE WHEN {$isKoyCondition} THEN {$tuketimExpr} ELSE 0 END) as koy_tuketim,
                 SUM(CASE WHEN {$isKoyCondition} THEN {$tutarExpr} ELSE 0 END) as koy_tutar,
-                SUM(CASE WHEN NOT {$isKoyCondition} THEN {$tuketimExpr} ELSE 0 END) as merkez_tuketim,
-                SUM(CASE WHEN NOT {$isKoyCondition} THEN {$tutarExpr} ELSE 0 END) as merkez_tutar
+                SUM(CASE WHEN {$isMerkezCondition} THEN {$tuketimExpr} ELSE 0 END) as merkez_tuketim,
+                SUM(CASE WHEN {$isMerkezCondition} THEN {$tutarExpr} ELSE 0 END) as merkez_tutar
             ";
 
             $results = $query->selectRaw($selectRaw)
-                ->groupBy('donem', 'ilce')
+                ->groupByRaw("donem, ({$normalizedIlce})")
                 ->orderBy('donem', 'desc')
-                ->orderBy('ilce', 'asc')
+                ->orderByRaw("({$normalizedIlce}) ASC")
                 ->get();
 
             $totalKoyTuketim = $results->sum('koy_tuketim');
@@ -1367,10 +1377,7 @@ class ReportController extends Controller
         }
 
         $donemler = KesinlesenFatura::where('odeme_durumu', 'odendi')->distinct()->orderBy('donem', 'desc')->pluck('donem');
-        $bolgeler = KesinlesenFatura::where('odeme_durumu', 'odendi')
-            ->whereNotNull('ilce')->where('ilce', '!=', '')->where('ilce', 'not like', '=%')->where('ilce', 'not like', '#%')
-            ->whereNotIn('ilce', ['ŞANLIURFA', 'ŞANLIURFA ÖZEL'])
-            ->distinct()->orderBy('ilce', 'asc')->pluck('ilce');
+        $bolgeler = $this->getBolgelerList();
         $tarifeler = \App\Models\Aboneler::whereNotNull('tarife')->where('tarife', '!=', '')
             ->select('tarife', 'abone_grubu')
             ->distinct()
