@@ -11,6 +11,7 @@ use Illuminate\Pagination\Paginator;
 class ReportController extends Controller
 {
     use NormalizesIlce;
+
     /**
      * Tüketim toplamı için akıllı SQL ifadesi.
      * Önce fatura_edilecek_toplam_tuketim_kwh'e bakar; 0 veya NULL ise t1+t2+t3+ek toplamını kullanır.
@@ -1154,23 +1155,38 @@ class ReportController extends Controller
         ]);
     }
 
+    private function jsonFieldExpr(string $field): string
+    {
+        $path = str_contains($field, ' ') ? '$."'.$field.'"' : '$.'.$field;
+
+        return "CAST(REPLACE(COALESCE(JSON_UNQUOTE(JSON_EXTRACT(payload, '{$path}')), '0'), ',', '.') AS DECIMAL(18,6))";
+    }
+
+    private function hasIlaveInPayload(): string
+    {
+        $t1 = $this->jsonFieldExpr('T1_ILAVE_KWH');
+        $t2 = $this->jsonFieldExpr('T2_ILAVE_KWH');
+        $t3 = $this->jsonFieldExpr('T3_ILAVE_KWH');
+
+        return '(payload IS NOT NULL AND '.$t1.' != 0 AND '.$t2.' != 0 AND '.$t3.' != 0)';
+    }
+
     public function ekTuketim(Request $request)
     {
         $results = collect();
         $totalKWH = 0;
         $totalAmount = 0;
-        $totalEkTuketim = 0;
-        $totalEkTutar = 0;
+        $totalIlaveToplam = 0;
+        $totalIlaveTutar = 0;
 
         $hasFilter = $request->anyFilled(['start_period', 'end_period']);
 
         if ($hasFilter) {
+            $ilaveFields = ['T1_ILAVE_KWH', 'T2_ILAVE_KWH', 'T3_ILAVE_KWH', 'T4_ILAVE_KWH'];
+            $ilaveSumExpr = implode(' + ', array_map(fn ($f) => $this->jsonFieldExpr($f), $ilaveFields));
+
             $query = KesinlesenFatura::where('odeme_durumu', 'odendi')
-                ->whereNotNull('ek_tuketim')
-                ->where('ek_tuketim', '!=', 0)
-                ->where('ek_tuketim', '!=', '0')
-                ->where('ek_tuketim', '!=', '0,00')
-                ->whereRaw("CAST(REPLACE(ek_tuketim, ',', '.') AS DECIMAL(15,2)) != 0");
+                ->whereRaw($this->hasIlaveInPayload());
 
             if ($request->filled('start_period')) {
                 if ($request->filled('end_period')) {
@@ -1184,25 +1200,40 @@ class ReportController extends Controller
             }
 
             $aggregates = (clone $query)->selectRaw(
-                "SUM({$this->tuketimExpr()}) as total_kwh, SUM(COALESCE(tutar_toplam,0)) as total_amount, SUM(COALESCE(ek_tuketim,0)) as total_ek_tuketim, SUM(COALESCE(ek_tuketim,0) * CAST(REPLACE(COALESCE(birim_fiyat,'0'), ',', '.') AS DECIMAL(15,5))) as total_ek_tutar"
+                "SUM({$this->tuketimExpr()}) as total_kwh, SUM(COALESCE(tutar_toplam,0)) as total_amount, SUM({$ilaveSumExpr}) as total_ilave_toplam"
             )->first();
             $totalKWH = (float) ($aggregates->total_kwh ?? 0);
             $totalAmount = (float) ($aggregates->total_amount ?? 0);
-            $totalEkTuketim = (float) ($aggregates->total_ek_tuketim ?? 0);
-            $totalEkTutar = (float) ($aggregates->total_ek_tutar ?? 0);
+            $totalIlaveToplam = (float) ($aggregates->total_ilave_toplam ?? 0);
 
             $query->select('kesinlesen_faturalar.*');
 
             $results = $query->orderBy('donem', 'desc')->orderBy('tutar_toplam', 'desc')->paginate(20)->appends($request->all());
 
+            $totalIlaveTutar = $results->sum(function ($row) {
+                $payload = $row->payload;
+                $ilaveToplam = 0;
+                if ($payload) {
+                    foreach (['T1_ILAVE_KWH', 'T2_ILAVE_KWH', 'T3_ILAVE_KWH', 'T4_ILAVE_KWH'] as $f) {
+                        $val = $payload[$f] ?? 0;
+                        if ($val !== '' && $val !== ' ' && $val !== null) {
+                            $ilaveToplam += (float) str_replace(',', '.', $val);
+                        }
+                    }
+                }
+                $birimFiyat = (float) str_replace(',', '.', $row->birim_fiyat ?? '0');
+
+                return $ilaveToplam * $birimFiyat;
+            });
+
             if ($request->ajax()) {
-                return view('reports.partials.ek_tuketim_table', compact('results', 'totalKWH', 'totalAmount', 'totalEkTuketim', 'totalEkTutar'))->render();
+                return view('reports.partials.ek_tuketim_table', compact('results', 'totalKWH', 'totalAmount', 'totalIlaveToplam', 'totalIlaveTutar'))->render();
             }
         }
 
         $donemler = KesinlesenFatura::where('odeme_durumu', 'odendi')->distinct()->orderBy('donem', 'desc')->pluck('donem');
 
-        return view('reports.ek-tuketim', compact('donemler', 'results', 'totalKWH', 'totalAmount', 'totalEkTuketim', 'totalEkTutar'));
+        return view('reports.ek-tuketim', compact('donemler', 'results', 'totalKWH', 'totalAmount', 'totalIlaveToplam', 'totalIlaveTutar'));
     }
 
     public function ekTuketimSon1Yil($tesisat_no)
@@ -1217,9 +1248,19 @@ class ReportController extends Controller
             $t1 = (float) ($row->t1_tuketim ?? 0);
             $t2 = (float) ($row->t2_tuketim ?? 0);
             $t3 = (float) ($row->t3_tuketim ?? 0);
-            $ek = (float) ($row->ek_tuketim ?: 0);
-            $toplamTuketim = (float) ($row->fatura_edilecek_toplam_tuketim_kwh ?: ($t1 + $t2 + $t3 + $ek));
+            $toplamTuketim = (float) ($row->fatura_edilecek_toplam_tuketim_kwh ?: ($t1 + $t2 + $t3 + (float) ($row->ek_tuketim ?: 0)));
             $birimFiyat = (float) str_replace(',', '.', $row->birim_fiyat ?? '0');
+
+            $payload = $row->payload;
+            $t1Ilave = $t2Ilave = $t3Ilave = $t4Ilave = 0;
+            if ($payload) {
+                foreach (['T1_ILAVE_KWH' => &$t1Ilave, 'T2_ILAVE_KWH' => &$t2Ilave, 'T3_ILAVE_KWH' => &$t3Ilave, 'T4_ILAVE_KWH' => &$t4Ilave] as $key => &$ref) {
+                    $val = $payload[$key] ?? 0;
+                    $ref = ($val !== '' && $val !== ' ' && $val !== null) ? (float) str_replace(',', '.', $val) : 0;
+                }
+                unset($ref);
+            }
+            $ilaveToplam = $t1Ilave + $t2Ilave + $t3Ilave + $t4Ilave;
 
             return [
                 'donem' => $row->donem,
@@ -1228,9 +1269,13 @@ class ReportController extends Controller
                 't2' => $t2,
                 't3' => $t3,
                 'toplam_tuketim' => $toplamTuketim,
-                'ek_tuketim' => $ek,
+                't1_ilave' => $t1Ilave,
+                't2_ilave' => $t2Ilave,
+                't3_ilave' => $t3Ilave,
+                't4_ilave' => $t4Ilave,
+                'ilave_toplam' => $ilaveToplam,
                 'tutar' => (float) ($row->tutar_toplam ?: 0),
-                'ek_tutar' => $ek * $birimFiyat,
+                'ilave_tutar' => $ilaveToplam * $birimFiyat,
             ];
         });
 
@@ -1257,10 +1302,10 @@ class ReportController extends Controller
 
         // Filtre yoksa son dönemi default olarak uygula
         $hasFilter = $request->anyFilled(['bolge', 'start_period', 'end_period', 'baglanti_grubu', 'tarife'])
-            || !empty($request->input('bolge'))
-            || !empty($request->input('tarife'));
+            || ! empty($request->input('bolge'))
+            || ! empty($request->input('tarife'));
 
-        if (!$hasFilter) {
+        if (! $hasFilter) {
             $defaultPeriod = KesinlesenFatura::where('odeme_durumu', 'odendi')
                 ->orderBy('donem', 'desc')
                 ->value('donem');
@@ -1284,7 +1329,7 @@ class ReportController extends Controller
             } elseif ($request->filled('end_period')) {
                 $query->where('donem', '<=', $request->end_period);
             }
-            if (!empty($request->input('bolge'))) {
+            if (! empty($request->input('bolge'))) {
                 $this->applyBolgeFilter($query, (array) $request->input('bolge'));
             }
             if ($request->filled('baglanti_grubu')) {
@@ -1292,7 +1337,7 @@ class ReportController extends Controller
                     $q->select('ABONE_TESIS_NO')->from('aboneler')->where('baglanti_grubu', $request->baglanti_grubu);
                 });
             }
-            if (!empty($request->input('tarife'))) {
+            if (! empty($request->input('tarife'))) {
                 $query->whereIn('tesisat_no', function ($q) use ($request) {
                     $q->select('ABONE_TESIS_NO')->from('aboneler')->whereIn('tarife', (array) $request->input('tarife'));
                 });
