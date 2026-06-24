@@ -106,6 +106,26 @@
             @endif
 
             <div class="perm-grid">
+                {{-- Modül: Tesis Bilgi Sistemi --}}
+                <div class="perm-module">
+                    <div class="pm-head">
+                        <h6 class="pm-title"><div class="pm-i" style="background:#8b5cf6;"><i class="fas fa-hard-hat"></i></div> Tesis Bilgi Sistemi</h6>
+                        <button type="button" class="pm-sel-all">Tümünü Seç</button>
+                    </div>
+                    <div class="pm-body">
+                        <label class="switch-item">
+                            <div class="si-info">
+                                <span class="si-title">Görüntüleme</span>
+                                <span class="si-desc">Tesis bilgi sistemine erişim yetkisi</span>
+                            </div>
+                            <div class="toggle-switch">
+                                <input type="checkbox" class="perm-check" name="permissions[]" value="view_tesis_bilgi_sistemi" {{ $user->hasPermission('view_tesis_bilgi_sistemi') ? 'checked' : '' }}>
+                                <span class="toggle-slider"></span>
+                            </div>
+                        </label>
+                    </div>
+                </div>
+
                 {{-- Modül: Abone İşlemleri --}}
                 <div class="perm-module">
                     <div class="pm-head">

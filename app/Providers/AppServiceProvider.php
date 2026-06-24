@@ -2,13 +2,13 @@
 
 namespace App\Providers;
 
-use Illuminate\Support\ServiceProvider;
-use Illuminate\Support\Facades\Gate;
+use App\Models\ActivityLog;
 use App\Models\User;
 use Illuminate\Auth\Events\Login;
 use Illuminate\Auth\Events\Logout;
 use Illuminate\Support\Facades\Event;
-use App\Models\ActivityLog;
+use Illuminate\Support\Facades\Gate;
+use Illuminate\Support\ServiceProvider;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -52,6 +52,7 @@ class AppServiceProvider extends ServiceProvider
             'onay_faturalar',
             'odeme_faturalar',
             'manage_support',
+            'view_tesis_bilgi_sistemi',
         ];
 
         foreach ($custom_permissions as $permission) {
@@ -63,21 +64,21 @@ class AppServiceProvider extends ServiceProvider
         // Login & Logout Logları
         Event::listen(Login::class, function (Login $event) {
             ActivityLog::create([
-                'user_id'     => $event->user->id,
-                'action'      => 'login',
+                'user_id' => $event->user->id,
+                'action' => 'login',
                 'description' => 'Sisteme güvenli giriş yapıldı.',
-                'ip'          => request()->ip(),
-                'user_agent'  => request()->userAgent()
+                'ip' => request()->ip(),
+                'user_agent' => request()->userAgent(),
             ]);
         });
 
         Event::listen(Logout::class, function (Logout $event) {
             ActivityLog::create([
-                'user_id'     => $event->user ? $event->user->id : null,
-                'action'      => 'logout',
+                'user_id' => $event->user ? $event->user->id : null,
+                'action' => 'logout',
                 'description' => 'Sistemden güvenli çıkış yapıldı.',
-                'ip'          => request()->ip(),
-                'user_agent'  => request()->userAgent()
+                'ip' => request()->ip(),
+                'user_agent' => request()->userAgent(),
             ]);
         });
     }

@@ -127,6 +127,11 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/raporlar/endeks/pdf-karsilastir/faturalar/{donem}', [\App\Http\Controllers\ReportController::class, 'pdfKarsilastirFaturalar'])->name('reports.endeks.pdf-karsilastir.faturalar');
     Route::get('/raporlar/endeks/pdf-karsilastir/fatura-detay/{efksId}', [\App\Http\Controllers\ReportController::class, 'pdfKarsilastirFaturaDetay'])->name('reports.endeks.pdf-karsilastir.fatura-detay');
 
+    // ── Tesis Bilgi Sistemi ─────────────────────────────────────────────
+    Route::middleware('can:view_tesis_bilgi_sistemi')->prefix('tesis-bilgi-sistemi')->name('tesis-bilgi-sistemi.')->group(function () {
+        Route::get('/', [\App\Http\Controllers\TesisController::class, 'index'])->name('index');
+    });
+
     // ── Yardım & Destek ──────────────────────────────────────────────────
     Route::get('/yardim', function () {
         return view('help.index');

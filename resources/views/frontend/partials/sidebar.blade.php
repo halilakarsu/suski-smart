@@ -25,6 +25,15 @@
 						</a>
 					</li>
 
+					@can('view_tesis_bilgi_sistemi')
+					<li class="nav-item {{ request()->routeIs('tesis-bilgi-sistemi.*') ? 'active' : '' }}">
+						<a href="{{ route('tesis-bilgi-sistemi.index') }}">
+							<i class="fas fa-hard-hat"></i>
+							<p>Tesis Bilgi Sistemi</p>
+						</a>
+					</li>
+					@endcan
+
 					<li class="nav-section">
 						<span class="sidebar-mini-icon">
 							<i class="fa fa-ellipsis-h"></i>
