@@ -4,11 +4,13 @@
 <body>
 <table>
     <tr>
-        <td colspan="{{ $type === 'yearly' ? 6 : 5 }}" style="text-align: center; font-weight: bold; font-size: 14px;">ŞUSKİ GENEL MÜDÜRLÜĞÜ - RAPOR ÇIKTISI</td>
+        <td colspan="{{ $type === 'yearly' ? 6 : 5 }}" style="text-align: center; font-weight: bold; font-size: 14px;">
+            {{ $type === 'periodical' ? 'DÖNEMSEL TÜKETİM RAPORU' : 'ŞUSKİ GENEL MÜDÜRLÜĞÜ - RAPOR ÇIKTISI' }}
+        </td>
     </tr>
     <tr>
         <th>SIRA NO</th>
-        <th>TESİSAT NO</th>
+        <th>{{ $type === 'periodical' ? 'DÖNEM' : 'TESİSAT NO' }}</th>
         <th>BÖLGE</th>
         @if($type === 'yearly')
         <th>YIL</th>
@@ -19,8 +21,8 @@
     @foreach($data as $index => $row)
     <tr>
         <td>{{ $index + 1 }}</td>
-        <td>{{ $row->tesisat_no }}</td>
-        <td>{{ $row->bolge ?? '—' }}</td>
+        <td>{{ $type === 'periodical' ? ($row->donem ?? '—') : ($row->tesisat_no ?? '—') }}</td>
+        <td>{{ $row->ilce ?? $row->bolge ?? '—' }}</td>
         @if($type === 'yearly')
         <td>{{ $row->yil }}</td>
         @endif

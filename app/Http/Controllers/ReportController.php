@@ -1181,6 +1181,16 @@ class ReportController extends Controller
 
         $hasFilter = $request->anyFilled(['start_period', 'end_period']);
 
+        if (! $hasFilter) {
+            $defaultPeriod = KesinlesenFatura::where('odeme_durumu', 'odendi')
+                ->orderBy('donem', 'desc')
+                ->value('donem');
+            if ($defaultPeriod) {
+                $request->merge(['start_period' => $defaultPeriod]);
+                $hasFilter = true;
+            }
+        }
+
         if ($hasFilter) {
             $ilaveFields = ['T1_ILAVE_KWH', 'T2_ILAVE_KWH', 'T3_ILAVE_KWH', 'T4_ILAVE_KWH'];
             $ilaveSumExpr = implode(' + ', array_map(fn ($f) => $this->jsonFieldExpr($f), $ilaveFields));
@@ -1207,10 +1217,11 @@ class ReportController extends Controller
             $totalIlaveToplam = (float) ($aggregates->total_ilave_toplam ?? 0);
 
             $query->select('kesinlesen_faturalar.*');
+            $query->orderBy('donem', 'desc')->orderBy('tutar_toplam', 'desc');
 
-            $results = $query->orderBy('donem', 'desc')->orderBy('tutar_toplam', 'desc')->paginate(20)->appends($request->all());
+            $allResults = (clone $query)->get();
 
-            $totalIlaveTutar = $results->sum(function ($row) {
+            $totalIlaveTutar = $allResults->sum(function ($row) {
                 $payload = $row->payload;
                 $ilaveToplam = 0;
                 if ($payload) {
@@ -1225,6 +1236,37 @@ class ReportController extends Controller
 
                 return $ilaveToplam * $birimFiyat;
             });
+
+            if ($request->filled('export') && $allResults->count() > 0) {
+                $filters = $request->only(['start_period', 'end_period']);
+                $totals = [
+                    'total_kwh' => $totalKWH,
+                    'total_amount' => $totalAmount,
+                    'total_ilave_tutar' => $totalIlaveTutar,
+                ];
+
+                if ($request->export === 'excel') {
+                    set_time_limit(600);
+                    ini_set('memory_limit', '-1');
+
+                    return \Maatwebsite\Excel\Facades\Excel::download(
+                        new \App\Exports\EkTuketimExport($allResults, $totals, $filters),
+                        'EkTuketim_Raporu_'.now()->format('Ymd_His').'.xlsx'
+                    );
+                } elseif ($request->export === 'pdf') {
+                    set_time_limit(0);
+                    ini_set('memory_limit', '-1');
+                    $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadView('reports.pdf', [
+                        'results' => $allResults,
+                        'type' => 'ek_tuketim',
+                        'filters' => $filters,
+                    ])->setPaper('a4', 'landscape');
+
+                    return $pdf->download('EkTuketim_Raporu_'.now()->format('Ymd_His').'.pdf');
+                }
+            }
+
+            $results = $query->paginate(20)->appends($request->all());
 
             if ($request->ajax()) {
                 return view('reports.partials.ek_tuketim_table', compact('results', 'totalKWH', 'totalAmount', 'totalIlaveToplam', 'totalIlaveTutar'))->render();
