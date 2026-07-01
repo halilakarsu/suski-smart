@@ -58,6 +58,15 @@
 <script src="/frontend/assets/js/atlantis.min.js"></script>
 
 <script>
+	// Sidebar scroll fix - menü açılınca scroll alanını güncelle
+	$(document).on('shown.bs.collapse', '#tesis-menu, #diger-fatura, #reports, #ariza-reports, #abone, #sidebarLayouts', function() {
+		$('.sidebar .scrollbar').scrollbar();
+	});
+	setTimeout(function() {
+		var h = $(window).height() - 80;
+		$('.sidebar .scrollbar').css('max-height', h).scrollbar();
+	}, 500);
+
 	// Toast Mesajı Tanımlama (SweetAlert2)
 	const Toast = Swal.mixin({
 		toast: true,

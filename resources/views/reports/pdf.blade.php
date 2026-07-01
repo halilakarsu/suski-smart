@@ -269,10 +269,10 @@
                 <tr>
                     <th width="4%" class="text-center">SIRA</th>
                     <th width="8%" class="text-center">YIL</th>
-                    <th width="22%" class="text-center">TESİSAT NO</th>
-                    @if($hasBolge)<th width="15%" class="text-left">BÖLGE</th>@endif
-                    <th width="{{ $hasBolge ? '20%' : '30%' }}" class="text-right">TOPLAM TÜKETİM (KWH)</th>
-                    <th width="{{ $hasBolge ? '20%' : '30%' }}" class="text-right">TOPLAM TUTAR (₺)</th>
+                    @if($hasBolge)<th width="18%" class="text-left">BÖLGE</th>@endif
+                    <th width="10%" class="text-center">FATURA SAYISI</th>
+                    <th width="{{ $hasBolge ? '22%' : '30%' }}" class="text-right">TOPLAM TÜKETİM (KWH)</th>
+                    <th width="{{ $hasBolge ? '22%' : '30%' }}" class="text-right">TOPLAM TUTAR (₺)</th>
                 </tr>
             @else {{-- periodical --}}
                 <tr>
@@ -369,8 +369,8 @@
 
                 @elseif($type === 'yearly')
                     <td class="text-center" style="font-weight: bold; color: #1a73e8;">{{ $row->yil }}</td>
-                    <td class="text-center">{{ $row->tesisat_no }}</td>
                     @if($hasBolge)<td class="text-left">{{ $row->bolge ?? '—' }}</td>@endif
+                    <td class="text-center">{{ $row->fatura_sayisi }}</td>
                     <td class="text-right" style="font-weight: bold;">{{ number_format($row->toplam_tuketim, 2, ',', '.') }}</td>
                     <td class="text-right" style="font-weight: bold;">{{ number_format($row->toplam_tutar, 2, ',', '.') }} ₺</td>
 

@@ -2,7 +2,6 @@
 
 @section('content')
 <style>
-    /* Ultra-Premium Glassmorphic Design for Reporting */
     @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
 
     :root {
@@ -18,7 +17,6 @@
 
     .pg-premium { background-color: var(--bg-main) !important; min-height: 100vh; padding-bottom: 4rem; margin-top: -70px !important; }
 
-    /* Hero Section */
     .page-hero {
         background: linear-gradient(125deg, #0f172a 0%, #1e1b4b 100%);
         position: relative; padding: 5rem 2rem 10rem 2rem; margin-top: -30px !important; color: #fff; overflow: hidden;
@@ -40,19 +38,16 @@
     }
     .hero-subtitle { color: #94a3b8; font-size: 1.1rem; font-weight: 500; }
 
-    /* Main Content */
     .main-container { width: 100%; max-width: 1400px; margin: -5rem auto 0 auto; padding: 0 2rem; position: relative; z-index: 20; }
     .glass-card {
         background: var(--surface-glass); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
         border: 1px solid rgba(255, 255, 255, 0.7); border-radius: 28px; padding: 30px;
         box-shadow: var(--shadow-elevated); margin-bottom: 30px; overflow: visible;
     }
-    .filter-card { position: relative; z-index: 1000 !important; overflow: visible !important; }
 
     .section-title { font-size: 1.1rem; font-weight: 800; color: var(--text-slate-900); margin-bottom: 25px; display: flex; align-items: center; gap: 12px; }
     .section-title i { padding: 10px; background: #eff6ff; border-radius: 12px; color: #3b82f6; }
 
-    /* Form Elements */
     .form-group-pro { margin-bottom: 20px; }
     .form-group-pro label { display: block; font-size: 0.85rem; font-weight: 700; color: var(--text-slate-900); margin-bottom: 8px; text-transform: uppercase; letter-spacing: 0.03em; }
     .form-control-pro {
@@ -62,7 +57,6 @@
     .form-control-pro:focus { border-color: #3b82f6; box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.1); }
     select.form-control-pro { -webkit-appearance: none; appearance: none; background-image: url('data:image/svg+xml;charset=US-ASCII,<svg width="12" height="8" viewBox="0 0 14 8" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M1 1L7 7L13 1" stroke="%2394a3b8" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>'); background-repeat: no-repeat; background-position: right 16px center; background-size: 10px; padding-right: 40px; }
 
-    /* Buttons */
     .btn-pro {
         padding: 12px 24px; border-radius: 14px; font-weight: 700; font-size: 0.9rem; display: inline-flex; align-items: center; gap: 8px;
         transition: all 0.3s; border: none; cursor: pointer; text-decoration: none !important;
@@ -73,7 +67,6 @@
     .btn-outline-pro:hover { background: #f8fafc; color: var(--text-slate-900); border-color: #cbd5e1; }
     .btn-success-pro { background: linear-gradient(135deg, #059669, #10b981); color: white !important; }
 
-    /* Multi-select */
     .custom-multi-select { position: relative; width: 100%; z-index: 1000; }
     .custom-multi-select .dropdown-toggle {
         text-align: left; background: #fff; border: 1.5px solid #e2e8f0;
@@ -97,7 +90,6 @@
     .custom-multi-select .form-check-input:checked ~ .cb-box svg { opacity: 1; }
     .custom-multi-select .select-all-wrap { border-bottom: 1.5px solid #e2e8f0; margin-bottom: 6px; padding-bottom: 6px; }
 
-    /* Stats Row Premium */
     .stats-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 24px; margin-bottom: 30px; }
     .stat-box { 
         background: #fff; border-radius: 24px; padding: 24px; display: flex; align-items: center; gap: 18px;
@@ -111,21 +103,48 @@
     .stat-val { font-size: 1.4rem; font-weight: 800; color: #0f172a; line-height: 1.2; letter-spacing: -0.02em; }
     .stat-lbl { font-size: 0.8rem; font-weight: 600; color: #64748b; text-transform: uppercase; letter-spacing: 0.05em; margin-top: 2px; }
 
-    /* ===== ADVANCED MODAL BUTTON ===== */
     .btn-advanced-pro { position:relative; padding:12px 18px; border-radius:14px; font-weight:700; font-size:.9rem; display:inline-flex; align-items:center; justify-content:center; gap:8px; transition:all .3s; border:1.5px solid #c7d2fe; cursor:pointer; background:linear-gradient(135deg,#eff6ff,#f5f3ff); color:#4f46e5; box-shadow:0 4px 12px rgba(79,70,229,.1); }
     .btn-advanced-pro:hover { transform:translateY(-2px); box-shadow:0 8px 20px rgba(79,70,229,.2); border-color:#818cf8; }
-    .adv-active-dot { width:8px; height:8px; border-radius:50%; background:#ef4444; display:inline-block; animation:pulse-dot 1.5s infinite; }
+    .adv-active-dot { width:10px; height:10px; border-radius:50%; background:#ef4444; display:inline-block; animation:pulse-dot 1.5s infinite; border: 2px solid #fff; position: absolute; top: -2px; right: -2px; }
     @keyframes pulse-dot { 0%,100%{transform:scale(1);opacity:1;} 50%{transform:scale(1.4);opacity:.7;} }
     .adv-badge { display:inline-flex; align-items:center; background:#eff6ff; color:#1d4ed8; border:1px solid #bfdbfe; border-radius:20px; font-size:.75rem; font-weight:700; padding:3px 10px; }
 
-    /* Stats & Table */
+    .premium-actions-grid {
+        display: flex; gap: 16px; align-items: center;
+    }
+    .btn-premium-action {
+        position: relative; display: inline-flex; align-items: center; justify-content: center; gap: 10px;
+        height: 52px; padding: 0 24px; border-radius: 14px; font-family: var(--font-primary); font-size: 1rem;
+        font-weight: 800; letter-spacing: 0.04em; text-transform: uppercase; border: none;
+        overflow: hidden; cursor: pointer; transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        z-index: 1; color: #fff !important; text-decoration: none !important;
+        box-shadow: 0 10px 25px -5px rgba(0,0,0,0.2);
+    }
+    .btn-premium-action i { font-size: 1.25rem; transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1); }
+    .btn-premium-action:hover { transform: translateY(-4px); }
+    .btn-premium-action:hover i { transform: scale(1.15) rotate(-5deg); }
+    .btn-premium-action::before {
+        content: ''; position: absolute; inset: 0; z-index: -1;
+        background: linear-gradient(to top, rgba(255,255,255,0.15), transparent);
+        opacity: 0; transition: opacity 0.4s;
+    }
+    .btn-premium-action:hover::before { opacity: 1; }
+
+    .btn-premium-filter { background: linear-gradient(135deg, #1e293b 0%, #334155 100%); border: 1px solid rgba(255,255,255,0.1); }
+    .btn-premium-filter:hover { box-shadow: 0 15px 30px -5px rgba(30, 41, 59, 0.8); }
+
+    .btn-premium-pdf { background: linear-gradient(135deg, #991b1b 0%, #dc2626 100%); border: 1px solid rgba(255,255,255,0.1); }
+    .btn-premium-pdf:hover { box-shadow: 0 15px 30px -5px rgba(220, 38, 38, 0.6); }
+
+    .btn-premium-excel { background: linear-gradient(135deg, #065f46 0%, #10b981 100%); border: 1px solid rgba(255,255,255,0.1); }
+    .btn-premium-excel:hover { box-shadow: 0 15px 30px -5px rgba(16, 185, 129, 0.6); }
+
     .tbl-wrap { overflow-x: auto; border-radius: 20px; }
     .tbl { width: 100%; border-collapse: separate; border-spacing: 0; }
     .tbl th { background: #f8fafc; padding: 16px 20px; font-size: 0.75rem; font-weight: 800; color: #475569; text-transform: uppercase; letter-spacing: 0.05em; border-bottom: 1px solid #e2e8f0; }
     .tbl td { padding: 16px 20px; font-size: 0.9rem; color: #1e293b; border-bottom: 1px solid #f1f5f9; background: #fff; transition: background 0.2s; }
     .tbl tr:hover td { background: #f8fafc; }
 
-    /* ===== EXPORT LOADING OVERLAY ===== */
     #yearlyExportOverlay {
         display:none; position:fixed; inset:0; z-index:99999;
         background:rgba(15,23,42,0.75); backdrop-filter:blur(6px); -webkit-backdrop-filter:blur(6px);
@@ -174,102 +193,58 @@
 </style>
 
 <div class="pg-premium p-0">
-    <div class="page-hero">
-        <div class="hero-container">
-            <div class="hero-title-group">
-                <h1 class="hero-title">Yıllık Elektrik Fatura Tüketim Raporu</h1>
-                <p class="hero-subtitle">Yıl bazında yapılan fatura tüketim sonuçlarını aşağıda raporlayabilirsiniz.</p>
-            </div>
-            <div class="d-flex gap-2 align-items-center">
-                <button type="button" class="btn-advanced-pro" data-toggle="modal" data-target="#yearlyAdvModal" style="background: rgba(255,255,255,0.15); color: white; border-color: rgba(255,255,255,0.3); box-shadow: none;">
-                    <i class="fas fa-sliders-h"></i> Detaylı Filtre
-                    @if(request()->anyFilled(['tarife','baglanti_grubu','tesisat_no','yerlesim_tipi','end_year']))<span class="adv-active-dot" style="background:#fca5a5;"></span>@endif
-                </button>
-                <div class="dropdown" id="exportBtnContainer" style="display: {{ request()->anyFilled(['bolge','start_year','end_year','tesisat_no','tarife','baglanti_grubu','yerlesim_tipi']) ? 'block' : 'none' }};">
-                    <button type="button" class="btn-pro btn-outline-pro dropdown-toggle ml-2" data-toggle="dropdown" style="background: rgba(255,255,255,0.15); color: white; border-color: rgba(255,255,255,0.3); box-shadow: none;">
-                        <i class="fas fa-file-export"></i> Dışa Aktar
-                    </button>
-                    <div class="dropdown-menu dropdown-menu-pro dropdown-menu-right" style="border-radius:12px;">
-                        <button type="button" data-type="pdf" class="dropdown-item dropdown-item-pro btn-export-trigger"><i class="fas fa-file-pdf text-danger"></i> PDF Raporu Al</button>
-                        <button type="button" data-type="excel" class="dropdown-item dropdown-item-pro btn-export-trigger"><i class="fas fa-file-excel text-success"></i> Excel Raporu Al</button>
-                    </div>
+    <div class="page-hero" style="padding-bottom: 7rem;">
+        <div class="hero-container" style="flex-wrap: wrap; gap: 20px;">
+            <div class="hero-title-group" style="flex-grow: 1;">
+                <h1 class="hero-title">Yıllık Tüketim Raporu</h1>
+                <p class="hero-subtitle">Yıl bazında fatura ve tüketim verilerini görüntüleyin.</p>
+
+                @php
+                    $hasAdvFilter = request()->anyFilled(['tarife','baglanti_grubu','tesisat_no','yerlesim_tipi','end_year']);
+                    $activeBadges = [];
+                    if(request('tarife')) $activeBadges[] = 'Tarife: '.count(request('tarife')).' seçili';
+                    if(request('baglanti_grubu')) $activeBadges[] = request('baglanti_grubu');
+                    if(request('yerlesim_tipi')) $activeBadges[] = ucfirst(request('yerlesim_tipi'));
+                    if(request('tesisat_no')) $activeBadges[] = 'Tesisat: '.request('tesisat_no');
+                    if(request('end_year')) $activeBadges[] = 'Bitiş: '.request('end_year');
+                @endphp
+                @if($hasAdvFilter)
+                <div style="margin-top:12px; padding:6px 14px; background:rgba(255,255,255,0.05); border:1px solid rgba(255,255,255,0.1); border-radius:12px; display:inline-flex; align-items:center; gap:8px; flex-wrap:wrap;">
+                    <i class="fas fa-sliders-h" style="color:#60a5fa; font-size:0.9rem;"></i>
+                    <span style="font-size:.8rem;font-weight:700;color:#e2e8f0;">Aktif Filtreler:</span>
+                    @foreach($activeBadges as $badge)
+                        <span class="adv-badge" style="background:rgba(59,130,246,0.15); color:#93c5fd; border:none; padding:2px 8px; font-size:0.7rem;">{{ $badge }}</span>
+                    @endforeach
                 </div>
+                @endif
+            </div>
+
+            <div id="yearlyFilterForm" data-action="{{ route('reports.yearly') }}" class="premium-actions-grid">
+                <button type="button" class="btn-premium-action btn-premium-filter" data-toggle="modal" data-target="#yearlyAdvModal">
+                    <i class="fas fa-sliders-h"></i> FİLTRELE
+                    @if($hasAdvFilter)<span class="adv-active-dot"></span>@endif
+                </button>
+
+                <button type="button" id="yearly-export-pdf" class="btn-premium-action btn-premium-pdf">
+                    <i class="fas fa-file-pdf"></i> PDF İndir
+                </button>
+
+                <button type="button" id="yearly-export-excel" class="btn-premium-action btn-premium-excel">
+                    <i class="fas fa-file-excel"></i> Excel İndir
+                </button>
             </div>
         </div>
     </div>
 
-    <div class="main-container">
-        {{-- FİLTRE KARTI --}}
-        <div class="glass-card filter-card">
-            <h5 class="section-title"><i class="fas fa-filter"></i> Yıllık Elektrik Faturları Tüketim Bilgileri</h5>
-
-            @if(request()->anyFilled(['tarife','baglanti_grubu','tesisat_no','yerlesim_tipi']))
-            <div style="margin-bottom:16px;padding:10px 16px;background:linear-gradient(135deg,rgba(37,99,235,.07),rgba(79,70,229,.07));border:1.5px solid rgba(37,99,235,.2);border-radius:12px;display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
-                <i class="fas fa-sliders-h" style="color:#2563eb;"></i>
-                <span style="font-size:.83rem;font-weight:700;color:#1d4ed8;">Aktif Filtreler:</span>
-                @if(request('tarife')) <span class="adv-badge">Tarife: {{ count(request('tarife')) }} seçili</span> @endif
-                @if(request('baglanti_grubu')) <span class="adv-badge">{{ request('baglanti_grubu') }}</span> @endif
-                @if(request('yerlesim_tipi')) <span class="adv-badge">{{ ucfirst(request('yerlesim_tipi')) }}</span> @endif
-                @if(request('tesisat_no')) <span class="adv-badge">Tesisat: {{ request('tesisat_no') }}</span> @endif
-            </div>
-            @endif
-
-            <form action="{{ route('reports.yearly') }}" method="GET" id="yearlyFilterForm">
-                <div id="yearlyAdvHidden"></div>
-                <div class="row align-items-end">
-                    <div class="col-md-4">
-                        <div class="form-group-pro" style="margin-bottom:0;">
-                            <label><i class="fas fa-map-marker-alt me-2"></i> Bölge Seçimi</label>
-                            <div class="dropdown custom-multi-select">
-                                <button class="dropdown-toggle" type="button" id="YearlyHeroBolgeDropdown" data-toggle="dropdown" style="height: 47px;">
-                                    <span id="YearlyHeroBolgeLabel">Bölge Seçin...</span>
-                                    <i class="fas fa-chevron-down" style="font-size:.75rem;color:#94a3b8;"></i>
-                                </button>
-                                <div class="dropdown-menu" onclick="event.stopPropagation();">
-                                    <div class="form-check select-all-wrap" id="selectAllYearlyHeroBolgeRow">
-                                        <input class="form-check-input" type="checkbox" id="selectAllYearlyHeroBolge">
-                                        <span class="cb-box"><svg viewBox="0 0 12 10"><polyline points="1,5 4,9 11,1"/></svg></span>
-                                        <label class="form-check-label fw-bold" for="selectAllYearlyHeroBolge">Tümünü Seç</label>
-                                    </div>
-                                    @foreach($bolgeler as $bolge)
-                                        <div class="form-check yearly-hero-bolge-row" onclick="toggleCheckbox(this)">
-                                            <input class="form-check-input yearly-hero-bolge-cb" type="checkbox" name="bolge[]" value="{{ $bolge }}" id="herobolge_{{ $loop->index }}"
-                                                {{ (!request()->has('bolge') || (is_array(request('bolge')) && in_array($bolge, request('bolge')))) ? 'checked' : '' }}>
-                                            <span class="cb-box"><svg viewBox="0 0 12 10"><polyline points="1,5 4,9 11,1"/></svg></span>
-                                            <label class="form-check-label" for="herobolge_{{ $loop->index }}">{{ $bolge }}</label>
-                                        </div>
-                                    @endforeach
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="col-md-4">
-                        <div class="form-group-pro" style="margin-bottom:0;">
-                            <label><i class="far fa-calendar-alt me-2"></i> Yıl Seçimi</label>
-                            <select name="start_year" id="hero_start_year" class="form-control-pro" style="height: 47px;">
-                                <option value="">Tümü</option>
-                                @foreach($yillar as $yil)
-                                    <option value="{{ $yil }}" {{ request('start_year') == $yil ? 'selected' : '' }}>{{ $yil }}</option>
-                                @endforeach
-                            </select>
-                        </div>
-                    </div>
-                    <div class="col-md-4">
-                        <button type="submit" class="btn-pro btn-primary-pro w-100 justify-content-center" style="height: 47px; background: linear-gradient(135deg, #2563eb, #4f46e5); font-weight: 800;"><i class="fas fa-search"></i> Sonuçları Getir</button>
-                    </div>
-                </div>
-            </form>
-        </div>
-
-        {{-- SONUÇLAR KONTEYNERI --}}
+    <div class="main-container" style="margin-top: -3.5rem;">
         <div id="reportResultsContainer">
-            @if(request()->anyFilled(['bolge','start_year','end_year','tesisat_no','tarife','baglanti_grubu','yerlesim_tipi']))
+            @if($results->count() > 0)
                 @include('reports.partials.yearly_table', ['results' => $results])
             @else
                 <div class="glass-card" style="text-align:center;padding:60px 40px;">
-                    <div style="width:80px;height:80px;background:#eff6ff;color:#3b82f6;border-radius:24px;display:flex;align-items:center;justify-content:center;font-size:2.5rem;margin:0 auto 20px;">📅</div>
-                    <h4 style="font-weight:800;color:var(--text-slate-900);">Yıllık Elektrik Fatura Tüketim Raporu</h4>
-                    <p style="color:var(--text-slate-500);max-width:500px;margin:0 auto;">Yıl bazında özet verileri görüntülemek için filtreleri kullanın.</p>
+                    <div style="width:80px;height:80px;background:#f0fdf4;color:#059669;border-radius:24px;display:flex;align-items:center;justify-content:center;font-size:2.5rem;margin:0 auto 20px;"><i class="fas fa-calendar-alt"></i></div>
+                    <h4 style="font-weight:800;color:var(--text-slate-900);">Yıllık Rapor</h4>
+                    <p style="color:var(--text-slate-500);max-width:500px;margin:0 auto;">Yıl bazında tüketim verilerini listelemek için yukarıdaki filtreleri kullanın.</p>
                 </div>
             @endif
         </div>
@@ -292,8 +267,7 @@
                     <span aria-hidden="true" style="margin-top:-2px;">&times;</span>
                 </button>
             </div>
-            <div class="modal-body" style="padding:45px 35px; min-height: 55vh; display: flex; flex-direction: column; justify-content: space-around;">
-                
+            <div class="modal-body" style="padding:40px 35px;">
                 <!-- ROW 1: Bölgeler & Tesisat No -->
                 <div class="row">
                     <div class="col-md-6" style="margin-bottom: 25px;">
@@ -322,7 +296,7 @@
                             </div>
                         </div>
                     </div>
-                    
+
                     <div class="col-md-6" style="margin-bottom: 25px;">
                         <label style="display:block; font-size:0.82rem; font-weight:800; color:#475569; margin-bottom:10px; text-transform:uppercase; letter-spacing:0.04em;">
                             <i class="fas fa-hashtag" style="color:#ea580c; margin-right:6px; font-size:1rem; vertical-align:middle;"></i> Abone / Tesisat No
@@ -331,7 +305,7 @@
                     </div>
                 </div>
 
-                <!-- ROW 2: Yıl Aralığı Başlangıç & Bitiş -->
+                <!-- ROW 2: Yıl Aralığı -->
                 <div class="row" style="background: rgba(241, 245, 249, 0.5); padding: 15px; border-radius: 16px; margin-bottom: 25px;">
                     <div class="col-md-6">
                         <label style="display:block; font-size:0.82rem; font-weight:800; color:#475569; margin-bottom:10px; text-transform:uppercase; letter-spacing:0.04em;">
@@ -340,7 +314,7 @@
                         <select id="modal_start_year" class="form-control-pro" style="padding: 12px 18px; border-radius: 12px; height: 47px;">
                             <option value="">Tümü</option>
                             @foreach($yillar as $yil)
-                                <option value="{{ $yil }}" {{ request('start_year') == $yil ? 'selected' : '' }}>{{ $yil }}</option>
+                                <option value="{{ $yil }}" {{ request('start_year', $yillar->first()) == $yil ? 'selected' : '' }}>{{ $yil }}</option>
                             @endforeach
                         </select>
                     </div>
@@ -351,13 +325,13 @@
                         <select id="modal_end_year" class="form-control-pro" style="padding: 12px 18px; border-radius: 12px; height: 47px;">
                             <option value="">Tümü</option>
                             @foreach($yillar as $yil)
-                                <option value="{{ $yil }}" {{ request('end_year') == $yil ? 'selected' : '' }}>{{ $yil }}</option>
+                                <option value="{{ $yil }}" {{ request('end_year', $yillar->first()) == $yil ? 'selected' : '' }}>{{ $yil }}</option>
                             @endforeach
                         </select>
                     </div>
                 </div>
 
-                <!-- ROW 3: 3 Selectbox Yan Yana -->
+                <!-- ROW 3: Bağlantı Grubu, Yerleşim Türü, Tarife -->
                 <div class="row">
                     <div class="col-md-4" style="margin-bottom: 10px;">
                         <label style="display:block; font-size:0.82rem; font-weight:800; color:#475569; margin-bottom:10px; text-transform:uppercase; letter-spacing:0.04em;">
@@ -408,7 +382,6 @@
                         </div>
                     </div>
                 </div>
-
             </div>
             <div class="modal-footer" style="background: rgba(248, 250, 252, 0.8); border-top: 1px solid rgba(226, 232, 240, 0.8); padding: 25px 35px; display:flex; justify-content:space-between; align-items: center; border-bottom-left-radius: 28px; border-bottom-right-radius: 28px;">
                 <button type="button" class="btn-pro btn-outline-pro" id="yearlyClearBtn" style="border-radius: 12px; font-weight: 700; transition: all 0.2s;"><i class="fas fa-eraser"></i> Filtreleri Temizle</button>
@@ -420,27 +393,29 @@
     </div>
 </div>
 
-{{-- EXPORT LOADING OVERLAY --}}
+{{-- EXPORT YÜKLENİYOR OVERLAY --}}
 <div id="yearlyExportOverlay">
     <div class="yearly-loader-box">
-        <div class="yearly-success-icon" id="yearlySuccessIcon"><i class="fas fa-check"></i></div>
-        <div class="yearly-spinner" id="yearlySpinner"></div>
-        <div class="yearly-loader-title" id="yearlyLoaderTitle">Rapor Hazırlanıyor…</div>
-        <div class="yearly-loader-sub" id="yearlyLoaderSub">Lütfen bekleyin, dosyanız oluşturuluyor.</div>
-        <div class="yearly-progress" id="yearlyProgressWrap"><div class="yearly-progress-bar" id="yearlyProgressBar"></div></div>
-        <button class="yearly-open-btn" id="yearlyOpenBtn"></button>
-        <button class="yearly-overlay-close" id="yearlyOverlayClose"><i class="fas fa-times"></i> Kapat</button>
+        <div id="yearlySuccessIcon" class="yearly-success-icon"><i class="fas fa-check"></i></div>
+        <div id="yearlySpinner" class="yearly-spinner"></div>
+        <h4 id="yearlyLoaderTitle" class="yearly-loader-title">Rapor Hazırlanıyor</h4>
+        <p id="yearlyLoaderSub" class="yearly-loader-sub">Veriler derleniyor, lütfen bekleyin...</p>
+
+        <div id="yearlyProgressWrap" class="yearly-progress">
+            <div id="yearlyProgressBar" class="yearly-progress-bar"></div>
+        </div>
+
+        <button type="button" id="yearlyOpenBtn" class="yearly-open-btn"><i class="fas fa-external-link-alt"></i> Dosyayı Aç</button>
+        <button type="button" id="yearlyOverlayClose" class="yearly-overlay-close">Kapat</button>
     </div>
 </div>
-
-@endsection
 
 @push('scripts')
 <script>
 let lastDownloadUrl = '';
 let lastExportType = '';
 
-function showYearlyOverlay(type) {
+function showOverlay(type) { 
     const $bar = $('#yearlyProgressBar');
     $bar.removeClass('yearly-progress-bar'); void $bar[0].offsetWidth; $bar.addClass('yearly-progress-bar');
     $('#yearlySuccessIcon').hide();
@@ -451,52 +426,68 @@ function showYearlyOverlay(type) {
     $('#yearlyExportOverlay').addClass('active');
     setTimeout(() => { $('#yearlyOverlayClose').show(); }, 10000);
 }
-
-function hideYearlyOverlay() {
-    $('#yearlyExportOverlay').removeClass('active');
-    if (lastDownloadUrl) { URL.revokeObjectURL(lastDownloadUrl); lastDownloadUrl = ''; }
+function hideOverlay() { 
+    $('#yearlyExportOverlay').removeClass('active'); 
+    if(lastDownloadUrl) { URL.revokeObjectURL(lastDownloadUrl); lastDownloadUrl=''; }
 }
 
-function showYearlyReady(type, blobUrl) {
-    lastDownloadUrl = blobUrl;
-    lastExportType = type;
-    $('#yearlySpinner').hide();
-    $('#yearlyProgressWrap').hide();
-    $('#yearlySuccessIcon').css('display','flex');
-    $('#yearlyLoaderTitle').text('İndirme Hazır!');
-    $('#yearlyLoaderSub').text('Dosyanız başarıyla oluşturuldu.');
-    var label = type === 'pdf' ? '<i class="fas fa-file-pdf"></i> PDF Dosyasını Aç' : '<i class="fas fa-file-excel"></i> Excel Dosyasını Aç';
-    $('#yearlyOpenBtn').html(label).show();
-    $('#yearlyOverlayClose').show();
+function buildFormData() {
+    const params = new URLSearchParams();
+
+    if (!$('#selectAllModalYearlyBolge').is(':checked')) {
+        const modalBolge = $('.modal-yearly-bolge-cb:checked').map(function(){ return $(this).val(); }).get();
+        modalBolge.forEach(function(v){ params.append('bolge[]', v); });
+    }
+
+    const startYear = $('#modal_start_year').val();
+    const endYear   = $('#modal_end_year').val();
+    if (startYear) params.set('start_year', startYear);
+    if (endYear)   params.set('end_year', endYear);
+
+    if (!$('#selectAllYearlyTarife').is(':checked')) {
+        $('.yearly-tarife-cb:checked').each(function(){ params.append('tarife[]', $(this).val()); });
+    }
+
+    const baglantiGrp = $('#yearly_baglanti').val();
+    if (baglantiGrp) params.set('baglanti_grubu', baglantiGrp);
+
+    const yerlesim = $('#yearly_yerlesim').val();
+    if (yerlesim) params.set('yerlesim_tipi', yerlesim);
+
+    const tesisat = $('#yearly_tesisat').val().trim();
+    if (tesisat) params.set('tesisat_no', tesisat);
+
+    return params;
 }
 
 async function handleExport(type) {
-    showYearlyOverlay(type);
+    lastExportType = type;
     const form = document.getElementById('yearlyFilterForm');
-    const formData = new FormData(form);
-    
-    // Hidden modal inputs
-    formData.append('export', type);
-    formData.append('tesisat_no', $('#yearly_tesisat').val());
-    formData.append('baglanti_grubu', $('#yearly_baglanti').val());
-    formData.append('yerlesim_tipi', $('#yearly_yerlesim').val());
-    formData.append('start_year', $('#modal_start_year').val());
-    formData.append('end_year', $('#modal_end_year').val());
-    
-    // Add modal bolge checkboxes if they are used
-    if ($('.modal-yearly-bolge-cb:checked').length > 0) {
-        formData.delete('bolge[]');
-        $('.modal-yearly-bolge-cb:checked').each(function() { formData.append('bolge[]', $(this).val()); });
-    }
-    $('.yearly-tarife-cb:checked').each(function() { formData.append('tarife[]', $(this).val()); });
+    const params = buildFormData();
+    params.append('export', type);
+    const actionUrl = form ? form.getAttribute('data-action') : "{{ route('reports.yearly') }}";
+    const url = `${actionUrl}?${params.toString()}`;
 
-    const params = new URLSearchParams(formData);
+    if (type === 'pdf') {
+        window.open(url, '_blank');
+        return;
+    }
+
+    lastDownloadUrl = '';
+    showOverlay(type);
     try {
-        const response = await fetch(`${form.action}?${params.toString()}`);
+        const response = await fetch(url);
         if (!response.ok) throw new Error('Rapor oluşturulamadı');
         const blob = await response.blob();
-        const blobUrl = window.URL.createObjectURL(blob);
-        showYearlyReady(type, blobUrl);
+        lastDownloadUrl = window.URL.createObjectURL(blob);
+
+        $('#yearlySpinner').hide();
+        $('#yearlyProgressWrap').hide();
+        $('#yearlySuccessIcon').css('display','flex');
+        $('#yearlyLoaderTitle').text('İndirme Hazır!');
+        $('#yearlyLoaderSub').text('Excel dosyanız başarıyla oluşturuldu.');
+        $('#yearlyOpenBtn').html('<i class="fas fa-file-excel"></i> Excel Dosyasını İndir').show();
+        $('#yearlyOverlayClose').show();
     } catch (e) {
         $('#yearlyLoaderTitle').text('Hata Oluştu');
         $('#yearlyLoaderSub').text('Rapor oluşturulurken bir hata meydana geldi.');
@@ -530,45 +521,16 @@ $(document).ready(function() {
         $cbs.on('change',function(){upLbl();});
         upLbl();
     }
-    
-    let isSyncing = false;
-    initMS('selectAllYearlyHeroBolge','yearly-hero-bolge-cb','YearlyHeroBolgeLabel','Bölge Seçin...','Tüm Bölgeler Seçili','Bölge Seçili');
+
     initMS('selectAllModalYearlyBolge','modal-yearly-bolge-cb','ModalYearlyBolgeLabel','Bölge Seçin...','Tüm Bölgeler Seçili','Bölge Seçili');
     initMS('selectAllYearlyTarife','yearly-tarife-cb','YearlyTarifeLabel','Tarife Seçin...','Tüm Tarifeler Seçili','Tarife Seçili');
 
-    // Sync Bolge Selection
-    $('.yearly-hero-bolge-cb').on('change', function() {
-        if(isSyncing) return;
-        isSyncing = true;
-        const val = $(this).val();
-        const checked = $(this).is(':checked');
-        const $target = $(`.modal-yearly-bolge-cb[value="${val}"]`);
-        if ($target.is(':checked') !== checked) {
-            $target.prop('checked', checked).trigger('change');
-        }
-        isSyncing = false;
-    });
-    $('.modal-yearly-bolge-cb').on('change', function() {
-        if(isSyncing) return;
-        isSyncing = true;
-        const val = $(this).val();
-        const checked = $(this).is(':checked');
-        const $target = $(`.yearly-hero-bolge-cb[value="${val}"]`);
-        if ($target.is(':checked') !== checked) {
-            $target.prop('checked', checked).trigger('change');
-        }
-        isSyncing = false;
-    });
-
-    // ── Akıllı Yıl Takas Mantığı ──────────────────────────────────────────
-    // Başlangıç > Bitiş seçilince otomatik olarak takas eder
     function autoSwapYears() {
         var start = $('#modal_start_year').val();
         var end   = $('#modal_end_year').val();
         if (start && end && parseInt(start) > parseInt(end)) {
             $('#modal_start_year').val(end);
             $('#modal_end_year').val(start);
-            // Görsel geri bildirim: turuncu kenarlık animasyonu
             $('#modal_start_year, #modal_end_year').css({'border-color':'#f59e0b','transition':'border-color 0s'});
             setTimeout(function(){ $('#modal_start_year, #modal_end_year').css({'border-color':'','transition':'border-color 0.4s'}); }, 700);
         }
@@ -576,105 +538,52 @@ $(document).ready(function() {
     $('#modal_start_year').on('change', autoSwapYears);
     $('#modal_end_year').on('change', autoSwapYears);
 
-    // Hero yıl ile modal başlangıç yılını senkronize et
-    $('#hero_start_year').on('change', function() {
-        $('#modal_start_year').val($(this).val());
-    });
-
-    $('.btn-export-trigger').click(function(e) {
-        e.preventDefault();
-        handleExport($(this).data('type'));
-    });
-
-    $('#yearlyOpenBtn').click(function() {
-        if (!lastDownloadUrl) return;
+    $('#yearly-export-pdf').click(() => handleExport('pdf'));
+    $('#yearly-export-excel').click(() => handleExport('excel'));
+    $('#yearlyOpenBtn').click(() => { 
         if (lastExportType === 'pdf') {
             window.open(lastDownloadUrl, '_blank');
         } else {
             const a = document.createElement('a');
             a.href = lastDownloadUrl;
             a.download = 'Yillik_Rapor.xlsx';
-            document.body.appendChild(a); a.click(); document.body.removeChild(a);
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
         }
-        hideYearlyOverlay();
+        hideOverlay(); 
     });
 
-    $('#yearlyOverlayClose').click(hideYearlyOverlay);
+    $('#yearlyOverlayClose').click(hideOverlay);
 
     $('#yearlyClearBtn').click(function() {
-        // Reset all modal inputs
         $('.modal-yearly-bolge-cb').prop('checked', false).trigger('change');
         $('.yearly-tarife-cb').prop('checked', false).trigger('change');
-        $('#yearly_tesisat').val('');
         $('#modal_start_year').val('');
         $('#modal_end_year').val('');
         $('#yearly_baglanti').val('');
         $('#yearly_yerlesim').val('');
+        $('#yearly_tesisat').val('');
     });
 
-    $('#yearlyFilterForm').on('submit', function(e) {
-        e.preventDefault();
-        const $form = $(this);
-        const $container = $('#reportResultsContainer');
-        
-        let formData = $form.serialize();
-        
-        // Sync Hero inputs to Modal if they were changed
-        const heroStartYear = $('#hero_start_year').val();
+    $('#yearlyApplyBtn').on('click', function() {
+        var modalHasBolge    = $('.modal-yearly-bolge-cb:checked').length > 0;
+        var modalHasTarife   = $('.yearly-tarife-cb:checked').length > 0;
+        var modalHasYil      = !!$('#modal_start_year').val() || !!$('#modal_end_year').val();
+        var modalHasTesisat  = !!$('#yearly_tesisat').val().trim();
+        var modalHasBaglanti = !!$('#yearly_baglanti').val();
+        var modalHasYerlesim = !!$('#yearly_yerlesim').val();
 
-        // Son kez takas koruması: form submit anında da start > end ise değiştir
-        var sy = heroStartYear || $('#modal_start_year').val();
-        var ey = $('#modal_end_year').val();
-        if (sy && ey && parseInt(sy) > parseInt(ey)) { var tmp = sy; sy = ey; ey = tmp; }
-
-        formData += '&tesisat_no=' + encodeURIComponent($('#yearly_tesisat').val()) +
-                    '&baglanti_grubu=' + encodeURIComponent($('#yearly_baglanti').val()) +
-                    '&yerlesim_tipi=' + encodeURIComponent($('#yearly_yerlesim').val()) +
-                    '&start_year=' + encodeURIComponent(sy) +
-                    '&end_year=' + encodeURIComponent(ey);
-        
-        // If modal regions are selected, override hero regions
-        if ($('.modal-yearly-bolge-cb:checked').length > 0) {
-            formData = formData.replace(/bolge%5B%5D=[^&]*&?/g, ''); // Remove existing bolge params
-            $('.modal-yearly-bolge-cb:checked').each(function() { formData += '&bolge[]=' + $(this).val(); });
-        }
-        
-        if (!$form.serialize().includes('tarife')) {
-            $('.yearly-tarife-cb:checked').each(function() { formData += '&tarife[]=' + $(this).val(); });
-        }
-
-        // ─── Filtre Validasyon ───────────────────────────────────────────────
-        const hasBolge  = $('.yearly-hero-bolge-cb:checked, .modal-yearly-bolge-cb:checked').length > 0;
-        const hasYil    = !!sy || !!ey;
-        const hasTarife = $('.yearly-tarife-cb:checked').length > 0;
-        const hasTesisat = !!$('#yearly_tesisat').val().trim();
-        const hasBaglanti = !!$('#yearly_baglanti').val();
-
-        if (!hasBolge && !hasYil && !hasTarife && !hasTesisat && !hasBaglanti) {
-            Swal.fire({icon: 'warning', title: 'Uyarı', text: 'Lütfen sonuçları getirmeden önce en az bir filtreleme seçeneği seçiniz.', confirmButtonText: 'Tamam'});
+        if (!modalHasBolge && !modalHasTarife && !modalHasYil && !modalHasTesisat && !modalHasBaglanti && !modalHasYerlesim) {
+            Swal.fire({icon: 'warning', title: 'Uyarı', text: 'Lütfen en az bir filtreleme seçiniz.', confirmButtonText: 'Tamam'});
             return;
         }
-        // ─────────────────────────────────────────────────────────────────────
 
-        $container.css('opacity', '0.5');
-        $.ajax({
-            url: $form.attr('action'),
-            data: formData,
-            success: function(html) {
-                $container.html(html).css('opacity', '1');
-                $('html, body').animate({ scrollTop: $container.offset().top - 100 }, 500);
-                
-                // Show export button as long as filtering is done
-                $('#exportBtnContainer').fadeIn();
-            },
-            error: function() {
-                $container.css('opacity', '1');
-                alert('Rapor yüklenirken bir hata oluştu.');
-            }
-        });
+        const params = buildFormData();
+        const actionUrl = $('#yearlyFilterForm').attr('data-action') || "{{ route('reports.yearly') }}";
+        window.location.href = actionUrl + "?" + params.toString();
     });
-
-    $('#yearlyApplyBtn').click(() => { $('#yearlyAdvModal').modal('hide'); $('#yearlyFilterForm').submit(); });
 });
 </script>
 @endpush
+@endsection

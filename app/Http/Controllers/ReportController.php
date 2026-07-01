@@ -108,7 +108,21 @@ class ReportController extends Controller
     {
         $results = collect();
 
-        if ($request->filled('start_year') || $request->filled('end_year') || $request->filled('bolge') || $request->filled('tesisat_no') || $request->filled('yerlesim_tipi') || $request->filled('baglanti_grubu') || $request->filled('tarife')) {
+        $hasFilter = $request->filled('start_year') || $request->filled('end_year') || $request->filled('bolge') || $request->filled('tesisat_no') || $request->filled('yerlesim_tipi') || $request->filled('baglanti_grubu') || $request->filled('tarife');
+
+        if (! $hasFilter) {
+            $defaultYear = KesinlesenFatura::where('odeme_durumu', 'odendi')
+                ->selectRaw('SUBSTRING(donem, 1, 4) as yil')
+                ->distinct()
+                ->orderBy('yil', 'desc')
+                ->value('yil');
+            if ($defaultYear) {
+                $request->merge(['start_year' => $defaultYear, 'end_year' => $defaultYear]);
+                $hasFilter = true;
+            }
+        }
+
+        if ($hasFilter) {
             $query = KesinlesenFatura::where('odeme_durumu', 'odendi');
 
             if ($request->filled('bolge')) {
@@ -207,6 +221,11 @@ class ReportController extends Controller
                   || $request->filled('yerlesim_tipi')
                   || $request->filled('baglanti_grubu')
                   || $request->filled('tarife');
+
+        if (! $hasFilter) {
+            $request->merge(['start_period' => KesinlesenFatura::where('odeme_durumu', 'odendi')->max('donem')]);
+            $hasFilter = true;
+        }
 
         if ($hasFilter) {
             $query = KesinlesenFatura::where('odeme_durumu', 'odendi');
@@ -322,6 +341,16 @@ class ReportController extends Controller
 
         $hasFilter = $request->anyFilled(['bolge', 'tesisat_no', 'start_period', 'end_period', 'yerlesim_tipi', 'baglanti_grubu', 'tarife']);
 
+        if (! $hasFilter) {
+            $defaultPeriod = KesinlesenFatura::where('odeme_durumu', 'odendi')
+                ->orderBy('donem', 'desc')
+                ->value('donem');
+            if ($defaultPeriod) {
+                $request->merge(['start_period' => $defaultPeriod]);
+                $hasFilter = true;
+            }
+        }
+
         if ($hasFilter) {
             $query = KesinlesenFatura::where('odeme_durumu', 'odendi');
 
@@ -374,7 +403,7 @@ class ReportController extends Controller
             $query->select('kesinlesen_faturalar.*');
 
             if ($request->filled('export')) {
-                $results = $query->orderBy('tutar_toplam', 'desc')->get();
+                $results = $query->orderBy('donem', 'desc')->orderBy('tutar_toplam', 'desc')->get();
                 $filters = $request->only(['bolge', 'tesisat_no', 'start_period', 'end_period', 'tarife']);
 
                 if ($request->export === 'excel') {
@@ -398,7 +427,7 @@ class ReportController extends Controller
                 }
             }
 
-            $results = $query->orderBy('tutar_toplam', 'desc')->paginate(10)->appends($request->all());
+            $results = $query->orderBy('donem', 'desc')->orderBy('tutar_toplam', 'desc')->paginate(10)->appends($request->all());
 
             if ($request->ajax()) {
                 return view('reports.partials.detailed_table', compact('results', 'totalKWH', 'totalAmount'))->render();
@@ -429,6 +458,18 @@ class ReportController extends Controller
         $veri = $request->get('veri', 'tuketim');
 
         $hasFilter = $request->anyFilled(['start_period', 'end_period']);
+
+        if (! $hasFilter) {
+            $sonDonemler = KesinlesenFatura::where('odeme_durumu', 'odendi')
+                ->distinct()->orderBy('donem', 'desc')->limit(12)->pluck('donem');
+            if ($sonDonemler->isNotEmpty()) {
+                $request->merge([
+                    'end_period' => $sonDonemler->first(),
+                    'start_period' => $sonDonemler->last(),
+                ]);
+                $hasFilter = true;
+            }
+        }
 
         if ($hasFilter) {
             $baseQuery = KesinlesenFatura::where('odeme_durumu', 'odendi');
@@ -543,7 +584,7 @@ class ReportController extends Controller
 
         $donemler = KesinlesenFatura::where('odeme_durumu', 'odendi')->distinct()->orderBy('donem', 'desc')->pluck('donem');
 
-        return view('reports.tuketim', compact('donemler', 'pivotData', 'pivotPeriods', 'totalKWH', 'totalAmount', 'veri'));
+        return view('reports.tuketim', compact('donemler', 'pivotData', 'pivotPeriods', 'totalKWH', 'totalAmount', 'colTotals', 'veri'));
     }
 
     private function sendStreamEvent(string $type, array $data): void
@@ -1054,6 +1095,11 @@ class ReportController extends Controller
         ]);
     }
 
+    public function elektrikAboneRaporlari()
+    {
+        return view('reports.elektrik_abone_raporlari');
+    }
+
     public function pdfKarsilastirFaturaDetay($efksId)
     {
         $rows = \App\Models\Hamveri::whereNotNull('payload')
@@ -1164,11 +1210,9 @@ class ReportController extends Controller
 
     private function hasIlaveInPayload(): string
     {
-        $t1 = $this->jsonFieldExpr('T1_ILAVE_KWH');
-        $t2 = $this->jsonFieldExpr('T2_ILAVE_KWH');
-        $t3 = $this->jsonFieldExpr('T3_ILAVE_KWH');
+        $conditions = array_map(fn ($f) => $this->jsonFieldExpr($f).' != 0', ['T1_ILAVE_KWH', 'T2_ILAVE_KWH', 'T3_ILAVE_KWH', 'T4_ILAVE_KWH']);
 
-        return '(payload IS NOT NULL AND '.$t1.' != 0 AND '.$t2.' != 0 AND '.$t3.' != 0)';
+        return '(payload IS NOT NULL AND ('.implode(' OR ', $conditions).'))';
     }
 
     public function ekTuketim(Request $request)

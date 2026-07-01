@@ -10,7 +10,7 @@
     <div class="stat-box">
         <div class="stat-icon blue"><i class="fas fa-bolt"></i></div>
         <div>
-            <div class="stat-val">{{ number_format($totalKWH, 2, ',', '.') }}</div>
+            <div class="stat-val">{{ number_format($totalKWH, 0, ',', '.') }}</div>
             <div class="stat-lbl">Toplam Tüketim (kWh)</div>
         </div>
     </div>
@@ -70,7 +70,7 @@
                         <td style="text-align:right;font-weight:600;">{{ number_format($row->t0_son_endeks, 0, ',', '.') }}</td>
                         <td style="text-align:right;color:#64748b;">{{ number_format($row->carpan, 2, ',', '.') }}</td>
                         <td style="text-align:right;font-weight:700;">
-                            {{ number_format($row->fatura_edilecek_toplam_tuketim_kwh ?: ($row->t1_tuketim + $row->t2_tuketim + $row->t3_tuketim + $row->ek_tuketim), 2, ',', '.') }}
+                            {{ number_format($row->fatura_edilecek_toplam_tuketim_kwh ?: ($row->t1_tuketim + $row->t2_tuketim + $row->t3_tuketim + $row->ek_tuketim), 0, ',', '.') }}
                             <span style="font-size:.72rem;color:#94a3b8;">kWh</span>
                         </td>
                         <td style="text-align:right;font-weight:800;color:#059669;">
@@ -90,7 +90,7 @@
             <tfoot>
                 <tr style="background:#f1f5f9; font-weight:800;">
                     <td colspan="8" style="font-size:.9rem;letter-spacing:.05em;">GENEL TOPLAM</td>
-                    <td style="text-align:right;">{{ number_format($totalKWH, 2, ',', '.') }} <span style="font-size:.72rem;">kWh</span></td>
+                    <td style="text-align:right;">{{ number_format($totalKWH, 0, ',', '.') }} <span style="font-size:.72rem;">kWh</span></td>
                     <td style="text-align:right;color:#059669;">₺ {{ number_format($totalAmount, 2, ',', '.') }}</td>
                 </tr>
             </tfoot>

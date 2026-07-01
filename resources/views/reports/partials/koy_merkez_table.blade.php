@@ -12,14 +12,14 @@
     <div class="stat-box">
         <div class="stat-icon blue"><i class="fas fa-city"></i></div>
         <div>
-            <div class="stat-val">{{ number_format($totalMerkezTuketim, 2, ',', '.') }}</div>
+            <div class="stat-val">{{ number_format($totalMerkezTuketim, 0, ',', '.') }}</div>
             <div class="stat-lbl">Merkez Toplam Tüketim (kWh)</div>
         </div>
     </div>
     <div class="stat-box">
         <div class="stat-icon green"><i class="fas fa-tree"></i></div>
         <div>
-            <div class="stat-val">{{ number_format($totalKoyTuketim, 2, ',', '.') }}</div>
+            <div class="stat-val">{{ number_format($totalKoyTuketim, 0, ',', '.') }}</div>
             <div class="stat-lbl">Köy Toplam Tüketim (kWh)</div>
         </div>
     </div>
@@ -76,13 +76,13 @@
                     <td><span class="badge-donem">{{ $row->donem }}</span></td>
                     <td style="font-weight:700;color:#1e293b;">{{ $row->bolge ?? 'Tümü' }}</td>
                     
-                    <td style="text-align:right;font-weight:600;border-left:1px dashed #e2e8f0;">{{ number_format($row->merkez_tuketim, 2, ',', '.') }}</td>
+                    <td style="text-align:right;font-weight:600;border-left:1px dashed #e2e8f0;">{{ number_format($row->merkez_tuketim, 0, ',', '.') }}</td>
                     <td style="text-align:right;font-weight:700;color:#1d4ed8;border-right:1px dashed #e2e8f0;">{{ number_format($row->merkez_tutar, 2, ',', '.') }}</td>
                     
-                    <td style="text-align:right;font-weight:600;border-left:1px dashed #dcfce7;">{{ number_format($row->koy_tuketim, 2, ',', '.') }}</td>
+                    <td style="text-align:right;font-weight:600;border-left:1px dashed #dcfce7;">{{ number_format($row->koy_tuketim, 0, ',', '.') }}</td>
                     <td style="text-align:right;font-weight:700;color:#15803d;border-right:1px dashed #dcfce7;">{{ number_format($row->koy_tutar, 2, ',', '.') }}</td>
                     
-                    <td style="text-align:right;font-weight:700;background:#fefce8;border-left:1px solid #fef08a;">{{ number_format($rowGenelTuketim, 2, ',', '.') }}</td>
+                    <td style="text-align:right;font-weight:700;background:#fefce8;border-left:1px solid #fef08a;">{{ number_format($rowGenelTuketim, 0, ',', '.') }}</td>
                     <td style="text-align:right;font-weight:800;color:#b45309;background:#fefce8;border-right:1px solid #fef08a;">{{ number_format($rowGenelTutar, 2, ',', '.') }}</td>
                 </tr>
                 @empty
@@ -98,11 +98,11 @@
             <tfoot>
                 <tr style="background:#f1f5f9; font-weight:800;">
                     <td colspan="3">GENEL TOPLAM</td>
-                    <td style="text-align:right;">{{ number_format($totalMerkezTuketim, 2, ',', '.') }}</td>
+                    <td style="text-align:right;">{{ number_format($totalMerkezTuketim, 0, ',', '.') }}</td>
                     <td style="text-align:right;color:#1d4ed8;">{{ number_format($totalMerkezTutar, 2, ',', '.') }}</td>
-                    <td style="text-align:right;">{{ number_format($totalKoyTuketim, 2, ',', '.') }}</td>
+                    <td style="text-align:right;">{{ number_format($totalKoyTuketim, 0, ',', '.') }}</td>
                     <td style="text-align:right;color:#15803d;">{{ number_format($totalKoyTutar, 2, ',', '.') }}</td>
-                    <td style="text-align:right;color:#b45309;">{{ number_format($genelToplamTuketim, 2, ',', '.') }}</td>
+                    <td style="text-align:right;color:#b45309;">{{ number_format($genelToplamTuketim, 0, ',', '.') }}</td>
                     <td style="text-align:right;color:#b45309;">{{ number_format($genelToplamTutar, 2, ',', '.') }}</td>
                 </tr>
             </tfoot>

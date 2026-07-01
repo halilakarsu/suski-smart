@@ -613,17 +613,7 @@
             <div class="hero-container">
                 <div class="hero-title-group">
                     <h1 class="hero-title">KESİNLEŞEN FATURALAR</h1>
-                    <p class="hero-subtitle">Fatura detaylarını görüntüleyerek detaylı analiz yapabilirsiniz.</p>
-                </div>
-                <div class="d-flex gap-3">
-                    <button type="button" id="analysisBtn" class="btn-premium btn-premium-success" style="display:none;"
-                        onclick="runAnalysis()">
-                        <i class="fas fa-search-dollar"></i> Fatura Analizi Yap
-                    </button>
-                    <button type="button" class="btn-premium btn-premium-outline"
-                        onclick="document.getElementById('filterMdl').style.display='flex'">
-                        <i class="fas fa-filter"></i> Filtrele
-                    </button>
+                    <p class="hero-subtitle">Fatura detaylarını buradan görüntüleyebilirsiniz.</p>
                 </div>
             </div>
         </div>
@@ -631,7 +621,7 @@
         <div class="main-container">
 
             <!-- YIL KARTLARI — Her zaman görünür -->
-            <div class="glass-card" style="padding: 15px 25px; margin-bottom: 20px;">
+            <div class="glass-card" style="padding: 15px 25px; margin-bottom: 0;">
                 <div
                     style="display: flex; gap: 8px; justify-content: flex-start; overflow-x: auto; flex-wrap: nowrap; padding-bottom: 5px; scrollbar-width: thin; scrollbar-color: #cbd5e1 transparent;">
                     @foreach($yilStats as $ys)
@@ -647,6 +637,39 @@
                             {{ $ys->yil }}
                         </a>
                     @endforeach
+                </div>
+            </div>
+
+            <!-- YIL STATS BAR -->
+            <div id="yil-stats-bar" class="glass-card"
+                style="padding: 12px 28px; margin-bottom: 20px; display: {{ $selectedYil ? 'flex' : 'none' }}; align-items: center; justify-content: space-between; border-top: none; border-top-left-radius: 0; border-top-right-radius: 0; background: linear-gradient(135deg, rgba(255,255,255,0.95), rgba(248,250,252,0.95)); backdrop-filter: blur(20px); border-top: 2px solid #e2e8f0; gap: 16px; flex-wrap: wrap;">
+                <div style="display: flex; align-items: center; gap: 10px;">
+                    <div style="width: 6px; height: 32px; border-radius: 99px; background: linear-gradient(180deg, #3b82f6, #4f46e5); flex-shrink: 0;"></div>
+                    <span id="yil-stats-label" style="font-weight: 800; font-size: 1.05rem; color: #0f172a; letter-spacing: -0.02em;">{{ $selectedYil }} Yılı Özeti</span>
+                </div>
+                <div style="display: flex; align-items: center; gap: 24px; flex-wrap: wrap;">
+                    <div style="display: flex; align-items: center; gap: 8px;">
+                        <div style="width: 32px; height: 32px; border-radius: 8px; background: linear-gradient(135deg, #60a5fa, #2563eb); display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 12px rgba(37,99,235,0.2);">
+                            <i class="fas fa-bolt" style="font-size: 13px; color: #fff;"></i>
+                        </div>
+                        <div>
+                            <div style="font-size: .65rem; font-weight: 700; color: #94a3b8; text-transform: uppercase; letter-spacing: .04em;">Toplam Tüketim</div>
+                            <div id="yil-stats-tuketim" style="font-size: 1rem; font-weight: 800; color: #0f172a;">
+                                {{ $selectedYil ? number_format($yilStats->firstWhere('yil', $selectedYil)?->total_tuketim ?? 0, 0, ',', '.') : '0' }} kWh
+                            </div>
+                        </div>
+                    </div>
+                    <div style="display: flex; align-items: center; gap: 8px;">
+                        <div style="width: 32px; height: 32px; border-radius: 8px; background: linear-gradient(135deg, #34d399, #059669); display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 12px rgba(5,150,105,0.2);">
+                            <i class="fas fa-lira-sign" style="font-size: 13px; color: #fff;"></i>
+                        </div>
+                        <div>
+                            <div style="font-size: .65rem; font-weight: 700; color: #94a3b8; text-transform: uppercase; letter-spacing: .04em;">Toplam Tutar</div>
+                            <div id="yil-stats-tutar" style="font-size: 1rem; font-weight: 800; color: #059669;">
+                                ₺ {{ $selectedYil ? number_format($yilStats->firstWhere('yil', $selectedYil)?->total_tutar ?? 0, 2, ',', '.') : '0,00' }}
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
 
@@ -733,79 +756,6 @@
         </div>
     </div>
 
-    <!-- FILTER MODAL -->
-    <div id="filterMdl"
-        style="position:fixed; inset:0; background:rgba(15,23,42,0.8); z-index:9999; display:none; align-items:center; justify-content:center; padding:20px; backdrop-filter:blur(8px);">
-        <div
-            style="background:#fff; border-radius:32px; width:100%; max-width:550px; overflow:hidden; box-shadow:0 30px 60px rgba(0,0,0,0.3);">
-            <div
-                style="padding:30px 40px; background:var(--primary-gradient); color:#fff; display:flex; justify-content:space-between; align-items:center;">
-                <h3 style="margin:0; font-size:1.35rem; font-weight:800;"><i class="fas fa-filter"></i> Detaylı Filtreleme
-                </h3>
-                <button onclick="document.getElementById('filterMdl').style.display='none'"
-                    style="background:none; border:none; color:#fff; cursor:pointer; font-size:1.5rem; opacity:0.8; transition:opacity 0.2s;"
-                    onmouseover="this.style.opacity=1" onmouseout="this.style.opacity=0.8"><i
-                        class="fas fa-times"></i></button>
-            </div>
-            <form id="filterForm" onsubmit="applyFilters(event)"
-                style="padding:40px; display:flex; flex-direction:column; gap:25px;">
-                <div class="row g-4">
-                    <div class="col-6">
-                        <label
-                            style="font-size:0.75rem; font-weight:800; color:var(--text-slate-500); text-transform:uppercase; margin-bottom:10px; display:block;">Yıl</label>
-                        <select name="yil" id="filterYil" class="form-control" style="border-radius:12px; padding:12px;"
-                            onchange="filterPeriods(this.value)">
-                            <option value="">Tüm Yıllar</option>
-                            @foreach($yillar as $y)
-                                <option value="{{ $y }}" {{ request('yil') == $y ? 'selected' : '' }}>{{ $y }}</option>
-                            @endforeach
-                        </select>
-                    </div>
-                    <div class="col-6">
-                        <label
-                            style="font-size:0.75rem; font-weight:800; color:var(--text-slate-500); text-transform:uppercase; margin-bottom:10px; display:block;">Dönem</label>
-                        <select name="donem" id="filterDonem" class="form-control"
-                            style="border-radius:12px; padding:12px;">
-                            <option value="">Tüm Dönemler</option>
-                            @foreach($donemler as $d)
-                                <option value="{{ $d }}" data-year="{{ explode('-', $d)[0] }}" {{ request('donem') == $d ? 'selected' : '' }}>{{ $d }}</option>
-                            @endforeach
-                        </select>
-                    </div>
-                    <div class="col-12">
-                        <label
-                            style="font-size:0.75rem; font-weight:800; color:var(--text-slate-500); text-transform:uppercase; margin-bottom:10px; display:block;">Bölge
-                            Koordinasyonu</label>
-                        <select name="bolge_kodu" class="form-control" style="border-radius:12px; padding:12px;">
-                            <option value="">Tüm Bölgeler</option>
-                            @foreach($bolgeMap as $kodu => $adi)
-                                <option value="{{ $kodu }}" {{ request('bolge_kodu') == $kodu ? 'selected' : '' }}>{{ $adi }}
-                                </option>
-                            @endforeach
-                        </select>
-                    </div>
-                    <div class="col-6">
-                        <label
-                            style="font-size:0.75rem; font-weight:800; color:var(--text-slate-500); text-transform:uppercase; margin-bottom:10px; display:block;">Tesisat
-                            No</label>
-                        <input type="text" name="tesisat_no" value="{{ request('tesisat_no') }}" class="form-control"
-                            style="border-radius:12px; padding:12px;" placeholder="Ara...">
-                    </div>
-                    <div class="col-6">
-                        <label
-                            style="font-size:0.75rem; font-weight:800; color:var(--text-slate-500); text-transform:uppercase; margin-bottom:10px; display:block;">Fatura
-                            No</label>
-                        <input type="text" name="fatura_no" value="{{ request('fatura_no') }}" class="form-control"
-                            style="border-radius:12px; padding:12px;" placeholder="Ara...">
-                    </div>
-                </div>
-                <button type="submit" class="btn-premium btn-premium-primary"
-                    style="width:100%; padding:18px; margin-top:15px; font-size:1rem;">
-                    <i class="fas fa-search"></i> Filtreleri Uygula
-                </button>
-            </form>
-        </div>
-    </div>
 
     <!-- DETAIL MODAL -->
     <div id="detMdl"
@@ -839,30 +789,31 @@
         </div>
     </div>
 
-    @push('scripts')
+
         <script>
             /* ── Config ─────────────────────────────────────────────────────────── */
-            const AJAX_DONEM = '{{ url("/fatura/odenenler/ajax/donemler") }}';
-            const AJAX_TABLO = '{{ url("/fatura/odenenler/ajax/tablo") }}';
-            const EXCEL_URL = '{{ route("odenenler.export.excel") }}';
-            const PDF_URL = '{{ route("odenenler.export.pdf") }}';
-            const bMap = {!! json_encode($bolgeMap) !!};
-            const AY = { '01': 'Ocak', '02': 'Şubat', '03': 'Mart', '04': 'Nisan', '05': 'Mayıs', '06': 'Haziran', '07': 'Temmuz', '08': 'Ağustos', '09': 'Eylül', '10': 'Ekim', '11': 'Kasım', '12': 'Aralık' };
+            var AJAX_DONEM = '{{ url("/fatura/odenenler/ajax/donemler") }}';
+            var AJAX_TABLO = '{{ url("/fatura/odenenler/ajax/tablo") }}';
+            var EXCEL_URL = '{{ route("odenenler.export.excel") }}';
+            var PDF_URL   = '{{ route("odenenler.export.pdf") }}';
+            var bMap      = {!! json_encode($bolgeMap) !!};
+            var AY        = { '01': 'Ocak', '02': 'Şubat', '03': 'Mart', '04': 'Nisan', '05': 'Mayıs', '06': 'Haziran', '07': 'Temmuz', '08': 'Ağustos', '09': 'Eylül', '10': 'Ekim', '11': 'Kasım', '12': 'Aralık' };
+            var YIL_STATS = {!! json_encode($yilStats->keyBy('yil')->map(fn($s) => ['tuketim' => (float)$s->total_tuketim, 'tutar' => (float)$s->total_tutar])) !!};
 
             /* ── State ───────────────────────────────────────────────────────────── */
-            let curYil = null;
-            let curDonem = null;
-            let curFilters = {};
-            let rData = {}; // for detail modal
+            var curYil    = null;
+            var curDonem  = null;
+            var rData     = {}; // for detail modal
 
             /* ── Helpers ─────────────────────────────────────────────────────────── */
-            const fmt = (n, d = 0) => parseFloat(n || 0).toLocaleString('tr-TR', { minimumFractionDigits: d, maximumFractionDigits: d });
-            const fmtTL = n => '₺' + fmt(n, 2);
+            var fmt   = function(n, d) { d = d || 0; return parseFloat(n || 0).toLocaleString('tr-TR', { minimumFractionDigits: d, maximumFractionDigits: d }); };
+            var fmtTL = function(n) { return '₺' + fmt(n, 2); };
 
             /* ── Year Selection ──────────────────────────────────────────────────── */
             function selectYil(yil) {
+                yil = String(yil); // dataset.yil her zaman string, normalize et
                 if (curYil === yil) {
-                    curYil = null; curDonem = null; curFilters = {};
+                    curYil = null; curDonem = null;
                     document.querySelectorAll('.yil-tab').forEach(c => {
                         c.classList.remove('active');
                         c.style.color = '#64748b';
@@ -872,9 +823,10 @@
                     });
                     document.getElementById('donem-section').innerHTML = '';
                     document.getElementById('no-year-hint').style.display = 'block';
+                    document.getElementById('yil-stats-bar').style.display = 'none';
                     return;
                 }
-                curYil = yil; curDonem = null; curFilters = {}; // Reset manual filters when selecting a year
+                curYil = yil; curDonem = null;
                 document.querySelectorAll('.yil-tab').forEach(c => {
                     const active = c.dataset.yil === yil;
                     c.classList.toggle('active', active);
@@ -883,11 +835,6 @@
                     c.style.boxShadow = active ? '0 10px 20px -5px rgba(59, 130, 246, 0.4)' : 'none';
                     c.style.transform = active ? 'translateY(-2px)' : 'translateY(0)';
                 });
-                // Update filter modal inputs
-                const fYil = document.getElementById('filterYil');
-                if (fYil) { fYil.value = yil; filterPeriods(yil); }
-                const fDonem = document.getElementById('filterDonem');
-                if (fDonem) fDonem.value = '';
 
                 document.getElementById('no-year-hint').style.display = 'none';
                 const statsSec = document.getElementById('stats-section');
@@ -895,9 +842,9 @@
                 const ts = document.getElementById('table-section');
                 if (ts) ts.innerHTML = '';
 
-                updateAnalysisBtn();
+                updateYilStats(yil);
                 loadDonemler(yil);
-            }
+            };
 
             async function loadDonemler(yil) {
                 const sec = document.getElementById('donem-section');
@@ -982,13 +929,12 @@
                 document.getElementById('periodTableMdl').style.display = 'flex';
 
                 // Load Data
-                updateAnalysisBtn();
                 loadTable(1);
-            }
+            };
 
             function closePeriodModal() {
                 document.getElementById('periodTableMdl').style.display = 'none';
-            }
+            };
 
             /* ── Table Loading ───────────────────────────────────────────────────── */
             async function loadTable(page) {
@@ -1000,9 +946,7 @@
                 if (curYil) p.set('yil', curYil);
                 if (curDonem) p.set('donem', curDonem);
 
-                Object.keys(curFilters).forEach(k => {
-                    if (curFilters[k]) p.set(k, curFilters[k]);
-                });
+
 
                 p.set('page', page);
                 try {
@@ -1096,7 +1040,6 @@
                 const p = new URLSearchParams();
                 if (curYil) p.set('yil', curYil);
                 if (curDonem) p.set('donem', curDonem);
-                Object.keys(curFilters).forEach(k => { if (curFilters[k]) p.set(k, curFilters[k]); });
 
                 const fName = `Odenen_Faturalar_${(curDonem || curYil || 'Tum').replace(/-/g, '_')}`;
 
@@ -1173,7 +1116,6 @@
                 const p = new URLSearchParams();
                 if (curYil) p.set('yil', curYil);
                 if (curDonem) p.set('donem', curDonem);
-                Object.keys(curFilters).forEach(k => { if (curFilters[k]) p.set(k, curFilters[k]); });
                 return p;
             }
 
@@ -1541,143 +1483,41 @@
                 wrapper.addEventListener('scroll', upd); upd();
             }
 
-            /* ── Filter Modal Helpers ────────────────────────────────────────────── */
-            function filterPeriods(yil) {
-                const sel = document.getElementById('filterDonem'); if (!sel) return;
-                let first = null, vis = false;
-                Array.from(sel.options).forEach(o => {
-                    if (!o.value) return;
-                    const show = !yil || o.getAttribute('data-year') === yil;
-                    o.style.display = show ? '' : 'none'; o.disabled = !show;
-                    if (show && !first) first = o;
-                    if (show && o.selected) vis = true;
-                });
-                if (!vis && sel.value) sel.value = first ? first.value : '';
+
+
+            function updateYilStats(yil) {
+                const bar = document.getElementById('yil-stats-bar');
+                if (!bar) return;
+                const data = YIL_STATS[yil];
+                if (!data) { bar.style.display = 'none'; return; }
+                document.getElementById('yil-stats-label').textContent = yil + ' Yılı Özeti';
+                document.getElementById('yil-stats-tuketim').textContent = fmt(data.tuketim, 0) + ' kWh';
+                document.getElementById('yil-stats-tutar').textContent = '₺ ' + fmt(data.tutar, 2);
+                bar.style.display = 'flex';
             }
-
-            async function applyFilters(e) {
-                if (e) e.preventDefault();
-                const form = document.getElementById('filterForm');
-                const formData = new FormData(form);
-
-                // Reset and read all filter values first
-                const newYil = formData.get('yil') || null;
-                const newDonem = formData.get('donem') || null;
-                curFilters = {};
-                formData.forEach((value, key) => {
-                    if (value && key !== 'yil' && key !== 'donem') curFilters[key] = value;
-                });
-
-                // Commit state atomically
-                curYil = newYil;
-                curDonem = newDonem;
-
-                // Update year card UI
-                document.querySelectorAll('.yil-tab').forEach(c => {
-                    const active = c.dataset.yil === curYil;
-                    c.classList.toggle('active', active);
-                    c.style.color = active ? '#fff' : '#64748b';
-                    c.style.background = active ? 'linear-gradient(135deg, #3b82f6, #4f46e5)' : '#f1f5f9';
-                    c.style.boxShadow = active ? '0 10px 20px -5px rgba(59, 130, 246, 0.4)' : 'none';
-                    c.style.transform = active ? 'translateY(-2px)' : 'translateY(0)';
-                });
-
-                document.getElementById('no-year-hint').style.display = curYil ? 'none' : 'block';
-                document.getElementById('filterMdl').style.display = 'none';
-                updateAnalysisBtn();
-
-                if (curYil) {
-                    // Load period cards, then highlight selected period and load table
-                    await loadDonemler(curYil);
-                    if (curDonem) {
-                        document.querySelectorAll('[data-donem]').forEach(c =>
-                            c.classList.toggle('active', c.dataset.donem === curDonem)
-                        );
-                    }
-                    loadTable(1);
-                } else if (Object.keys(curFilters).length > 0) {
-                    // No year selected but other filters exist — load table directly
-                    loadTable(1);
-                }
-            }
-
-            async function runAnalysis() {
-                const btn = document.getElementById('analysisBtn');
-                const originalHtml = btn.innerHTML;
-                btn.disabled = true;
-                btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Analiz Yapılıyor...';
-
-                const p = new URLSearchParams();
-                if (curYil) p.set('yil', curYil);
-                if (curDonem) p.set('donem', curDonem);
-                Object.keys(curFilters).forEach(k => { if (curFilters[k]) p.set(k, curFilters[k]); });
-
-                try {
-                    const res = await fetch('{{ route("fatura.odenenler.analiz") }}', {
-                        method: 'POST',
-                        headers: {
-                            'X-CSRF-TOKEN': '{{ csrf_token() }}',
-                            'Content-Type': 'application/x-www-form-urlencoded',
-                            'X-Requested-With': 'XMLHttpRequest',
-                            'Accept': 'application/json'
-                        },
-                        body: p.toString()
-                    });
-                    const data = await res.json();
-                    alert(data.message || 'Analiz tamamlandı.');
-                    loadTable(1);
-                } catch (e) {
-                    console.error('Analysis error:', e);
-                    alert('Analiz sırasında bir hata oluştu.');
-                } finally {
-                    btn.disabled = false;
-                    btn.innerHTML = originalHtml;
-                }
-            }
-
-            function updateAnalysisBtn() {
-                const btn = document.getElementById('analysisBtn');
-                if (!btn) return;
-                const hasFilter = curYil || curDonem || Object.keys(curFilters).length > 0;
-                btn.style.display = hasFilter ? 'inline-flex' : 'none';
-            }
-
-            /* ── Global scope aliases for inline onclick handlers ─────────────────── */
-            window.selectYil = selectYil;
-            window.selectDonem = selectDonem;
-            window.closePeriodModal = closePeriodModal;
-            window.loadTable = loadTable;
-            window.showDetail = showDetail;
-            window.closeDetail = closeDetail;
-            window.exportToExcel = exportToExcel;
-            window.exportToPDF = exportToPDF;
-            window.buildExportParams = buildExportParams;
 
             /* ── Init ────────────────────────────────────────────────────────────── */
-            document.addEventListener('DOMContentLoaded', () => {
+            function initPage() {
                 const urlY = new URLSearchParams(window.location.search).get('yil');
                 const urlD = new URLSearchParams(window.location.search).get('donem');
-                if (urlY) {
-                    document.querySelectorAll('.yil-tab').forEach(c => {
-                        if (c.dataset.yil === urlY) {
-                            c.classList.add('active');
-                            c.style.color = '#fff';
-                            c.style.background = 'linear-gradient(135deg, #3b82f6, #4f46e5)';
-                            c.style.boxShadow = '0 10px 20px -5px rgba(59, 130, 246, 0.4)';
-                            c.style.transform = 'translateY(-2px)';
-                        }
-                    });
-                    curYil = urlY;
-                    document.getElementById('no-year-hint').style.display = 'none';
+                const defaultYil = urlY || {!! $selectedYil ? json_encode((string)$selectedYil) : 'null' !!};
+                if (defaultYil && defaultYil !== 'null') {
+                    selectYil(String(defaultYil));
                     if (urlD) {
-                        curDonem = urlD;
-                        loadDonemler(urlY).then(() => { curDonem = urlD; loadTable(1); updateAnalysisBtn(); });
-                    } else {
-                        loadDonemler(urlY);
-                        updateAnalysisBtn();
+                        setTimeout(() => {
+                            curDonem = urlD;
+                            loadTable(1);
+                        }, 200);
                     }
                 }
-            });
+            }
+
+            if (document.readyState === 'loading') {
+                document.addEventListener('DOMContentLoaded', initPage);
+            } else {
+                // DOM zaten hazır (script body sonuna eklendiyse)
+                initPage();
+            }
         </script>
-    @endpush
+
 @endsection

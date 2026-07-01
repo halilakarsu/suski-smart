@@ -53,6 +53,13 @@ class AppServiceProvider extends ServiceProvider
             'odeme_faturalar',
             'manage_support',
             'view_tesis_bilgi_sistemi',
+            'view_kuyu_envanteri',
+            'manage_kuyu_envanteri',
+            'view_arizalar',
+            'manage_arizalar',
+            'view_araclar',
+            'manage_araclar',
+            'view_ariza_raporlari',
         ];
 
         foreach ($custom_permissions as $permission) {

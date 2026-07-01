@@ -3,7 +3,7 @@
 
 	<div class="scroll-wrapper sidebar-wrapper scrollbar scrollbar-inner" style="position: relative;">
 		<div class="sidebar-wrapper scrollbar scrollbar-inner scroll-content scroll-scrolly_visible"
-			style="height: auto; margin-bottom: 0px; margin-right: 0px; max-height: 686px;">
+			style="height: auto; margin-bottom: 0px; margin-right: 0px; max-height: none;">
 			<div class="sidebar-content">
 				<!-- User Profile Card -->
 				<div class="user-profile-card">
@@ -25,15 +25,6 @@
 						</a>
 					</li>
 
-					@can('view_tesis_bilgi_sistemi')
-					<li class="nav-item {{ request()->routeIs('tesis-bilgi-sistemi.*') ? 'active' : '' }}">
-						<a href="{{ route('tesis-bilgi-sistemi.index') }}">
-							<i class="fas fa-hard-hat"></i>
-							<p>Tesis Bilgi Sistemi</p>
-						</a>
-					</li>
-					@endcan
-
 					<li class="nav-section">
 						<span class="sidebar-mini-icon">
 							<i class="fa fa-ellipsis-h"></i>
@@ -41,28 +32,98 @@
 						<h4 class="text-section">İŞLEM MENÜSÜ</h4>
 					</li>
 
-					<li class="nav-item {{ request()->routeIs('import.index') ? 'active' : '' }}">
-						<a href="{{ route('import.index') }}">
-							<i class="fas fa-cloud-upload-alt"></i>
-							<p>Excel Yükleme</p>
-						</a>
-					</li>
+					@canany(['view_kuyu_envanteri', 'view_arizalar', 'view_ariza_raporlari'])
+						<li
+							class="nav-item {{ request()->routeIs('kuyu-envanteri.*') || request()->is('tesis-bilgi-sistemi/arizalar*') || request()->is('tesis-bilgi-sistemi/ariza-raporlari*') ? 'active' : '' }}">
+							<a data-toggle="collapse" href="#kuyu-menu">
+								<i class="fas fa-tint"></i>
+								<p>Kuyu Envanteri</p>
+								<span class="caret"></span>
+							</a>
+							<div class="collapse {{ request()->routeIs('kuyu-envanteri.*') || request()->is('tesis-bilgi-sistemi/arizalar*') || request()->is('tesis-bilgi-sistemi/ariza-raporlari*') ? 'show' : '' }}"
+								id="kuyu-menu">
+								<ul class="nav nav-collapse">
+									@can('view_kuyu_envanteri')
+										<li class="{{ request()->routeIs('kuyu-envanteri.*') ? 'active' : '' }}">
+											<a href="{{ route('kuyu-envanteri.index') }}">
+												<span class="sub-item">Kuyular</span>
+											</a>
+										</li>
+									@endcan
+									@can('view_arizalar')
+										<li
+											class="{{ request()->routeIs('tesis-bilgi-sistemi.arizalar') && !request()->routeIs('tesis-bilgi-sistemi.arizalar.create') ? 'active' : '' }}">
+											<a href="{{ route('tesis-bilgi-sistemi.arizalar') }}">
+												<span class="sub-item">Arızalar</span>
+											</a>
+										</li>
+									@endcan
+									@can('view_ariza_raporlari')
+										<li
+											class="{{ request()->routeIs('tesis-bilgi-sistemi.ariza-raporlari.yillik') ? 'active' : '' }}">
+											<a href="{{ route('tesis-bilgi-sistemi.ariza-raporlari.yillik') }}">
+												<span class="sub-item">Arıza İstatistikleri</span>
+											</a>
+										</li>
+										<li
+											class="{{ request()->routeIs('tesis-bilgi-sistemi.ariza-raporlari.yillik-ariza') ? 'active' : '' }}">
+											<a href="{{ route('tesis-bilgi-sistemi.ariza-raporlari.yillik-ariza') }}">
+												<span class="sub-item">Yıl Bazında Rapor</span>
+											</a>
+										</li>
+									@endcan
+								</ul>
+							</div>
+						</li>
+					@endcanany
+
+					@can('view_tesis_bilgi_sistemi')
+						<li class="nav-item {{ request()->routeIs('tesis-bilgi-sistemi.*') ? 'active' : '' }}">
+							<a data-toggle="collapse" href="#tesis-menu">
+								<i class="fas fa-building"></i>
+								<p>Tesis Bilgi Sistemi</p>
+								<span class="caret"></span>
+							</a>
+							<div class="collapse {{ request()->routeIs('tesis-bilgi-sistemi.*') ? 'show' : '' }}"
+								id="tesis-menu">
+								<ul class="nav nav-collapse">
+									<li class="{{ request()->routeIs('tesis-bilgi-sistemi.tesisler') ? 'active' : '' }}">
+										<a href="{{ route('tesis-bilgi-sistemi.tesisler') }}">
+											<span class="sub-item">Tesisler</span>
+										</a>
+									</li>
+									<li
+										class="{{ request()->routeIs('tesis-bilgi-sistemi.tesisler.create') ? 'active' : '' }}">
+										<a href="{{ route('tesis-bilgi-sistemi.tesisler.create') }}">
+											<span class="sub-item">Yeni Tesis</span>
+										</a>
+									</li>
+								</ul>
+							</div>
+						</li>
+					@endcan
 
 					<li
-						class="nav-item {{ request()->is('fatura*') || request()->routeIs('staging.*') ? 'active' : '' }}">
+						class="nav-item {{ request()->is('fatura*') || request()->routeIs('staging.*') || request()->routeIs('import.*') || request()->routeIs('reports.elektrik-abone-raporlari') ? 'active' : '' }}">
 						<a data-toggle="collapse" href="#diger-fatura">
 							<i class="fas fa-file-invoice"></i>
-							<p>Fatura İşlemleri</p>
+							<p>Elektrik Abone Sistemi </p>
 							<span class="caret"></span>
 						</a>
-						<div class="collapse {{ request()->is('fatura*') || request()->routeIs('staging.*') ? 'show' : '' }}"
+						<div class="collapse {{ request()->is('fatura*') || request()->routeIs('staging.*') || request()->routeIs('import.*') || request()->routeIs('reports.elektrik-abone-raporlari') ? 'show' : '' }}"
 							id="diger-fatura">
 							<ul class="nav nav-collapse">
-								<li class="{{ request()->routeIs('staging.index') ? 'active' : '' }}">
-									<a href="{{ route('staging.index') }}">
-										<span class="sub-item">Bekleyen Faturalar</span>
+								<li class="{{ request()->routeIs('aboneler.index') ? 'active' : '' }}">
+									<a href="{{ route('aboneler.index') }}">
+										<span class="sub-item">Aboneler</span>
 									</a>
 								</li>
+								<li class="{{ request()->routeIs('import.index') ? 'active' : '' }}">
+									<a href="{{ route('import.index') }}">
+										<span class="sub-item">Excel Yükleme</span>
+									</a>
+								</li>
+
 								<li class="{{ request()->routeIs('fatura.odenenler') ? 'active' : '' }}">
 									<a href="{{ route('fatura.odenenler') }}">
 										<span class="sub-item">Ödenen Faturalar</span>
@@ -78,81 +139,42 @@
 										<span class="sub-item">İtiraz Edilen Faturalar</span>
 									</a>
 								</li>
-							</ul>
-						</div>
-					</li>
-
-					<li
-						class="nav-item {{ request()->is('raporlar*') && !request()->is('raporlar/endeks') ? 'active' : '' }}">
-						<a data-toggle="collapse" href="#reports">
-							<i class="fas fa-chart-bar"></i>
-							<p>Rapor İşlemleri</p>
-							<span class="caret"></span>
-						</a>
-						<div class="collapse {{ request()->is('raporlar*') && !request()->is('raporlar/endeks') ? 'show' : '' }}"
-							id="reports">
-							<ul class="nav nav-collapse">
-								<li class="{{ request()->routeIs('reports.periodical') ? 'active' : '' }}">
-									<a href="{{ route('reports.periodical') }}">
-										<span class="sub-item">Dönem Bazında Rapor</span>
-									</a>
-								</li>
-								<li class="{{ request()->routeIs('reports.yearly') ? 'active' : '' }}">
-									<a href="{{ route('reports.yearly') }}">
-										<span class="sub-item">Yıl Bazında Rapor</span>
-									</a>
-								</li>
-								<li class="{{ request()->routeIs('reports.detailed') ? 'active' : '' }}">
-									<a href="{{ route('reports.detailed') }}">
-										<span class="sub-item">Detaylı Fatura Raporu</span>
-									</a>
-								</li>
-								<li class="{{ request()->routeIs('reports.tuketim') ? 'active' : '' }}">
-									<a href="{{ route('reports.tuketim') }}">
-										<span class="sub-item">Tüketim Dönem Raporu</span>
-									</a>
-								</li>
-								<li class="{{ request()->routeIs('reports.koy-merkez') ? 'active' : '' }}">
-									<a href="{{ route('reports.koy-merkez') }}">
-										<span class="sub-item">Köy / Merkez Raporu</span>
-									</a>
-								</li>
-								<li class="{{ request()->routeIs('reports.ek-tuketim') ? 'active' : '' }}">
-									<a href="{{ route('reports.ek-tuketim') }}">
-										<span class="sub-item">Ek Tüketim Raporu</span>
+								<li
+									class="{{ request()->routeIs('reports.elektrik-abone-raporlari') ? 'active' : '' }}">
+									<a href="{{ route('reports.elektrik-abone-raporlari') }}">
+										<span class="sub-item"> Raporlar</span>
 									</a>
 								</li>
 							</ul>
 						</div>
 					</li>
 
-					<li class="nav-item {{ request()->is('raporlar/endeks') ? 'active' : '' }}">
-						<a href="{{ route('reports.endeks') }}">
-							<i class="fas fa-search-plus"></i>
-							<p>Analiz ve Denetim</p>
-
-						</a>
-
-					</li>
-
-					<li
-						class="nav-item {{ request()->is('aboneler*') ? 'active' : '' }}">
-						<a data-toggle="collapse" href="#abone">
-							<i class="fas fa-users"></i>
-							<p>Abone İşlemleri</p>
-							<span class="caret"></span>
-						</a>
-						<div class="collapse {{ request()->is('aboneler*') ? 'show' : '' }}"
-							id="abone">
-							<ul class="nav nav-collapse">
-								<li class="{{ request()->routeIs('aboneler.index') ? 'active' : '' }}">
-									<a href="{{ route('aboneler.index') }}">
-										<span class="sub-item">Aboneler</span>
-									</a>
-								</li>
-							</ul>
-						</div>
-					</li>
+					@can('view_araclar')
+						<li class="nav-item {{ request()->is('tesis-bilgi-sistemi/araclar*') ? 'active' : '' }}">
+							<a data-toggle="collapse" href="#arac-menu">
+								<i class="fas fa-truck"></i>
+								<p>Araçlar</p>
+								<span class="caret"></span>
+							</a>
+							<div class="collapse {{ request()->is('tesis-bilgi-sistemi/araclar*') ? 'show' : '' }}"
+								id="arac-menu">
+								<ul class="nav nav-collapse">
+									<li class="{{ request()->routeIs('tesis-bilgi-sistemi.araclar') ? 'active' : '' }}">
+										<a href="{{ route('tesis-bilgi-sistemi.araclar') }}">
+											<span class="sub-item">Araçlar</span>
+										</a>
+									</li>
+									@can('manage_araclar')
+										<li>
+											<a href="{{ route('tesis-bilgi-sistemi.araclar.create') }}">
+												<span class="sub-item">Araç Ekle</span>
+											</a>
+										</li>
+									@endcan
+								</ul>
+							</div>
+						</li>
+					@endcan
 
 					<li class="nav-item {{ request()->routeIs('users.*') ? 'active' : '' }}">
 						<a data-toggle="collapse" href="#sidebarLayouts">

@@ -96,6 +96,10 @@ class KesinlesenFaturaController extends Controller
             ->orderByDesc('yil')
             ->get();
 
+        if (! $selectedYil) {
+            $selectedYil = $yilStats->first()?->yil;
+        }
+
         // Content dönem kartları — yalnızca yıl seçilince yüklenir
         $donemStats = collect();
         if ($selectedYil) {
@@ -119,23 +123,6 @@ class KesinlesenFaturaController extends Controller
         ));
     }
 
-    /**
-     * Filtrelenmiş faturalar üzerinde anomali analizi çalıştır
-     */
-    public function analizEt(Request $request)
-    {
-        $anomaliController = new AnomaliController;
-        $count = $anomaliController->kontrolEt($request);
-
-        if ($request->ajax() || $request->wantsJson()) {
-            return response()->json([
-                'success' => true,
-                'message' => $count.' adet faturada anomali tespit edildi ve işaretlendi.',
-            ]);
-        }
-
-        return redirect()->back()->with('success', $count.' adet faturada anomali tespit edildi ve işaretlendi.');
-    }
 
     /** AJAX: Detayları dön */
     public function show($id)

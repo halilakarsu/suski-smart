@@ -115,11 +115,81 @@
                     <div class="pm-body">
                         <label class="switch-item">
                             <div class="si-info">
-                                <span class="si-title">Görüntüleme</span>
-                                <span class="si-desc">Tesis bilgi sistemine erişim yetkisi</span>
+                                <span class="si-title">Modül Erişimi</span>
+                                <span class="si-desc">Tesis bilgi sistemine genel erişim</span>
                             </div>
                             <div class="toggle-switch">
                                 <input type="checkbox" class="perm-check" name="permissions[]" value="view_tesis_bilgi_sistemi" {{ $user->hasPermission('view_tesis_bilgi_sistemi') ? 'checked' : '' }}>
+                                <span class="toggle-slider"></span>
+                            </div>
+                        </label>
+                        <label class="switch-item">
+                            <div class="si-info">
+                                <span class="si-title">Kuyu Envanteri — Görüntüle</span>
+                                <span class="si-desc">Kuyu envanter listesi ve detayları</span>
+                            </div>
+                            <div class="toggle-switch">
+                                <input type="checkbox" class="perm-check" name="permissions[]" value="view_kuyu_envanteri" {{ $user->hasPermission('view_kuyu_envanteri') ? 'checked' : '' }}>
+                                <span class="toggle-slider"></span>
+                            </div>
+                        </label>
+                        <label class="switch-item">
+                            <div class="si-info">
+                                <span class="si-title">Kuyu Envanteri — Yönetim</span>
+                                <span class="si-desc">Kuyu ekleme, düzenleme, silme</span>
+                            </div>
+                            <div class="toggle-switch">
+                                <input type="checkbox" class="perm-check" name="permissions[]" value="manage_kuyu_envanteri" {{ $user->hasPermission('manage_kuyu_envanteri') ? 'checked' : '' }}>
+                                <span class="toggle-slider"></span>
+                            </div>
+                        </label>
+                        <label class="switch-item">
+                            <div class="si-info">
+                                <span class="si-title">Arıza Kayıtları — Görüntüle</span>
+                                <span class="si-desc">Arıza kayıt listesi ve detayları</span>
+                            </div>
+                            <div class="toggle-switch">
+                                <input type="checkbox" class="perm-check" name="permissions[]" value="view_arizalar" {{ $user->hasPermission('view_arizalar') ? 'checked' : '' }}>
+                                <span class="toggle-slider"></span>
+                            </div>
+                        </label>
+                        <label class="switch-item">
+                            <div class="si-info">
+                                <span class="si-title">Arıza Kayıtları — Yönetim</span>
+                                <span class="si-desc">Arıza kaydı ekleme, düzenleme, durum güncelleme</span>
+                            </div>
+                            <div class="toggle-switch">
+                                <input type="checkbox" class="perm-check" name="permissions[]" value="manage_arizalar" {{ $user->hasPermission('manage_arizalar') ? 'checked' : '' }}>
+                                <span class="toggle-slider"></span>
+                            </div>
+                        </label>
+                        <label class="switch-item">
+                            <div class="si-info">
+                                <span class="si-title">Araçlar — Görüntüle</span>
+                                <span class="si-desc">Araç listesi ve detayları</span>
+                            </div>
+                            <div class="toggle-switch">
+                                <input type="checkbox" class="perm-check" name="permissions[]" value="view_araclar" {{ $user->hasPermission('view_araclar') ? 'checked' : '' }}>
+                                <span class="toggle-slider"></span>
+                            </div>
+                        </label>
+                        <label class="switch-item">
+                            <div class="si-info">
+                                <span class="si-title">Araçlar — Yönetim</span>
+                                <span class="si-desc">Araç ekleme, düzenleme, silme</span>
+                            </div>
+                            <div class="toggle-switch">
+                                <input type="checkbox" class="perm-check" name="permissions[]" value="manage_araclar" {{ $user->hasPermission('manage_araclar') ? 'checked' : '' }}>
+                                <span class="toggle-slider"></span>
+                            </div>
+                        </label>
+                        <label class="switch-item">
+                            <div class="si-info">
+                                <span class="si-title">Arıza Raporları</span>
+                                <span class="si-desc">Yıllık arıza istatistik raporları</span>
+                            </div>
+                            <div class="toggle-switch">
+                                <input type="checkbox" class="perm-check" name="permissions[]" value="view_ariza_raporlari" {{ $user->hasPermission('view_ariza_raporlari') ? 'checked' : '' }}>
                                 <span class="toggle-slider"></span>
                             </div>
                         </label>

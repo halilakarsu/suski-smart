@@ -1,19 +1,14 @@
 <div class="glass-card">
     <h5 class="section-title">
         <i class="fas fa-chart-line"></i> 
-        Dönemsel FaturaTüketim Raporu
-        @if(request()->filled('start_period') || request()->filled('end_period'))
-            <span style="font-size:.85rem;color:#94a3b8;font-weight:500;margin-left: 8px;">
-                (Dönem: 
-                @if(request()->filled('start_period') && request()->filled('end_period'))
-                    {{ request('start_period') }} - {{ request('end_period') }}
-                @elseif(request()->filled('start_period'))
-                    {{ request('start_period') }}
-                @else
-                    ... - {{ request('end_period') }}
-                @endif
-                )
-            </span>
+        Dönemsel Tüketim Raporu
+        @php $defaultPeriod = $donemler && $donemler->first() ? $donemler->first() : null; @endphp
+        @if(request()->filled('start_period'))
+            <span style="font-size:.85rem;color:#94a3b8;font-weight:500;margin-left:8px;">({{ request('start_period') }}{{ request('end_period') ? ' - '.request('end_period') : '' }})</span>
+        @elseif(request()->filled('end_period'))
+            <span style="font-size:.85rem;color:#94a3b8;font-weight:500;margin-left:8px;">(... - {{ request('end_period') }})</span>
+        @elseif($defaultPeriod)
+            <span style="font-size:.85rem;color:#94a3b8;font-weight:500;margin-left:8px;">(Son Dönem: {{ $defaultPeriod }})</span>
         @endif
     </h5>
     
@@ -30,7 +25,7 @@
             <div class="stat-box">
                 <div class="stat-icon blue"><i class="fas fa-bolt"></i></div>
                 <div>
-                    <div class="stat-val">{{ number_format($totals->total_tuketim, 2, ',', '.') }}</div>
+                    <div class="stat-val">{{ number_format($totals->total_tuketim, 0, ',', '.') }}</div>
                     <div class="stat-lbl">Toplam Tüketim (kWh)</div>
                 </div>
             </div>
@@ -61,7 +56,7 @@
                         <td><span class="badge-donem">{{ $row->donem }}</span></td>
                         <td style="font-weight: 600;">{{ $row->ilce }}</td>
                         <td style="text-align: center;"><span class="badge" style="background:#eff6ff;color:#1e40af;">{{ number_format($row->fatura_sayisi) }}</span></td>
-                        <td style="text-align: right; font-weight: 700;">{{ number_format($row->toplam_tuketim, 2, ',', '.') }}</td>
+                        <td style="text-align: right; font-weight: 700;">{{ number_format($row->toplam_tuketim, 0, ',', '.') }}</td>
                         <td style="text-align: right; font-weight: 800; color: #059669;">₺ {{ number_format($row->toplam_tutar, 2, ',', '.') }}</td>
                     </tr>
                 @empty

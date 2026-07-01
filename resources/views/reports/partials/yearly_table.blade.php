@@ -42,7 +42,7 @@
             <div class="stat-box">
                 <div class="stat-icon blue"><i class="fas fa-bolt"></i></div>
                 <div>
-                    <div class="stat-val">{{ number_format($totalKwh, 2, ',', '.') }}</div>
+                    <div class="stat-val">{{ number_format($totalKwh, 0, ',', '.') }}</div>
                     <div class="stat-lbl">Toplam Tüketim (kWh)</div>
                 </div>
             </div>
@@ -75,7 +75,7 @@
                         <td style="text-align: center;"><span style="background: #eff6ff; color: #1e40af; font-weight: 800; padding: 3px 10px; border-radius: 6px; font-size: 0.9rem;">{{ $row->yil }}</span></td>
                         <td><span style="font-weight: 600;">{{ $row->bolge }}</span></td>
                         <td style="text-align: center;"><span class="badge" style="background:#eff6ff;color:#1e40af;font-size:0.9rem;padding:6px 12px;border-radius:8px;">{{ $row->fatura_sayisi }}</span></td>
-                        <td style="text-align: right; font-weight: 700;">{{ number_format($row->toplam_tuketim, 2, ',', '.') }} <span style="font-size: 0.75rem; color: #94a3b8;">kWh</span></td>
+                        <td style="text-align: right; font-weight: 700;">{{ number_format($row->toplam_tuketim, 0, ',', '.') }} <span style="font-size: 0.75rem; color: #94a3b8;">kWh</span></td>
                         <td style="text-align: right; font-weight: 800; color: #059669;">&#8378; {{ number_format($row->toplam_tutar, 2, ',', '.') }}</td>
                     </tr>
                 @empty
@@ -92,7 +92,7 @@
                     <tr style="background:#f1f5f9; font-weight:800;">
                         <td colspan="3">GENEL TOPLAM</td>
                         <td style="text-align: center;">{{ number_format($totalFatura, 0, ',', '.') }}</td>
-                        <td style="text-align: right;">{{ number_format($totalKwh, 2, ',', '.') }} <span style="font-size: 0.75rem;">kWh</span></td>
+                        <td style="text-align: right;">{{ number_format($totalKwh, 0, ',', '.') }} <span style="font-size: 0.75rem;">kWh</span></td>
                         <td style="text-align: right; color:#059669;">&#8378; {{ number_format($totalAmount, 2, ',', '.') }}</td>
                     </tr>
                 </tfoot>
