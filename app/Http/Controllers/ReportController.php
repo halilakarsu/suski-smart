@@ -174,7 +174,7 @@ class ReportController extends Controller
                                 (CAST(REPLACE(COALESCE(t1_tuketim, '0'), ',', '.') AS DECIMAL(18,3))
                                 + CAST(REPLACE(COALESCE(t2_tuketim, '0'), ',', '.') AS DECIMAL(18,3))
                                 + CAST(REPLACE(COALESCE(t3_tuketim, '0'), ',', '.') AS DECIMAL(18,3)))
-                                * (COALESCE(tutar_toplam, fatura_tutari, 0) / NULLIF({$tuketimExpr}, 0)),
+                                * CAST(REPLACE(COALESCE(birim_fiyat, '0'), ',', '.') AS DECIMAL(18,5)),
                                 0
                             )
                           ) as brut_tutar,
@@ -192,7 +192,7 @@ class ReportController extends Controller
                         (CAST(REPLACE(COALESCE(t1_tuketim, '0'), ',', '.') AS DECIMAL(18,3))
                         + CAST(REPLACE(COALESCE(t2_tuketim, '0'), ',', '.') AS DECIMAL(18,3))
                         + CAST(REPLACE(COALESCE(t3_tuketim, '0'), ',', '.') AS DECIMAL(18,3)))
-                        * (COALESCE(tutar_toplam, fatura_tutari, 0) / NULLIF({$tuketimExpr}, 0)),
+                        * CAST(REPLACE(COALESCE(birim_fiyat, '0'), ',', '.') AS DECIMAL(18,5)),
                         0
                     )
                  ) as total_brut_tutar"
@@ -313,7 +313,7 @@ class ReportController extends Controller
                         (CAST(REPLACE(COALESCE(t1_tuketim, '0'), ',', '.') AS DECIMAL(18,3))
                         + CAST(REPLACE(COALESCE(t2_tuketim, '0'), ',', '.') AS DECIMAL(18,3))
                         + CAST(REPLACE(COALESCE(t3_tuketim, '0'), ',', '.') AS DECIMAL(18,3)))
-                        * (COALESCE(tutar_toplam, fatura_tutari, 0) / NULLIF({$tuketimExpr}, 0)), 
+                        * CAST(REPLACE(COALESCE(birim_fiyat, '0'), ',', '.') AS DECIMAL(18,5)), 
                         0
                     )
                  ) as total_brut_tutar"
@@ -330,7 +330,7 @@ class ReportController extends Controller
                                 (CAST(REPLACE(COALESCE(t1_tuketim, '0'), ',', '.') AS DECIMAL(18,3))
                                 + CAST(REPLACE(COALESCE(t2_tuketim, '0'), ',', '.') AS DECIMAL(18,3))
                                 + CAST(REPLACE(COALESCE(t3_tuketim, '0'), ',', '.') AS DECIMAL(18,3)))
-                                * (COALESCE(tutar_toplam, fatura_tutari, 0) / NULLIF({$tuketimExpr}, 0)), 
+                                * CAST(REPLACE(COALESCE(birim_fiyat, '0'), ',', '.') AS DECIMAL(18,5)), 
                                 0
                             )
                           ) as brut_tutar,
