@@ -57,25 +57,29 @@
         <table class="tbl">
             <thead>
                 <tr>
-                    <th>Dönem</th>
-                    <th>Bölge / İlçe</th>
-                    <th style="text-align: center;">Fatura Sayısı</th>
-                    <th style="text-align: right;">Toplam Tüketim (kWh)</th>
-                    <th style="text-align: right;">Toplam Tutar</th>
+                    <th style="width: 40px; text-align: center;">#</th>
+                    <th style="text-align: center;">Dönem</th>
+                    <th style="text-align: left;">Bölge / İlçe</th>
+                    <th style="text-align: right;">Brüt Tüketim (kWh)</th>
+                    <th style="text-align: right;">Brüt Tutar (₺)</th>
+                    <th style="text-align: right;">Net Tüketim (kWh)</th>
+                    <th style="text-align: right;">Net Tutar (₺)</th>
                 </tr>
             </thead>
             <tbody>
                 @forelse($results as $row)
                     <tr>
+                        <td style="text-align: center; color: #94a3b8;">{{ $results->firstItem() + $loop->index }}</td>
                         <td><span class="badge-donem">{{ $row->donem }}</span></td>
                         <td style="font-weight: 600;">{{ $row->ilce }}</td>
-                        <td style="text-align: center;"><span class="badge" style="background:#eff6ff;color:#1e40af;">{{ number_format($row->fatura_sayisi) }}</span></td>
+                        <td style="text-align: right; font-weight: 700;">{{ number_format($row->brut_tuketim, 0, ',', '.') }}</td>
+                        <td style="text-align: right; font-weight: 700; color: #dc2626;">{{ number_format($row->brut_tutar, 2, ',', '.') }} ₺</td>
                         <td style="text-align: right; font-weight: 700;">{{ number_format($row->toplam_tuketim, 0, ',', '.') }}</td>
-                        <td style="text-align: right; font-weight: 800; color: #059669;">₺ {{ number_format($row->toplam_tutar, 2, ',', '.') }}</td>
+                        <td style="text-align: right; font-weight: 800; color: #059669;">{{ number_format($row->toplam_tutar, 2, ',', '.') }} ₺</td>
                     </tr>
                 @empty
                     <tr>
-                        <td colspan="5" class="text-center" style="padding: 40px; color: #94a3b8;">
+                        <td colspan="7" class="text-center" style="padding: 40px; color: #94a3b8;">
                             <i class="fas fa-search-minus mb-3" style="font-size: 2rem; display: block;"></i>
                             Kriterlere uygun herhangi bir veri bulunamadı.
                         </td>
