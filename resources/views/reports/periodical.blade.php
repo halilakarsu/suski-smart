@@ -96,19 +96,20 @@
     .custom-multi-select .form-check-input:checked ~ .cb-box svg { opacity: 1; }
     .custom-multi-select .select-all-wrap { border-bottom: 1.5px solid #e2e8f0; margin-bottom: 6px; padding-bottom: 6px; }
 
-    /* Stats Row Premium */
-    .stats-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 24px; margin-bottom: 30px; }
+    /* Stats Row Premium - Küçültülmüş Yapı */
+    .stats-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 12px; margin-bottom: 24px; }
     .stat-box { 
-        background: #fff; border-radius: 24px; padding: 24px; display: flex; align-items: center; gap: 18px;
-        box-shadow: 0 10px 25px -5px rgba(0,0,0,0.05); border: 1px solid #f1f5f9; transition: transform 0.3s;
+        background: #fff; border-radius: 16px; padding: 14px; display: flex; align-items: center; gap: 12px;
+        box-shadow: 0 4px 15px -3px rgba(0,0,0,0.05); border: 1px solid #f1f5f9; transition: transform 0.3s;
     }
-    .stat-box:hover { transform: translateY(-5px); }
-    .stat-icon { width: 56px; height: 56px; border-radius: 16px; display: flex; align-items: center; justify-content: center; font-size: 1.4rem; flex-shrink: 0; }
+    .stat-box:hover { transform: translateY(-3px); }
+    .stat-icon { width: 40px; height: 40px; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 1.1rem; flex-shrink: 0; }
     .stat-icon.purple { background: #f5f3ff; color: #7c3aed; }
     .stat-icon.blue { background: #eff6ff; color: #2563eb; }
     .stat-icon.green { background: #f0fdf4; color: #16a34a; }
-    .stat-val { font-size: 1.4rem; font-weight: 800; color: #0f172a; line-height: 1.2; letter-spacing: -0.02em; }
-    .stat-lbl { font-size: 0.8rem; font-weight: 600; color: #64748b; text-transform: uppercase; letter-spacing: 0.05em; margin-top: 2px; }
+    .stat-icon.orange { background: #fffbeb; color: #d97706; }
+    .stat-val { font-size: 0.95rem; font-weight: 800; color: #0f172a; line-height: 1.2; letter-spacing: -0.01em; }
+    .stat-lbl { font-size: 0.65rem; font-weight: 700; color: #64748b; text-transform: uppercase; letter-spacing: 0.04em; margin-top: 2px; }
 
     /* ===== ADVANCED MODAL BUTTON ===== */
     .btn-advanced-pro { position:relative; padding:12px 18px; border-radius:14px; font-weight:700; font-size:.9rem; display:inline-flex; align-items:center; justify-content:center; gap:8px; transition:all .3s; border:1.5px solid #c7d2fe; cursor:pointer; background:linear-gradient(135deg,#eff6ff,#f5f3ff); color:#4f46e5; box-shadow:0 4px 12px rgba(79,70,229,.1); }

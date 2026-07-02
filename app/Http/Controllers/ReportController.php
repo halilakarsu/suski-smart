@@ -270,16 +270,39 @@ class ReportController extends Controller
             $normalizedIlce = $this->normalizedIlceExpr();
             $this->applyNormalizesIlceJoin($query);
 
-            // Grand totals — tek sorguda hem kwh hem tutar
             $totals = (clone $query)->selectRaw(
                 "COUNT(*) as total_fatura,
                  SUM({$tuketimExpr}) as total_tuketim,
-                 SUM(COALESCE(tutar_toplam, fatura_tutari, 0)) as total_tutar"
+                 SUM(COALESCE(tutar_toplam, fatura_tutari, 0)) as total_tutar,
+                 SUM(CAST(REPLACE(COALESCE(t1_tuketim, '0'), ',', '.') AS DECIMAL(18,3))) as total_t1_fark,
+                 SUM(CAST(REPLACE(COALESCE(t2_tuketim, '0'), ',', '.') AS DECIMAL(18,3))) as total_t2_fark,
+                 SUM(CAST(REPLACE(COALESCE(t3_tuketim, '0'), ',', '.') AS DECIMAL(18,3))) as total_t3_fark,
+                 SUM(
+                    COALESCE(
+                        (CAST(REPLACE(COALESCE(t1_tuketim, '0'), ',', '.') AS DECIMAL(18,3))
+                        + CAST(REPLACE(COALESCE(t2_tuketim, '0'), ',', '.') AS DECIMAL(18,3))
+                        + CAST(REPLACE(COALESCE(t3_tuketim, '0'), ',', '.') AS DECIMAL(18,3)))
+                        * (COALESCE(tutar_toplam, fatura_tutari, 0) / NULLIF({$tuketimExpr}, 0)), 
+                        0
+                    )
+                 ) as total_brut_tutar"
             )->first();
 
             $selectRaw = "donem, ({$normalizedIlce}) as ilce,
                           COUNT(*) as fatura_sayisi,
-                          SUM({$tuketimExpr}) as toplam_tuketim, 
+                          SUM({$tuketimExpr}) as toplam_tuketim,
+                          SUM(CAST(REPLACE(COALESCE(t1_tuketim, '0'), ',', '.') AS DECIMAL(18,3))
+                            + CAST(REPLACE(COALESCE(t2_tuketim, '0'), ',', '.') AS DECIMAL(18,3))
+                            + CAST(REPLACE(COALESCE(t3_tuketim, '0'), ',', '.') AS DECIMAL(18,3))) as brut_tuketim,
+                          SUM(
+                            COALESCE(
+                                (CAST(REPLACE(COALESCE(t1_tuketim, '0'), ',', '.') AS DECIMAL(18,3))
+                                + CAST(REPLACE(COALESCE(t2_tuketim, '0'), ',', '.') AS DECIMAL(18,3))
+                                + CAST(REPLACE(COALESCE(t3_tuketim, '0'), ',', '.') AS DECIMAL(18,3)))
+                                * (COALESCE(tutar_toplam, fatura_tutari, 0) / NULLIF({$tuketimExpr}, 0)), 
+                                0
+                            )
+                          ) as brut_tutar,
                           SUM(COALESCE(tutar_toplam, fatura_tutari, 0)) as toplam_tutar";
 
             // Exports: all rows at once
@@ -1286,6 +1309,7 @@ class ReportController extends Controller
                 $totals = [
                     'total_kwh' => $totalKWH,
                     'total_amount' => $totalAmount,
+                    'total_ilave_toplam' => $totalIlaveToplam,
                     'total_ilave_tutar' => $totalIlaveTutar,
                 ];
 
@@ -1351,6 +1375,8 @@ class ReportController extends Controller
             return [
                 'donem' => $row->donem,
                 'tesisat_no' => $row->tesisat_no,
+                'ilk_okuma' => $row->ilk_okuma ? $row->ilk_okuma->format('d.m.Y') : null,
+                'son_okuma' => $row->son_okuma ? $row->son_okuma->format('d.m.Y') : null,
                 't1' => $t1,
                 't2' => $t2,
                 't3' => $t3,

@@ -118,6 +118,7 @@
     .tbl tr:hover td { background: #f8fafc; }
 
     .badge-tesisat { font-weight: 700; color: #2563eb; font-family: monospace; }
+    .badge-date { display: inline-block; padding: 4px 10px; background: #f1f5f9; color: #475569; border-radius: 8px; font-weight: 600; font-size: 0.78rem; }
     .badge-donem { display: inline-block; padding: 4px 10px; background: #eff6ff; color: #2563eb; border-radius: 8px; font-weight: 700; font-size: 0.8rem; }
 
     .btn-detay {
@@ -489,17 +490,19 @@ function openEktDetay(tesisatNo) {
                 return;
             }
             var html = '<div class="ekt-tbl-wrap"><table class="ekt-tbl"><thead><tr>' +
-                '<th>Dönem</th><th style="text-align:right;">T1 (kWh)</th><th style="text-align:right;">T2 (kWh)</th><th style="text-align:right;">T3 (kWh)</th><th style="text-align:right;">Toplam (kWh)</th><th style="text-align:right;">T1 İlave (kWh)</th><th style="text-align:right;">T2 İlave (kWh)</th><th style="text-align:right;">T3 İlave (kWh)</th><th style="text-align:right;">İlave Tutar (₺)</th>' +
+                '<th>Dönem</th><th style="text-align:center;">İlk Okuma</th><th style="text-align:center;">Son Okuma</th><th style="text-align:right;">T1 (kWh)</th><th style="text-align:right;">T2 (kWh)</th><th style="text-align:right;">T3 (kWh)</th><th style="text-align:right;">Toplam (kWh)</th><th style="text-align:right;">T1 İlave (kWh)</th><th style="text-align:right;">T2 İlave (kWh)</th><th style="text-align:right;">T3 İlave (kWh)</th><th style="text-align:right;">Top. İlave (kWh)</th>' +
                 '</tr></thead><tbody>';
             var total1 = 0, total2 = 0, total3 = 0, totalToplam = 0;
-            var totalT1I = 0, totalT2I = 0, totalT3I = 0, totalIlaveTutar = 0;
+            var totalT1I = 0, totalT2I = 0, totalT3I = 0, totalIlaveToplam = 0;
             res.records.forEach(function(r) {
                 total1 += r.t1; total2 += r.t2; total3 += r.t3;
                 totalToplam += r.toplam_tuketim;
                 totalT1I += r.t1_ilave; totalT2I += r.t2_ilave; totalT3I += r.t3_ilave;
-                totalIlaveTutar += r.ilave_tutar;
+                totalIlaveToplam = totalT1I + totalT2I + totalT3I;
                 html += '<tr>' +
                     '<td><span style="display:inline-block;padding:3px 10px;background:#eff6ff;color:#2563eb;border-radius:8px;font-weight:700;font-size:.78rem;">' + r.donem + '</span></td>' +
+                    '<td style="text-align:center;font-weight:600;">' + (r.ilk_okuma || '—') + '</td>' +
+                    '<td style="text-align:center;font-weight:600;">' + (r.son_okuma || '—') + '</td>' +
                     '<td style="text-align:right;font-weight:600;">' + r.t1.toLocaleString('tr-TR', {minimumFractionDigits:2, maximumFractionDigits:2}) + '</td>' +
                     '<td style="text-align:right;font-weight:600;">' + r.t2.toLocaleString('tr-TR', {minimumFractionDigits:2, maximumFractionDigits:2}) + '</td>' +
                     '<td style="text-align:right;font-weight:600;">' + r.t3.toLocaleString('tr-TR', {minimumFractionDigits:2, maximumFractionDigits:2}) + '</td>' +
@@ -507,11 +510,13 @@ function openEktDetay(tesisatNo) {
                     '<td style="text-align:right;font-weight:600;color:#7c3aed;">' + r.t1_ilave.toLocaleString('tr-TR', {minimumFractionDigits:2, maximumFractionDigits:2}) + '</td>' +
                     '<td style="text-align:right;font-weight:600;color:#7c3aed;">' + r.t2_ilave.toLocaleString('tr-TR', {minimumFractionDigits:2, maximumFractionDigits:2}) + '</td>' +
                     '<td style="text-align:right;font-weight:600;color:#7c3aed;">' + r.t3_ilave.toLocaleString('tr-TR', {minimumFractionDigits:2, maximumFractionDigits:2}) + '</td>' +
-                    '<td style="text-align:right;font-weight:700;color:#c2410c;">' + r.ilave_tutar.toLocaleString('tr-TR', {minimumFractionDigits:2, maximumFractionDigits:2}) + '</td>' +
+                    '<td style="text-align:right;font-weight:700;color:#0f172a;">' + (r.t1_ilave + r.t2_ilave + r.t3_ilave).toLocaleString('tr-TR', {minimumFractionDigits:2, maximumFractionDigits:2}) + '</td>' +
                     '</tr>';
             });
             html += '</tbody><tfoot><tr style="background:#f1f5f9;font-weight:800;">' +
                 '<td style="font-size:.85rem;letter-spacing:.03em;">GENEL TOPLAM</td>' +
+                '<td style="text-align:center;">—</td>' +
+                '<td style="text-align:center;">—</td>' +
                 '<td style="text-align:right;">' + total1.toLocaleString('tr-TR', {minimumFractionDigits:2, maximumFractionDigits:2}) + '</td>' +
                 '<td style="text-align:right;">' + total2.toLocaleString('tr-TR', {minimumFractionDigits:2, maximumFractionDigits:2}) + '</td>' +
                 '<td style="text-align:right;">' + total3.toLocaleString('tr-TR', {minimumFractionDigits:2, maximumFractionDigits:2}) + '</td>' +
@@ -519,7 +524,7 @@ function openEktDetay(tesisatNo) {
                 '<td style="text-align:right;">' + totalT1I.toLocaleString('tr-TR', {minimumFractionDigits:2, maximumFractionDigits:2}) + '</td>' +
                 '<td style="text-align:right;">' + totalT2I.toLocaleString('tr-TR', {minimumFractionDigits:2, maximumFractionDigits:2}) + '</td>' +
                 '<td style="text-align:right;">' + totalT3I.toLocaleString('tr-TR', {minimumFractionDigits:2, maximumFractionDigits:2}) + '</td>' +
-                '<td style="text-align:right;color:#c2410c;">' + totalIlaveTutar.toLocaleString('tr-TR', {minimumFractionDigits:2, maximumFractionDigits:2}) + '</td>' +
+                '<td style="text-align:right;color:#0f172a;">' + totalIlaveToplam.toLocaleString('tr-TR', {minimumFractionDigits:2, maximumFractionDigits:2}) + '</td>' +
                 '</tr></tfoot></table></div>';
             document.getElementById('ektModalBodyContent').innerHTML = html;
         },

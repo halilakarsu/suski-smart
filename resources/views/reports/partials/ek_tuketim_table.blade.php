@@ -9,7 +9,7 @@
     <div class="stat-box">
         <div class="stat-icon blue"><i class="fas fa-bolt"></i></div>
         <div>
-            <div class="stat-val">{{ number_format($totalKWH, 2, ',', '.') }}</div>
+            <div class="stat-val">{{ number_format($totalKWH, 0, ',', '.') }}</div>
             <div class="stat-lbl">Toplam Tüketim (kWh)</div>
         </div>
     </div>
@@ -48,11 +48,12 @@
                     <th>#</th>
                     <th>Dönem</th>
                     <th>Tesisat No</th>
-                    <th style="text-align:right;">Tüketim (kWh)</th>
+                    <th>İlk Okuma</th>
+                    <th>Son Okuma</th>
                     <th style="text-align:right;">T1 İlave (kWh)</th>
                     <th style="text-align:right;">T2 İlave (kWh)</th>
                     <th style="text-align:right;">T3 İlave (kWh)</th>
-                    <th style="text-align:right;">İlave Tutar (₺)</th>
+                    <th style="text-align:right;">Top. İlave (kWh)</th>
                     <th style="text-align:center;">Detay</th>
                 </tr>
             </thead>
@@ -69,19 +70,17 @@
                             unset($ref);
                         }
                         $ilaveToplam = $t1Ilave + $t2Ilave + $t3Ilave;
-                        $tuketim = (float) ($row->fatura_edilecek_toplam_tuketim_kwh ?: ($row->t1_tuketim + $row->t2_tuketim + $row->t3_tuketim + $row->ek_tuketim));
-                        $birimFiyat = (float) str_replace(',', '.', $row->birim_fiyat ?? '0');
-                        $ilaveTutar = $ilaveToplam * $birimFiyat;
                     @endphp
                     <tr>
                         <td style="color:#94a3b8;font-weight:600;font-size:.85rem;">{{ $results->firstItem() + $i }}</td>
                         <td><span class="badge-donem">{{ $row->donem }}</span></td>
                         <td><span class="badge-tesisat">{{ $row->tesisat_no }}</span></td>
-                        <td style="text-align:right;font-weight:700;">{{ number_format($tuketim, 2, ',', '.') }}</td>
+                        <td><span class="badge-date">{{ $row->ilk_okuma ? $row->ilk_okuma->format('d.m.Y') : '—' }}</span></td>
+                        <td><span class="badge-date">{{ $row->son_okuma ? $row->son_okuma->format('d.m.Y') : '—' }}</span></td>
                         <td style="text-align:right;font-weight:600;color:#7c3aed;">{{ number_format($t1Ilave, 2, ',', '.') }}</td>
                         <td style="text-align:right;font-weight:600;color:#7c3aed;">{{ number_format($t2Ilave, 2, ',', '.') }}</td>
                         <td style="text-align:right;font-weight:600;color:#7c3aed;">{{ number_format($t3Ilave, 2, ',', '.') }}</td>
-                        <td style="text-align:right;font-weight:700;color:#c2410c;">{{ number_format($ilaveTutar, 2, ',', '.') }}</td>
+                        <td style="text-align:right;font-weight:700;color:#0f172a;">{{ number_format($ilaveToplam, 2, ',', '.') }}</td>
                         <td style="text-align:center;">
                             <button type="button" class="btn-detay ek-tuketim-detay-btn" data-tesisat="{{ $row->tesisat_no }}">
                                 <i class="fas fa-search-plus"></i> Detay
@@ -90,7 +89,7 @@
                     </tr>
                 @empty
                     <tr>
-                        <td colspan="9" style="text-align:center;padding:40px;color:#94a3b8;">
+                        <td colspan="10" style="text-align:center;padding:40px;color:#94a3b8;">
                             <i class="fas fa-search-minus" style="font-size:2rem;display:block;margin-bottom:10px;"></i>
                             Seçilen dönemde ek tüketimli fatura bulunamadı.
                         </td>
@@ -100,12 +99,11 @@
             @if($results->count() > 0)
             <tfoot>
                 <tr style="background:#f1f5f9; font-weight:800;">
-                    <td colspan="3" style="font-size:.9rem;letter-spacing:.05em;">GENEL TOPLAM</td>
-                    <td style="text-align:right;">{{ number_format($totalKWH, 2, ',', '.') }}</td>
+                    <td colspan="5" style="font-size:.9rem;letter-spacing:.05em;">GENEL TOPLAM</td>
                     <td style="text-align:right;">—</td>
                     <td style="text-align:right;">—</td>
                     <td style="text-align:right;">—</td>
-                    <td style="text-align:right;color:#c2410c;">{{ number_format($totalIlaveTutar, 2, ',', '.') }}</td>
+                    <td style="text-align:right;color:#0f172a;">{{ number_format($totalIlaveToplam, 2, ',', '.') }}</td>
                     <td></td>
                 </tr>
             </tfoot>

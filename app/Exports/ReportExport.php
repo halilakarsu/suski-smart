@@ -56,10 +56,12 @@ class ReportExport implements FromView, WithColumnWidths, WithEvents, WithTitle
 
         return [
             'A' => 10,  // SIRA NO
-            'B' => 18,  // TESİSAT NO
+            'B' => 18,  // TESİSAT NO / DÖNEM
             'C' => 20,  // BÖLGE
-            'D' => 18,  // TÜKETİM
-            'E' => 18,  // TUTAR
+            'D' => 18,  // BRÜT TÜKETİM / TÜKETİM
+            'E' => 18,  // BRÜT TUTAR / TUTAR
+            'F' => 18,  // NET TÜKETİM / TUTAR
+            'G' => 18,  // NET TUTAR
         ];
     }
 
@@ -72,7 +74,7 @@ class ReportExport implements FromView, WithColumnWidths, WithEvents, WithTitle
                 $lastData = $rowCount + 2;
                 $totalRow = $lastData + 1;
                 $isYearly = $this->type === 'yearly';
-                $lastCol = $isYearly ? 'F' : 'E';
+                $lastCol = $isYearly ? 'F' : 'G';
 
                 // ── 1. BAŞLIK (A1:lastCol1) ─────────────────────────────────────────
                 $sheet->mergeCells("A1:{$lastCol}1");
@@ -104,7 +106,6 @@ class ReportExport implements FromView, WithColumnWidths, WithEvents, WithTitle
                     ]);
 
                     $sheet->getStyle("A{$row}")->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
-
                     $sheet->getStyle("C{$row}")->getAlignment()->setHorizontal(Alignment::HORIZONTAL_LEFT); // BÖLGE
 
                     if ($isYearly) {
@@ -122,11 +123,20 @@ class ReportExport implements FromView, WithColumnWidths, WithEvents, WithTitle
                         $sheet->getStyle("B{$row}")->getFont()->getColor()->setRGB('2563EB');
 
                         $sheet->getStyle("D{$row}")->getAlignment()->setHorizontal(Alignment::HORIZONTAL_RIGHT);
-                        $sheet->getStyle("D{$row}")->getNumberFormat()->setFormatCode('#,##0.00'); // TÜKETİM
+                        $sheet->getStyle("D{$row}")->getNumberFormat()->setFormatCode('#,##0.00'); // BRÜT TÜKETİM
+                        
                         $sheet->getStyle("E{$row}")->getAlignment()->setHorizontal(Alignment::HORIZONTAL_RIGHT);
                         $sheet->getStyle("E{$row}")->getFont()->setBold(true);
-                        $sheet->getStyle("E{$row}")->getFont()->getColor()->setRGB('059669');
-                        $sheet->getStyle("E{$row}")->getNumberFormat()->setFormatCode('#,##0.00'); // TUTAR
+                        $sheet->getStyle("E{$row}")->getFont()->getColor()->setRGB('DC2626');
+                        $sheet->getStyle("E{$row}")->getNumberFormat()->setFormatCode('#,##0.00'); // BRÜT TUTAR
+
+                        $sheet->getStyle("F{$row}")->getAlignment()->setHorizontal(Alignment::HORIZONTAL_RIGHT);
+                        $sheet->getStyle("F{$row}")->getNumberFormat()->setFormatCode('#,##0.00'); // NET TÜKETİM
+                        
+                        $sheet->getStyle("G{$row}")->getAlignment()->setHorizontal(Alignment::HORIZONTAL_RIGHT);
+                        $sheet->getStyle("G{$row}")->getFont()->setBold(true);
+                        $sheet->getStyle("G{$row}")->getFont()->getColor()->setRGB('059669');
+                        $sheet->getStyle("G{$row}")->getNumberFormat()->setFormatCode('#,##0.00'); // NET TUTAR
                     }
                 }
 
@@ -145,8 +155,8 @@ class ReportExport implements FromView, WithColumnWidths, WithEvents, WithTitle
                     $sheet->getStyle("E{$totalRow}:F{$totalRow}")->getNumberFormat()->setFormatCode('#,##0.00');
                     $sheet->getStyle("E{$totalRow}:F{$totalRow}")->getAlignment()->setHorizontal(Alignment::HORIZONTAL_RIGHT);
                 } else {
-                    $sheet->getStyle("D{$totalRow}:E{$totalRow}")->getNumberFormat()->setFormatCode('#,##0.00');
-                    $sheet->getStyle("D{$totalRow}:E{$totalRow}")->getAlignment()->setHorizontal(Alignment::HORIZONTAL_RIGHT);
+                    $sheet->getStyle("D{$totalRow}:G{$totalRow}")->getNumberFormat()->setFormatCode('#,##0.00');
+                    $sheet->getStyle("D{$totalRow}:G{$totalRow}")->getAlignment()->setHorizontal(Alignment::HORIZONTAL_RIGHT);
                 }
             },
         ];

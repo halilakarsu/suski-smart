@@ -14,7 +14,7 @@
     
     @if($totals && $totals->total_fatura > 0)
         {{-- İSTATİSTİK KUTULARI --}}
-        <div class="stats-row">
+        <div class="stats-row" style="grid-template-columns: repeat(5, 1fr); align-items: stretch;">
             <div class="stat-box">
                 <div class="stat-icon purple"><i class="fas fa-file-invoice"></i></div>
                 <div>
@@ -23,17 +23,31 @@
                 </div>
             </div>
             <div class="stat-box">
+                <div class="stat-icon orange"><i class="fas fa-tachometer-alt"></i></div>
+                <div>
+                    <div class="stat-val">{{ number_format(($totals->total_t1_fark ?? 0) + ($totals->total_t2_fark ?? 0) + ($totals->total_t3_fark ?? 0), 0, ',', '.') }}</div>
+                    <div class="stat-lbl">Brüt Tüketim (kWh)</div>
+                </div>
+            </div>
+            <div class="stat-box">
+                <div class="stat-icon" style="background:#fef2f2; color:#dc2626;"><i class="fas fa-wallet"></i></div>
+                <div>
+                    <div class="stat-val">{{ number_format($totals->total_brut_tutar ?? 0, 2, ',', '.') }}</div>
+                    <div class="stat-lbl">Brüt Tutar (₺)</div>
+                </div>
+            </div>
+            <div class="stat-box">
                 <div class="stat-icon blue"><i class="fas fa-bolt"></i></div>
                 <div>
                     <div class="stat-val">{{ number_format($totals->total_tuketim, 0, ',', '.') }}</div>
-                    <div class="stat-lbl">Toplam Tüketim (kWh)</div>
+                    <div class="stat-lbl">Net Tüketim (kWh)</div>
                 </div>
             </div>
             <div class="stat-box">
                 <div class="stat-icon green"><i class="fas fa-lira-sign"></i></div>
                 <div>
                     <div class="stat-val">{{ number_format($totals->total_tutar, 2, ',', '.') }}</div>
-                    <div class="stat-lbl">Toplam Tutar (₺)</div>
+                    <div class="stat-lbl">Net Tutar (₺)</div>
                 </div>
             </div>
         </div>
@@ -61,7 +75,7 @@
                     </tr>
                 @empty
                     <tr>
-                        <td colspan="10" class="text-center" style="padding: 40px; color: #94a3b8;">
+                        <td colspan="5" class="text-center" style="padding: 40px; color: #94a3b8;">
                             <i class="fas fa-search-minus mb-3" style="font-size: 2rem; display: block;"></i>
                             Kriterlere uygun herhangi bir veri bulunamadı.
                         </td>

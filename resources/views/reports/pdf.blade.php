@@ -119,7 +119,8 @@
     // Toplamları hesapla
     $tF = 0; $tK = 0; $tT = 0;
     $tMK = 0; $tMT = 0; $tKK = 0; $tKT = 0;
-    $tT1I = 0; $tT2I = 0; $tT3I = 0; $tIT = 0;
+    $tT1I = 0; $tT2I = 0; $tT3I = 0;
+    $tBrut = 0; $tBrutTutar = 0;
     foreach($results as $row) {
         if ($type === 'koy_merkez') {
             $tMK += $row->merkez_tuketim;
@@ -146,13 +147,15 @@
             $tT1I += $t1Ilave;
             $tT2I += $t2Ilave;
             $tT3I += $t3Ilave;
-            $birimFiyat = (float) str_replace(',', '.', $row->birim_fiyat ?? '0');
-            $tIT += $ilaveToplam * $birimFiyat;
         } else {
             $valK = $isDetailList ? ($row->fatura_edilecek_toplam_tuketim_kwh ?: ($row->t1_tuketim + $row->t2_tuketim + $row->t3_tuketim + $row->ek_tuketim)) : ($row->toplam_tuketim ?? 0);
             $tK += (float)$valK;
             $tT += (float)($row->tutar_toplam ?? ($row->toplam_tutar ?? 0));
             $tF += (int)($row->fatura_sayisi ?? 1);
+            if ($type === 'periodical') {
+                $tBrut += (float)($row->brut_tuketim ?? 0);
+                $tBrutTutar += (float)($row->brut_tutar ?? 0);
+            }
         }
     }
 @endphp
@@ -257,12 +260,13 @@
                 <tr>
                     <th width="4%" class="text-center">SIRA</th>
                     <th width="14%" class="text-center">DÖNEM</th>
-                    <th width="20%" class="text-center">TESİSAT NO</th>
-                    <th width="16%" class="text-right">TÜKETİM (KWH)</th>
-                    <th width="12%" class="text-right">T1 İLAVE</th>
-                    <th width="12%" class="text-right">T2 İLAVE</th>
-                    <th width="12%" class="text-right">T3 İLAVE</th>
-                    <th width="10%" class="text-right">İL. TUTAR</th>
+                    <th width="16%" class="text-center">TESİSAT NO</th>
+                    <th width="12%" class="text-center">İLK OKUMA</th>
+                    <th width="12%" class="text-center">SON OKUMA</th>
+                    <th width="10%" class="text-right">T1 İLAVE</th>
+                    <th width="10%" class="text-right">T2 İLAVE</th>
+                    <th width="10%" class="text-right">T3 İLAVE</th>
+                    <th width="12%" class="text-right">TOP. İLAVE</th>
                 </tr>
             @elseif($type === 'yearly')
                 <tr>
@@ -276,10 +280,11 @@
             @else {{-- periodical --}}
                 <tr>
                     <th width="5%" class="text-center">SIRA</th>
-                    <th width="25%" class="text-center">DÖNEM</th>
-                    <th width="20%" class="text-left">BÖLGE</th>
-                    <th width="25%" class="text-right">TOPLAM TÜKETİM (KWH)</th>
-                    <th width="25%" class="text-right">TOPLAM TUTAR (₺)</th>
+                    <th width="20%" class="text-center">DÖNEM</th>
+                    <th width="15%" class="text-left">BÖLGE</th>
+                    <th width="20%" class="text-right">BRÜT TÜKETİM (KWH)</th>
+                    <th width="20%" class="text-right">NET TÜKETİM (KWH)</th>
+                    <th width="20%" class="text-right">TOPLAM TUTAR (₺)</th>
                 </tr>
             @endif
         </thead>
@@ -335,18 +340,15 @@
                             unset($ref);
                         }
                         $ilaveToplam = $t1Ilave + $t2Ilave + $t3Ilave;
-                        $valK = (float) ($row->fatura_edilecek_toplam_tuketim_kwh ?: ($row->t1_tuketim + $row->t2_tuketim + $row->t3_tuketim + $row->ek_tuketim));
-                        $valT = (float) ($row->tutar_toplam ?? 0);
-                        $birimFiyat = (float) str_replace(',', '.', $row->birim_fiyat ?? '0');
-                        $ilaveTutar = $ilaveToplam * $birimFiyat;
                     @endphp
                     <td class="text-center">{{ $row->donem }}</td>
                     <td class="text-center">{{ $row->tesisat_no }}</td>
-                    <td class="text-right" style="font-weight: bold;">{{ number_format($valK, 2, ',', '.') }}</td>
+                    <td class="text-center">{{ $row->ilk_okuma ? $row->ilk_okuma->format('d.m.Y') : '—' }}</td>
+                    <td class="text-center">{{ $row->son_okuma ? $row->son_okuma->format('d.m.Y') : '—' }}</td>
                     <td class="text-right">{{ number_format($t1Ilave, 2, ',', '.') }}</td>
                     <td class="text-right">{{ number_format($t2Ilave, 2, ',', '.') }}</td>
                     <td class="text-right">{{ number_format($t3Ilave, 2, ',', '.') }}</td>
-                    <td class="text-right" style="font-weight: bold;">{{ number_format($ilaveTutar, 2, ',', '.') }} ₺</td>
+                    <td class="text-right" style="font-weight: bold;">{{ number_format($ilaveToplam, 2, ',', '.') }}</td>
 
                 @elseif($isDetailList)
                     <td class="text-center">{{ $row->abone_tesis_no ?? $row->tesisat_no }}</td>
@@ -375,6 +377,8 @@
                 @else {{-- periodical --}}
                     <td class="text-center">{{ $row->donem }}</td>
                     <td class="text-left">{{ $row->ilce ?? $row->bolge ?? '—' }}</td>
+                    <td class="text-right" style="font-weight: bold;">{{ number_format((float)($row->brut_tuketim ?? 0), 2, ',', '.') }}</td>
+                    <td class="text-right" style="font-weight: bold; color: #dc2626;">{{ number_format((float)($row->brut_tutar ?? 0), 2, ',', '.') }} ₺</td>
                     <td class="text-right" style="font-weight: bold;">{{ number_format($row->toplam_tuketim, 2, ',', '.') }}</td>
                     <td class="text-right" style="font-weight: bold;">{{ number_format($row->toplam_tutar, 2, ',', '.') }} ₺</td>
                 @endif
@@ -405,12 +409,11 @@
                     <td class="text-right">{{ number_format($tT, 2, ',', '.') }} ₺</td>
 
                 @elseif($type === 'ek_tuketim')
-                    <td colspan="3" class="total-label" style="padding-right: 15px;">GENEL TOPLAM :</td>
-                    <td class="text-right">{{ number_format($tK, 2, ',', '.') }}</td>
+                    <td colspan="5" class="total-label" style="padding-right: 15px;">GENEL TOPLAM :</td>
                     <td class="text-right">{{ number_format($tT1I, 2, ',', '.') }}</td>
                     <td class="text-right">{{ number_format($tT2I, 2, ',', '.') }}</td>
                     <td class="text-right">{{ number_format($tT3I, 2, ',', '.') }}</td>
-                    <td class="text-right">{{ number_format($tIT, 2, ',', '.') }} ₺</td>
+                    <td class="text-right">{{ number_format($tT1I + $tT2I + $tT3I, 2, ',', '.') }}</td>
 
                 @elseif($isDetailList)
                     <td colspan="5" class="total-label" style="padding-right: 15px;">GENEL TOPLAM :</td>
@@ -424,6 +427,7 @@
 
                 @else {{-- periodical --}}
                     <td colspan="3" class="total-label" style="padding-right: 15px;">GENEL TOPLAM :</td>
+                    <td class="text-right">{{ number_format($tBrut ?? 0, 2, ',', '.') }} kWh</td>
                     <td class="text-right">{{ number_format($tK, 2, ',', '.') }} kWh</td>
                     <td class="text-right">{{ number_format($tT, 2, ',', '.') }} ₺</td>
                 @endif

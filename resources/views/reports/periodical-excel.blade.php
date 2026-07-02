@@ -4,7 +4,7 @@
 <body>
 <table>
     <tr>
-        <td colspan="{{ $type === 'yearly' ? 5 : 5 }}" style="text-align: center; font-weight: bold; font-size: 14px;">
+        <td colspan="7" style="text-align: center; font-weight: bold; font-size: 14px;">
             {{ $type === 'periodical' ? 'DÖNEMSEL TÜKETİM RAPORU' : 'YILLIK TÜKETİM RAPORU' }}
         </td>
     </tr>
@@ -14,9 +14,13 @@
         <th>BÖLGE</th>
         @if($type === 'yearly')
         <th>FATURA SAYISI</th>
-        @endif
         <th>TÜKETİM (kWh)</th>
-        <th>TOPLAM TUTAR (₺)</th>
+        @else
+        <th>BRÜT TÜKETİM (kWh)</th>
+        <th>BRÜT TUTAR (₺)</th>
+        <th>NET TÜKETİM (kWh)</th>
+        @endif
+        <th>NET TUTAR (₺)</th>
     </tr>
     @foreach($data as $index => $row)
     <tr>
@@ -25,8 +29,12 @@
         <td>{{ $row->ilce ?? $row->bolge ?? '—' }}</td>
         @if($type === 'yearly')
         <td>{{ (int)$row->fatura_sayisi }}</td>
-        @endif
         <td>{{ (float)$row->toplam_tuketim }}</td>
+        @else
+        <td>{{ (float)($row->brut_tuketim ?? 0) }}</td>
+        <td>₺ {{ number_format((float)($row->brut_tutar ?? 0), 2, ',', '.') }}</td>
+        <td>{{ (float)$row->toplam_tuketim }}</td>
+        @endif
         <td>₺ {{ number_format((float)$row->toplam_tutar, 2, ',', '.') }}</td>
     </tr>
     @endforeach
@@ -35,9 +43,13 @@
         <td></td>
         @if($type === 'yearly')
         <td></td>
-        @endif
         <td>{{ (float)$data->sum('toplam_tuketim') }}</td>
-        <td>₺{{ (float)$data->sum('toplam_tutar') }}</td>
+        @else
+        <td>{{ (float)$data->sum('brut_tuketim') }}</td>
+        <td>₺ {{ number_format((float)$data->sum('brut_tutar'), 2, ',', '.') }}</td>
+        <td>{{ (float)$data->sum('toplam_tuketim') }}</td>
+        @endif
+        <td>₺ {{ number_format((float)$data->sum('toplam_tutar'), 2, ',', '.') }}</td>
     </tr>
 </table>
 </body>
