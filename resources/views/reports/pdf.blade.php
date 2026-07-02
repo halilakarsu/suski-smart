@@ -279,12 +279,13 @@
                 </tr>
             @else {{-- periodical --}}
                 <tr>
-                    <th width="5%" class="text-center">SIRA</th>
-                    <th width="20%" class="text-center">DÖNEM</th>
-                    <th width="15%" class="text-left">BÖLGE</th>
-                    <th width="20%" class="text-right">BRÜT TÜKETİM (KWH)</th>
-                    <th width="20%" class="text-right">NET TÜKETİM (KWH)</th>
-                    <th width="20%" class="text-right">TOPLAM TUTAR (₺)</th>
+                    <th width="4%" class="text-center">SIRA</th>
+                    <th width="16%" class="text-center">DÖNEM</th>
+                    <th width="12%" class="text-left">BÖLGE</th>
+                    <th width="18%" class="text-right">BRÜT TÜKETİM (KWH)</th>
+                    <th width="18%" class="text-right">BRÜT TUTAR (₺)</th>
+                    <th width="16%" class="text-right">NET TÜKETİM (KWH)</th>
+                    <th width="16%" class="text-right">NET TUTAR (₺)</th>
                 </tr>
             @endif
         </thead>
@@ -428,6 +429,7 @@
                 @else {{-- periodical --}}
                     <td colspan="3" class="total-label" style="padding-right: 15px;">GENEL TOPLAM :</td>
                     <td class="text-right">{{ number_format($tBrut ?? 0, 2, ',', '.') }} kWh</td>
+                    <td class="text-right">{{ number_format($tBrutTutar ?? 0, 2, ',', '.') }} ₺</td>
                     <td class="text-right">{{ number_format($tK, 2, ',', '.') }} kWh</td>
                     <td class="text-right">{{ number_format($tT, 2, ',', '.') }} ₺</td>
                 @endif
