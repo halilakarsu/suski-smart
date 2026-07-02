@@ -97,19 +97,19 @@
     .custom-multi-select .select-all-wrap { border-bottom: 1.5px solid #e2e8f0; margin-bottom: 6px; padding-bottom: 6px; }
 
     /* Stats Row Premium - Küçültülmüş Yapı */
-    .stats-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 12px; margin-bottom: 24px; }
+    .stats-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 8px; margin-bottom: 18px; }
     .stat-box { 
-        background: #fff; border-radius: 16px; padding: 14px; display: flex; align-items: center; gap: 12px;
-        box-shadow: 0 4px 15px -3px rgba(0,0,0,0.05); border: 1px solid #f1f5f9; transition: transform 0.3s;
+        background: #fff; border-radius: 12px; padding: 10px 12px; display: flex; align-items: center; gap: 10px;
+        box-shadow: 0 2px 8px -2px rgba(0,0,0,0.04); border: 1px solid #f1f5f9; transition: transform 0.2s;
     }
-    .stat-box:hover { transform: translateY(-3px); }
-    .stat-icon { width: 40px; height: 40px; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 1.1rem; flex-shrink: 0; }
+    .stat-box:hover { transform: translateY(-2px); }
+    .stat-icon { width: 34px; height: 34px; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 0.9rem; flex-shrink: 0; }
     .stat-icon.purple { background: #f5f3ff; color: #7c3aed; }
     .stat-icon.blue { background: #eff6ff; color: #2563eb; }
     .stat-icon.green { background: #f0fdf4; color: #16a34a; }
     .stat-icon.orange { background: #fffbeb; color: #d97706; }
-    .stat-val { font-size: 0.95rem; font-weight: 800; color: #0f172a; line-height: 1.2; letter-spacing: -0.01em; }
-    .stat-lbl { font-size: 0.65rem; font-weight: 700; color: #64748b; text-transform: uppercase; letter-spacing: 0.04em; margin-top: 2px; }
+    .stat-val { font-size: 0.85rem; font-weight: 800; color: #0f172a; line-height: 1.2; letter-spacing: -0.01em; white-space: nowrap; }
+    .stat-lbl { font-size: 0.6rem; font-weight: 700; color: #64748b; text-transform: uppercase; letter-spacing: 0.03em; margin-top: 1px; white-space: nowrap; }
 
     /* ===== ADVANCED MODAL BUTTON ===== */
     .btn-advanced-pro { position:relative; padding:12px 18px; border-radius:14px; font-weight:700; font-size:.9rem; display:inline-flex; align-items:center; justify-content:center; gap:8px; transition:all .3s; border:1.5px solid #c7d2fe; cursor:pointer; background:linear-gradient(135deg,#eff6ff,#f5f3ff); color:#4f46e5; box-shadow:0 4px 12px rgba(79,70,229,.1); }
