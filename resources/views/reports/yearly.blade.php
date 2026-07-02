@@ -239,7 +239,7 @@
     <div class="main-container" style="margin-top: -3.5rem;">
         <div id="reportResultsContainer">
             @if($results->count() > 0)
-                @include('reports.partials.yearly_table', ['results' => $results])
+                @include('reports.partials.yearly_table', ['results' => $results, 'totals' => $totals])
             @else
                 <div class="glass-card" style="text-align:center;padding:60px 40px;">
                     <div style="width:80px;height:80px;background:#f0fdf4;color:#059669;border-radius:24px;display:flex;align-items:center;justify-content:center;font-size:2.5rem;margin:0 auto 20px;"><i class="fas fa-calendar-alt"></i></div>

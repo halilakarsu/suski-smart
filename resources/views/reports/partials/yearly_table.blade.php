@@ -21,36 +21,41 @@
         @endif
     </h5>
     
-    @php 
-        $totalKwh = 0; $totalAmount = 0; $totalFatura = 0; 
-        foreach($results as $row) {
-            $totalKwh += $row->toplam_tuketim; 
-            $totalAmount += $row->toplam_tutar; 
-            $totalFatura += $row->fatura_sayisi;
-        }
-    @endphp
-
-    @if($results->count() > 0)
-        <div class="stats-row">
+    @if($totals && $totals->total_fatura > 0)
+        <div class="stats-row" style="grid-template-columns: repeat(5, 1fr); align-items: stretch;">
             <div class="stat-box">
                 <div class="stat-icon purple"><i class="fas fa-file-invoice"></i></div>
                 <div>
-                    <div class="stat-val">{{ number_format($totalFatura, 0, ',', '.') }}</div>
+                    <div class="stat-val">{{ number_format($totals->total_fatura, 0, ',', '.') }}</div>
                     <div class="stat-lbl">Toplam Fatura</div>
+                </div>
+            </div>
+            <div class="stat-box">
+                <div class="stat-icon orange"><i class="fas fa-tachometer-alt"></i></div>
+                <div>
+                    <div class="stat-val">{{ number_format(($totals->total_t1_fark ?? 0) + ($totals->total_t2_fark ?? 0) + ($totals->total_t3_fark ?? 0), 0, ',', '.') }}</div>
+                    <div class="stat-lbl">Brüt Tüketim (kWh)</div>
+                </div>
+            </div>
+            <div class="stat-box">
+                <div class="stat-icon" style="background:#fef2f2; color:#dc2626;"><i class="fas fa-wallet"></i></div>
+                <div>
+                    <div class="stat-val">{{ number_format($totals->total_brut_tutar ?? 0, 2, ',', '.') }}</div>
+                    <div class="stat-lbl">Brüt Tutar (₺)</div>
                 </div>
             </div>
             <div class="stat-box">
                 <div class="stat-icon blue"><i class="fas fa-bolt"></i></div>
                 <div>
-                    <div class="stat-val">{{ number_format($totalKwh, 0, ',', '.') }}</div>
-                    <div class="stat-lbl">Toplam Tüketim (kWh)</div>
+                    <div class="stat-val">{{ number_format($totals->total_tuketim, 0, ',', '.') }}</div>
+                    <div class="stat-lbl">Net Tüketim (kWh)</div>
                 </div>
             </div>
             <div class="stat-box">
                 <div class="stat-icon green"><i class="fas fa-lira-sign"></i></div>
                 <div>
-                    <div class="stat-val">{{ number_format($totalAmount, 2, ',', '.') }}</div>
-                    <div class="stat-lbl">Toplam Tutar (₺)</div>
+                    <div class="stat-val">{{ number_format($totals->total_tutar, 2, ',', '.') }}</div>
+                    <div class="stat-lbl">Net Tutar (₺)</div>
                 </div>
             </div>
         </div>
@@ -60,27 +65,31 @@
         <table class="tbl">
             <thead>
                 <tr>
-                    <th style="width: 60px;">Sıra</th>
-                    <th style="width: 80px; text-align: center;">Yıl</th>
-                    <th>Bölge</th>
+                    <th style="width: 40px; text-align: center;">#</th>
+                    <th style="text-align: center;">Yıl</th>
+                    <th style="text-align: left;">Bölge</th>
                     <th style="text-align: center;">Fatura Sayısı</th>
-                    <th style="text-align: right;">Toplam Tüketim (kWh)</th>
-                    <th style="text-align: right;">Toplam Maliyet</th>
+                    <th style="text-align: right;">Brüt Tüketim (kWh)</th>
+                    <th style="text-align: right;">Brüt Tutar (₺)</th>
+                    <th style="text-align: right;">Net Tüketim (kWh)</th>
+                    <th style="text-align: right;">Net Tutar (₺)</th>
                 </tr>
             </thead>
             <tbody>
                 @forelse($results as $index => $row)
                     <tr>
-                        <td>{{ $index + 1 }}</td>
+                        <td style="text-align: center; color: #94a3b8;">{{ $index + 1 }}</td>
                         <td style="text-align: center;"><span style="background: #eff6ff; color: #1e40af; font-weight: 800; padding: 3px 10px; border-radius: 6px; font-size: 0.9rem;">{{ $row->yil }}</span></td>
-                        <td><span style="font-weight: 600;">{{ $row->bolge }}</span></td>
-                        <td style="text-align: center;"><span class="badge" style="background:#eff6ff;color:#1e40af;font-size:0.9rem;padding:6px 12px;border-radius:8px;">{{ $row->fatura_sayisi }}</span></td>
-                        <td style="text-align: right; font-weight: 700;">{{ number_format($row->toplam_tuketim, 0, ',', '.') }} <span style="font-size: 0.75rem; color: #94a3b8;">kWh</span></td>
-                        <td style="text-align: right; font-weight: 800; color: #059669;">&#8378; {{ number_format($row->toplam_tutar, 2, ',', '.') }}</td>
+                        <td style="font-weight: 600;">{{ $row->bolge }}</td>
+                        <td style="text-align: center;"><span class="badge" style="background:#eff6ff;color:#1e40af;font-size:0.9rem;padding:6px 12px;border-radius:8px;">{{ number_format($row->fatura_sayisi) }}</span></td>
+                        <td style="text-align: right; font-weight: 700;">{{ number_format($row->brut_tuketim, 0, ',', '.') }}</td>
+                        <td style="text-align: right; font-weight: 700; color: #dc2626;">{{ number_format($row->brut_tutar, 2, ',', '.') }} ₺</td>
+                        <td style="text-align: right; font-weight: 700;">{{ number_format($row->toplam_tuketim, 0, ',', '.') }}</td>
+                        <td style="text-align: right; font-weight: 800; color: #059669;">{{ number_format($row->toplam_tutar, 2, ',', '.') }} ₺</td>
                     </tr>
                 @empty
                     <tr>
-                        <td colspan="6" class="text-center" style="padding: 40px; color: #94a3b8;">
+                        <td colspan="8" class="text-center" style="padding: 40px; color: #94a3b8;">
                              <i class="fas fa-search-minus mb-3" style="font-size: 2rem; display: block;"></i>
                             Kriterlere uygun herhangi bir veri bulunamadı.
                         </td>
@@ -90,10 +99,11 @@
             @if($results->count() > 0)
                 <tfoot>
                     <tr style="background:#f1f5f9; font-weight:800;">
-                        <td colspan="3">GENEL TOPLAM</td>
-                        <td style="text-align: center;">{{ number_format($totalFatura, 0, ',', '.') }}</td>
-                        <td style="text-align: right;">{{ number_format($totalKwh, 0, ',', '.') }} <span style="font-size: 0.75rem;">kWh</span></td>
-                        <td style="text-align: right; color:#059669;">&#8378; {{ number_format($totalAmount, 2, ',', '.') }}</td>
+                        <td colspan="4">GENEL TOPLAM</td>
+                        <td style="text-align: right;">{{ number_format(($totals->total_t1_fark ?? 0) + ($totals->total_t2_fark ?? 0) + ($totals->total_t3_fark ?? 0), 2, ',', '.') }} kWh</td>
+                        <td style="text-align: right;">{{ number_format($totals->total_brut_tutar ?? 0, 2, ',', '.') }} ₺</td>
+                        <td style="text-align: right;">{{ number_format($totals->total_tuketim, 2, ',', '.') }} kWh</td>
+                        <td style="text-align: right; color:#059669;">{{ number_format($totals->total_tutar, 2, ',', '.') }} ₺</td>
                     </tr>
                 </tfoot>
             @endif

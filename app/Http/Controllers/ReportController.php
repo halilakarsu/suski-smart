@@ -107,6 +107,7 @@ class ReportController extends Controller
     public function yearly(Request $request)
     {
         $results = collect();
+        $totals = null;
 
         $hasFilter = $request->filled('start_year') || $request->filled('end_year') || $request->filled('bolge') || $request->filled('tesisat_no') || $request->filled('yerlesim_tipi') || $request->filled('baglanti_grubu') || $request->filled('tarife');
 
@@ -164,8 +165,38 @@ class ReportController extends Controller
             $selectRaw = "({$normalizedIlce}) as bolge,
                           SUBSTRING(donem, 1, 4) as yil,
                           COUNT(*) as fatura_sayisi,
-                          SUM({$tuketimExpr}) as toplam_tuketim, 
+                          SUM({$tuketimExpr}) as toplam_tuketim,
+                          SUM(CAST(REPLACE(COALESCE(t1_tuketim, '0'), ',', '.') AS DECIMAL(18,3))
+                            + CAST(REPLACE(COALESCE(t2_tuketim, '0'), ',', '.') AS DECIMAL(18,3))
+                            + CAST(REPLACE(COALESCE(t3_tuketim, '0'), ',', '.') AS DECIMAL(18,3))) as brut_tuketim,
+                          SUM(
+                            COALESCE(
+                                (CAST(REPLACE(COALESCE(t1_tuketim, '0'), ',', '.') AS DECIMAL(18,3))
+                                + CAST(REPLACE(COALESCE(t2_tuketim, '0'), ',', '.') AS DECIMAL(18,3))
+                                + CAST(REPLACE(COALESCE(t3_tuketim, '0'), ',', '.') AS DECIMAL(18,3)))
+                                * (COALESCE(tutar_toplam, fatura_tutari, 0) / NULLIF({$tuketimExpr}, 0)),
+                                0
+                            )
+                          ) as brut_tutar,
                           SUM(COALESCE(tutar_toplam, fatura_tutari, 0)) as toplam_tutar";
+
+            $totals = (clone $query)->selectRaw(
+                "COUNT(*) as total_fatura,
+                 SUM({$tuketimExpr}) as total_tuketim,
+                 SUM(COALESCE(tutar_toplam, fatura_tutari, 0)) as total_tutar,
+                 SUM(CAST(REPLACE(COALESCE(t1_tuketim, '0'), ',', '.') AS DECIMAL(18,3))) as total_t1_fark,
+                 SUM(CAST(REPLACE(COALESCE(t2_tuketim, '0'), ',', '.') AS DECIMAL(18,3))) as total_t2_fark,
+                 SUM(CAST(REPLACE(COALESCE(t3_tuketim, '0'), ',', '.') AS DECIMAL(18,3))) as total_t3_fark,
+                 SUM(
+                    COALESCE(
+                        (CAST(REPLACE(COALESCE(t1_tuketim, '0'), ',', '.') AS DECIMAL(18,3))
+                        + CAST(REPLACE(COALESCE(t2_tuketim, '0'), ',', '.') AS DECIMAL(18,3))
+                        + CAST(REPLACE(COALESCE(t3_tuketim, '0'), ',', '.') AS DECIMAL(18,3)))
+                        * (COALESCE(tutar_toplam, fatura_tutari, 0) / NULLIF({$tuketimExpr}, 0)),
+                        0
+                    )
+                 ) as total_brut_tutar"
+            )->first();
 
             $results = $query->selectRaw($selectRaw)
                 ->groupByRaw("({$normalizedIlce}), SUBSTRING(donem, 1, 4)")
@@ -174,7 +205,7 @@ class ReportController extends Controller
                 ->get();
 
             if ($request->ajax()) {
-                return view('reports.partials.yearly_table', compact('results'))->render();
+                return view('reports.partials.yearly_table', compact('results', 'totals'))->render();
             }
         }
 
@@ -205,7 +236,7 @@ class ReportController extends Controller
             }
         }
 
-        return view('reports.yearly', compact('results', 'yillar', 'bolgeler', 'tarifeler'));
+        return view('reports.yearly', compact('results', 'yillar', 'bolgeler', 'tarifeler', 'totals'));
     }
 
     public function periodical(Request $request)

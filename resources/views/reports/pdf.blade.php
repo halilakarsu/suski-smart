@@ -152,7 +152,7 @@
             $tK += (float)$valK;
             $tT += (float)($row->tutar_toplam ?? ($row->toplam_tutar ?? 0));
             $tF += (int)($row->fatura_sayisi ?? 1);
-            if ($type === 'periodical') {
+            if (in_array($type, ['periodical', 'yearly'])) {
                 $tBrut += (float)($row->brut_tuketim ?? 0);
                 $tBrutTutar += (float)($row->brut_tutar ?? 0);
             }
@@ -270,12 +270,14 @@
                 </tr>
             @elseif($type === 'yearly')
                 <tr>
-                    <th width="4%" class="text-center">SIRA</th>
-                    <th width="8%" class="text-center">YIL</th>
-                    @if($hasBolge)<th width="18%" class="text-left">BÖLGE</th>@endif
-                    <th width="10%" class="text-center">FATURA SAYISI</th>
-                    <th width="{{ $hasBolge ? '22%' : '30%' }}" class="text-right">TOPLAM TÜKETİM (KWH)</th>
-                    <th width="{{ $hasBolge ? '22%' : '30%' }}" class="text-right">TOPLAM TUTAR (₺)</th>
+                    <th width="3%" class="text-center">SIRA</th>
+                    <th width="7%" class="text-center">YIL</th>
+                    @if($hasBolge)<th width="13%" class="text-left">BÖLGE</th>@endif
+                    <th width="7%" class="text-center">FATURA SAYISI</th>
+                    <th width="{{ $hasBolge ? '17%' : '20%' }}" class="text-right">BRÜT TÜKETİM (KWH)</th>
+                    <th width="{{ $hasBolge ? '17%' : '20%' }}" class="text-right">BRÜT TUTAR (₺)</th>
+                    <th width="{{ $hasBolge ? '17%' : '20%' }}" class="text-right">NET TÜKETİM (KWH)</th>
+                    <th width="{{ $hasBolge ? '19%' : '22%' }}" class="text-right">NET TUTAR (₺)</th>
                 </tr>
             @else {{-- periodical --}}
                 <tr>
@@ -372,6 +374,8 @@
                     <td class="text-center" style="font-weight: bold; color: #1a73e8;">{{ $row->yil }}</td>
                     @if($hasBolge)<td class="text-left">{{ $row->bolge ?? '—' }}</td>@endif
                     <td class="text-center">{{ $row->fatura_sayisi }}</td>
+                    <td class="text-right" style="font-weight: bold;">{{ number_format((float)($row->brut_tuketim ?? 0), 2, ',', '.') }}</td>
+                    <td class="text-right" style="font-weight: bold; color: #dc2626;">{{ number_format((float)($row->brut_tutar ?? 0), 2, ',', '.') }} ₺</td>
                     <td class="text-right" style="font-weight: bold;">{{ number_format($row->toplam_tuketim, 2, ',', '.') }}</td>
                     <td class="text-right" style="font-weight: bold;">{{ number_format($row->toplam_tutar, 2, ',', '.') }} ₺</td>
 
@@ -423,6 +427,8 @@
 
                 @elseif($type === 'yearly')
                     <td colspan="{{ $hasBolge ? 4 : 3 }}" class="total-label" style="padding-right: 15px;">GENEL TOPLAM :</td>
+                    <td class="text-right">{{ number_format($tBrut ?? 0, 2, ',', '.') }} kWh</td>
+                    <td class="text-right">{{ number_format($tBrutTutar ?? 0, 2, ',', '.') }} ₺</td>
                     <td class="text-right">{{ number_format($tK, 2, ',', '.') }} kWh</td>
                     <td class="text-right">{{ number_format($tT, 2, ',', '.') }} ₺</td>
 
