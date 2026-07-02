@@ -915,9 +915,6 @@
                 }
                 curDonem = donem;
                 document.querySelectorAll('[data-donem]').forEach(c => c.classList.toggle('active', c.dataset.donem === donem));
-                // Update filter modal
-                const fDonem = document.getElementById('filterDonem');
-                if (fDonem) fDonem.value = donem;
 
                 // Update Modal Title
                 const ayNo = donem.split('-')[1];

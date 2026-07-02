@@ -256,14 +256,13 @@
             @elseif($type === 'ek_tuketim')
                 <tr>
                     <th width="4%" class="text-center">SIRA</th>
-                    <th width="12%" class="text-center">DÖNEM</th>
-                    <th width="18%" class="text-center">TESİSAT NO</th>
-                    <th width="14%" class="text-right">TÜKETİM (KWH)</th>
-                    <th width="10%" class="text-right">T1 İLAVE</th>
-                    <th width="10%" class="text-right">T2 İLAVE</th>
-                    <th width="10%" class="text-right">T3 İLAVE</th>
-                    <th width="11%" class="text-right">TUTAR (₺)</th>
-                    <th width="11%" class="text-right">İLAVE TUTAR</th>
+                    <th width="14%" class="text-center">DÖNEM</th>
+                    <th width="20%" class="text-center">TESİSAT NO</th>
+                    <th width="16%" class="text-right">TÜKETİM (KWH)</th>
+                    <th width="12%" class="text-right">T1 İLAVE</th>
+                    <th width="12%" class="text-right">T2 İLAVE</th>
+                    <th width="12%" class="text-right">T3 İLAVE</th>
+                    <th width="10%" class="text-right">İL. TUTAR</th>
                 </tr>
             @elseif($type === 'yearly')
                 <tr>
@@ -347,7 +346,6 @@
                     <td class="text-right">{{ number_format($t1Ilave, 2, ',', '.') }}</td>
                     <td class="text-right">{{ number_format($t2Ilave, 2, ',', '.') }}</td>
                     <td class="text-right">{{ number_format($t3Ilave, 2, ',', '.') }}</td>
-                    <td class="text-right" style="font-weight: bold;">{{ number_format($valT, 2, ',', '.') }} ₺</td>
                     <td class="text-right" style="font-weight: bold;">{{ number_format($ilaveTutar, 2, ',', '.') }} ₺</td>
 
                 @elseif($isDetailList)
@@ -412,7 +410,6 @@
                     <td class="text-right">{{ number_format($tT1I, 2, ',', '.') }}</td>
                     <td class="text-right">{{ number_format($tT2I, 2, ',', '.') }}</td>
                     <td class="text-right">{{ number_format($tT3I, 2, ',', '.') }}</td>
-                    <td class="text-right">{{ number_format($tT, 2, ',', '.') }} ₺</td>
                     <td class="text-right">{{ number_format($tIT, 2, ',', '.') }} ₺</td>
 
                 @elseif($isDetailList)

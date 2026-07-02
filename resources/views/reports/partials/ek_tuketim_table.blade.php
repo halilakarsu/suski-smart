@@ -52,7 +52,6 @@
                     <th style="text-align:right;">T1 İlave (kWh)</th>
                     <th style="text-align:right;">T2 İlave (kWh)</th>
                     <th style="text-align:right;">T3 İlave (kWh)</th>
-                    <th style="text-align:right;">Tutar (₺)</th>
                     <th style="text-align:right;">İlave Tutar (₺)</th>
                     <th style="text-align:center;">Detay</th>
                 </tr>
@@ -71,7 +70,6 @@
                         }
                         $ilaveToplam = $t1Ilave + $t2Ilave + $t3Ilave;
                         $tuketim = (float) ($row->fatura_edilecek_toplam_tuketim_kwh ?: ($row->t1_tuketim + $row->t2_tuketim + $row->t3_tuketim + $row->ek_tuketim));
-                        $tutar = (float) ($row->tutar_toplam ?: 0);
                         $birimFiyat = (float) str_replace(',', '.', $row->birim_fiyat ?? '0');
                         $ilaveTutar = $ilaveToplam * $birimFiyat;
                     @endphp
@@ -83,7 +81,6 @@
                         <td style="text-align:right;font-weight:600;color:#7c3aed;">{{ number_format($t1Ilave, 2, ',', '.') }}</td>
                         <td style="text-align:right;font-weight:600;color:#7c3aed;">{{ number_format($t2Ilave, 2, ',', '.') }}</td>
                         <td style="text-align:right;font-weight:600;color:#7c3aed;">{{ number_format($t3Ilave, 2, ',', '.') }}</td>
-                        <td style="text-align:right;font-weight:800;color:#059669;">{{ number_format($tutar, 2, ',', '.') }}</td>
                         <td style="text-align:right;font-weight:700;color:#c2410c;">{{ number_format($ilaveTutar, 2, ',', '.') }}</td>
                         <td style="text-align:center;">
                             <button type="button" class="btn-detay ek-tuketim-detay-btn" data-tesisat="{{ $row->tesisat_no }}">
@@ -93,7 +90,7 @@
                     </tr>
                 @empty
                     <tr>
-                        <td colspan="10" style="text-align:center;padding:40px;color:#94a3b8;">
+                        <td colspan="9" style="text-align:center;padding:40px;color:#94a3b8;">
                             <i class="fas fa-search-minus" style="font-size:2rem;display:block;margin-bottom:10px;"></i>
                             Seçilen dönemde ek tüketimli fatura bulunamadı.
                         </td>
@@ -108,7 +105,6 @@
                     <td style="text-align:right;">—</td>
                     <td style="text-align:right;">—</td>
                     <td style="text-align:right;">—</td>
-                    <td style="text-align:right;color:#059669;">{{ number_format($totalAmount, 2, ',', '.') }}</td>
                     <td style="text-align:right;color:#c2410c;">{{ number_format($totalIlaveTutar, 2, ',', '.') }}</td>
                     <td></td>
                 </tr>

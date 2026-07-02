@@ -14,7 +14,6 @@
                 <th rowspan="2">TESİSAT NO</th>
                 <th>TÜKETİM (kWh)</th>
                 <th colspan="3">İLAVE TÜKETİM</th>
-                <th>TUTAR (₺)</th>
                 <th>İLAVE TUTAR (₺)</th>
             </tr>
             <tr>
@@ -22,7 +21,6 @@
                 <th>T1 İlave (kWh)</th>
                 <th>T2 İlave (kWh)</th>
                 <th>T3 İlave (kWh)</th>
-                <th>Tutar (₺)</th>
                 <th>İlave Tutar (₺)</th>
             </tr>
         </thead>
@@ -52,7 +50,6 @@
                 <td style="text-align:right;">{{ number_format($t1Ilave, 2, ',', '.') }}</td>
                 <td style="text-align:right;">{{ number_format($t2Ilave, 2, ',', '.') }}</td>
                 <td style="text-align:right;">{{ number_format($t3Ilave, 2, ',', '.') }}</td>
-                <td style="text-align:right;">{{ number_format($tutar, 2, ',', '.') }}</td>
                 <td style="text-align:right;">{{ number_format($ilaveTutar, 2, ',', '.') }}</td>
             </tr>
             @endforeach
@@ -64,7 +61,6 @@
                 <td style="text-align:right;">—</td>
                 <td style="text-align:right;">—</td>
                 <td style="text-align:right;">—</td>
-                <td style="text-align:right;">{{ number_format($totals['total_amount'], 2, ',', '.') }}</td>
                 <td style="text-align:right;">{{ number_format($totals['total_ilave_tutar'], 2, ',', '.') }}</td>
             </tr>
         </tfoot>
